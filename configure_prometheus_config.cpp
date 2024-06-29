@@ -29,59 +29,6 @@
 #include "configure_prometheus_config.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus_detail {
-namespace {
-
-const std::string g_empty_str;
-
-} // anonymous namespace
-
-void Labels::clear() noexcept
-{
-  m_labels.clear();
-  m_path.clear();
-}
-
-void Labels::set_label(std::string_view p_label,
-                       std::string p_value)
-{
-  auto [pos, found] = m_labels.find_pos(p_label);
-
-  if(found)
-  {
-    m_labels[pos].value = std::move(p_value);
-  }
-  else
-  {
-    [[maybe_unused]]
-    auto ignore = m_labels.emplace(pos,
-                                   std::string{p_label},
-                                   std::move(p_value));
-  }
-}
-
-void Labels::set_label(std::string_view /* p_label */,
-                       yy_mqtt::TopicLevels p_path)
-{
-  m_path = p_path;
-}
-
-const std::string & Labels::get_label(const std::string & p_label) const
-{
-  const std::string * label = &g_empty_str;
-
-  auto do_get_value = [&label](const std::string * p_visitor_label, auto) {
-    if(nullptr != p_visitor_label)
-    {
-      label = p_visitor_label;
-    }
-  };
-
-  [[maybe_unused]]
-  auto ignore = m_labels.find_value(do_get_value, p_label);
-
-  return *label;
-}
-
 
 Metric::Metric(std::string_view p_id,
                const MetricType p_type,

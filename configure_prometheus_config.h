@@ -39,43 +39,6 @@ namespace yafiyogi::mqtt_bridge::prometheus_detail {
 
 enum class MetricType {Guage};
 
-class Labels final
-{
-  public:
-    Labels() noexcept = default;
-    Labels(const Labels &) noexcept = default;
-    Labels(Labels &&) noexcept = default;
-    ~Labels() noexcept = default;
-
-    Labels & operator=(const Labels &) noexcept = default;
-    Labels & operator=(Labels &&) noexcept = default;
-
-    void clear() noexcept;
-    void set_label(std::string_view p_label,
-                   std::string p_value);
-    void set_label(std::string_view p_label,
-                   std::string_view p_value)
-    {
-      set_label(p_label, std::string{p_value});
-    }
-    void set_label(std::string_view p_label,
-                   yy_mqtt::TopicLevels p_path);
-
-    [[nodiscard]]
-    const std::string & get_label(const std::string & p_label) const;
-
-    [[nodiscard]]
-    size_t size() const noexcept
-    {
-      return m_labels.size();
-    }
-
-  private:
-    using LabelStore = yy_data::flat_map<std::string, std::string>;
-    LabelStore m_labels;
-    yy_mqtt::TopicLevels m_path;
-};
-
 class Metric
 {
   public:
