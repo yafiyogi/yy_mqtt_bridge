@@ -37,7 +37,7 @@
 #include "yy_json/yy_json_pointer_util.h"
 
 #include "configure_mqtt_handlers.h"
-#include "configure_prometheus_config.h"
+#include "prometheus_config.h"
 #include "mqtt_handler.h"
 #include "mqtt_json_handler.h"
 
@@ -72,7 +72,7 @@ MqttHandler::type decode_type(const YAML::Node & yaml_type)
 
 MqttHandlerPtr configure_json_property(std::string_view p_id,
                                        const YAML::Node & yaml_json_handler,
-                                       prometheus_detail::MetricsMap & prometheus_metrics)
+                                       MetricsMap & prometheus_metrics)
 {
   spdlog::info("Configure [{}]", p_id);
 
@@ -87,11 +87,11 @@ MqttHandlerPtr configure_json_property(std::string_view p_id,
     yy_json::PathLevels path{};
 
     auto do_add_property = [&property, &json_pointer, &json_pointer_builder, &has_metrics]
-                           (prometheus_detail::Metrics * visitor_prometheus_metrics, auto /* pos */) {
+                           (Metrics * visitor_prometheus_metrics, auto /* pos */) {
       if(nullptr != visitor_prometheus_metrics)
       {
         auto [builder_metrics, added] = json_pointer_builder.add_pointer(json_pointer,
-                                                                         prometheus_detail::Metrics{});
+                                                                         Metrics{});
         if(nullptr != builder_metrics)
         {
           for(auto & metric : *visitor_prometheus_metrics)
@@ -109,9 +109,6 @@ MqttHandlerPtr configure_json_property(std::string_view p_id,
         }
       }
     };
-
-    yy_quad::simple_vector<std::string> properties{};
-    properties.reserve(yaml_properties.size());
 
     for(const auto & yaml_property : yaml_properties)
     {
@@ -134,8 +131,6 @@ MqttHandlerPtr configure_json_property(std::string_view p_id,
       if(!json_pointer.empty()
          && !property.empty())
       {
-        properties.emplace_back(std::string{property});
-
         [[maybe_unused]]
         auto ignore = prometheus_metrics.find_value(do_add_property, p_id);
       }
@@ -144,23 +139,6 @@ MqttHandlerPtr configure_json_property(std::string_view p_id,
     if(has_metrics)
     {
       auto config{json_pointer_builder.create(g_json_options.max_depth)};
-
-      for(auto & prop : properties)
-      {
-        if(auto metrics = config.pointers.find_pointer(prop);
-           nullptr != metrics)
-        {
-          spdlog::info("     - configured property [{}].", prop);
-          for(auto & metric : *metrics)
-          {
-            spdlog::info("       - metric [{}].", metric->Id());
-          }
-        }
-        else
-        {
-          spdlog::warn("  - failed to configure property [{}].", prop);
-        }
-      }
 
       mqtt_json_handler = std::make_unique<MqttJsonHandler>(p_id,
                                                             g_json_options,
@@ -173,7 +151,7 @@ MqttHandlerPtr configure_json_property(std::string_view p_id,
 
 MqttHandlerPtr configure_text_property(std::string_view p_id,
                                        const YAML::Node & /* yaml_text_handler */,
-                                       prometheus_detail::MetricsMap & /* prometheus_metrics */)
+                                       MetricsMap & /* prometheus_metrics */)
 {
   return std::make_unique<MqttHandler>(p_id,
                                        MqttHandler::type::Text);
@@ -181,7 +159,7 @@ MqttHandlerPtr configure_text_property(std::string_view p_id,
 
 MqttHandlerPtr configure_value_property(std::string_view p_id,
                                         const YAML::Node & /* yaml_value_handler */,
-                                        prometheus_detail::MetricsMap & /* prometheus_metrics */)
+                                        MetricsMap & /* prometheus_metrics */)
 {
   return std::make_unique<MqttHandler>(p_id,
                                        MqttHandler::type::Value);
@@ -190,7 +168,7 @@ MqttHandlerPtr configure_value_property(std::string_view p_id,
 } // anonymous namespace
 
 MqttHandlerStore configure_mqtt_handlers(const YAML::Node & yaml_handlers,
-                                         prometheus_detail::prometheus_config & prometheus_config)
+                                         prometheus_config & prometheus_config)
 {
   if(!yaml_handlers.IsSequence())
   {

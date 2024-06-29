@@ -31,13 +31,10 @@
 #include "mqtt_handler_small.h"
 
 namespace yafiyogi::mqtt_bridge {
-namespace prometheus_detail {
 
 struct prometheus_config;
 
-} // namespace prometheus_detail
-
 MqttHandlerStore configure_mqtt_handlers(const YAML::Node & yaml_handlers,
-                                         prometheus_detail::prometheus_config & prometheus_config);
+                                         prometheus_config & prometheus_config);
 
 } // namespace yafiyogi::mqtt_bridge {

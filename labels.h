@@ -35,9 +35,10 @@
 
 namespace yafiyogi::mqtt_bridge {
 
-inline constexpr const std::string_view g_topic_label{"topic"};
-inline constexpr const std::string_view g_path_label{"path"};
-inline constexpr const std::string_view g_timestamp_label{"timestamp"};
+inline constexpr const std::string_view g_label_help{"help"};
+inline constexpr const std::string_view g_label_path{"path"};
+inline constexpr const std::string_view g_label_timestamp{"timestamp"};
+inline constexpr const std::string_view g_label_topic{"topic"};
 
 class Labels final
 {

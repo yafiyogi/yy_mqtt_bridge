@@ -31,7 +31,7 @@
 #include "yy_cpp/yy_string_util.h"
 #include "yy_cpp/yy_flat_map.h"
 
-#include "configure_prometheus_config.h"
+#include "prometheus_config.h"
 #include "configure_prometheus_metrics.h"
 
 #include "mqtt_handler.h"
@@ -59,9 +59,9 @@ MetricType decode_metric_type(const std::string_view & guage_type)
 
 } // namespace prometheus_detail
 
-prometheus_detail::MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics)
+MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics)
 {
-  prometheus_detail::MetricsMap metrics{};
+  MetricsMap metrics{};
 
   if(yaml_metrics)
   {
@@ -71,23 +71,23 @@ prometheus_detail::MetricsMap configure_prometheus_metrics(const YAML::Node & ya
       spdlog::debug("Configuring Prometheus Metric [{}] [line {}].",
                     metric_id,
                     yaml_metric.Mark().line + 1);
-      prometheus_detail::MetricType type = prometheus_detail::decode_metric_type(yaml_metric["type"].as<std::string_view>());
+      MetricType type = prometheus_detail::decode_metric_type(yaml_metric["type"].as<std::string_view>());
 
       for(const auto & yaml_handler : yaml_metric["handlers"])
       {
         std::string handler_id = yaml_handler["handler_id"].as<std::string>();
         spdlog::debug("\thandler [{}] [line {}].", handler_id, yaml_handler.Mark().line + 1);
 
-        prometheus_detail::MetricPtr metric;
+        MetricPtr metric;
         if(auto & yaml_value = yaml_handler["value"];
            yaml_value.IsScalar())
         {
           std::string property = yaml_value.as<std::string>();
           spdlog::debug("\tvalue [{}] [line {}].", property, yaml_handler.Mark().line + 1);
 
-          metric = std::make_unique<prometheus_detail::Metric>(metric_id,
-                                                               type,
-                                                               std::move(property));
+          metric = std::make_unique<Metric>(metric_id,
+                                            type,
+                                            std::move(property));
         }
 
         if(metric)
@@ -98,7 +98,7 @@ prometheus_detail::MetricsMap configure_prometheus_metrics(const YAML::Node & ya
                         metric->Property());
           [[maybe_unused]]
           auto [metrics_pos, ignore_found] = metrics.emplace(std::move(handler_id),
-                                                             prometheus_detail::Metrics{});
+                                                             Metrics{});
 
           auto [ignore_key, handler_metrics] = metrics[metrics_pos];
 

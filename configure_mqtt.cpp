@@ -30,14 +30,14 @@
 #include "configure_mqtt.h"
 #include "configure_mqtt_handlers.h"
 #include "configure_mqtt_topics.h"
-#include "configure_prometheus_config.h"
+#include "prometheus_config.h"
 
 #include "mqtt_handler.h"
 
 namespace yafiyogi::mqtt_bridge {
 
 mqtt_config configure_mqtt(const YAML::Node & yaml_mqtt,
-                           prometheus_detail::prometheus_config & prometheus_config)
+                           prometheus_config & p_prometheus_config)
 {
   const auto yaml_host = yaml_mqtt["host"];
   if(!yaml_host)
@@ -56,7 +56,7 @@ mqtt_config configure_mqtt(const YAML::Node & yaml_mqtt,
 
   spdlog::info("host=[{}] port=[{}]\n", host, port);
 
-  auto handlers = configure_mqtt_handlers(yaml_mqtt["handlers"], prometheus_config);
+  auto handlers = configure_mqtt_handlers(yaml_mqtt["handlers"], p_prometheus_config);
   auto [subscriptions, topics] = configure_mqtt_topics(yaml_mqtt["topics"], handlers);
 
   return mqtt_config{"", std::move(host), port, std::move(handlers), std::move(subscriptions), std::move(topics)};

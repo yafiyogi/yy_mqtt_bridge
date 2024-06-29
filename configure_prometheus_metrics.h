@@ -24,11 +24,11 @@
 
 */
 
-#include "configure_prometheus_config.h"
+#include "prometheus_metric.h"
 #include "yaml_small.h"
 
 namespace yafiyogi::mqtt_bridge {
 
-prometheus_detail::MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics);
+MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics);
 
 } // namespace yafiyogi::mqtt_bridge

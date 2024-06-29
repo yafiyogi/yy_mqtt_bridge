@@ -33,11 +33,8 @@
 #include "mqtt_topics.h"
 
 namespace yafiyogi::mqtt_bridge {
-namespace prometheus_detail {
 
 struct prometheus_config;
-
-} // namespace prometheus_detail
 
 struct mqtt_config final
 {
@@ -50,6 +47,6 @@ struct mqtt_config final
 };
 
 mqtt_config configure_mqtt(const YAML::Node & yaml_mqtt,
-                           prometheus_detail::prometheus_config & prometheus_config);
+                           prometheus_config & prometheus_config);
 
 } // namespace yafiyogi::mqtt_bridge

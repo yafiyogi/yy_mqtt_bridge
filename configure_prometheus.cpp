@@ -28,18 +28,18 @@
 #include "yaml-cpp/yaml.h"
 
 #include "configure_prometheus.h"
-#include "configure_prometheus_config.h"
+#include "prometheus_config.h"
 #include "configure_prometheus_metrics.h"
 
 namespace yafiyogi::mqtt_bridge {
 
-prometheus_detail::prometheus_config configure_prometheus(const YAML::Node & yaml_prometheus)
+prometheus_config configure_prometheus(const YAML::Node & yaml_prometheus)
 {
   int port = yaml_prometheus["exporter_port"].as<int>();
 
   auto metrics = configure_prometheus_metrics(yaml_prometheus["metrics"]);
 
-  return prometheus_detail::prometheus_config{port, std::move(metrics)};
+  return prometheus_config{port, std::move(metrics)};
 }
 
 } // namespace yafiyogi::mqtt_bridge

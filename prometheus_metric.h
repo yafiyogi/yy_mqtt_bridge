@@ -35,7 +35,9 @@
 
 #include "yy_mqtt/yy_mqtt_types.h"
 
-namespace yafiyogi::mqtt_bridge::prometheus_detail {
+namespace yafiyogi::mqtt_bridge {
+
+class Labels;
 
 enum class MetricType {Guage};
 
@@ -65,12 +67,4 @@ using MetricPtr = std::shared_ptr<Metric>;
 using Metrics = yy_quad::simple_vector<MetricPtr>;
 using MetricsMap = yy_data::flat_map<std::string, Metrics>;
 
-inline constexpr int prometheus_default_port = 9100;
-
-struct prometheus_config final
-{
-    int port = prometheus_default_port;
-    MetricsMap metrics{};
-};
-
-} // namespace yafiyogi::mqtt_bridge::prometheus_detail
+} // namespace yafiyogi::mqtt_bridge

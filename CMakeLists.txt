@@ -54,8 +54,9 @@ add_executable(yy_mqtt_bridge
   configure_mqtt_handlers.cpp
   configure_mqtt_topics.cpp
   configure_prometheus.cpp
-  configure_prometheus_config.cpp
+  prometheus_metric.cpp
   configure_prometheus_metrics.cpp
+  labels.cpp
   logger.cpp
   #metric.cpp
   mqtt_client.cpp
