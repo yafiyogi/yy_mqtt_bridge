@@ -29,13 +29,13 @@
 #include "boost/json/basic_parser_impl.hpp"
 #include "spdlog/spdlog.h"
 
-#include "configure_prometheus_config.h"
+#include "prometheus_config.h"
+#include "labels.h"
 #include "mqtt_json_handler.h"
 #include "prometheus_metric_query.h"
 
 namespace yafiyogi::mqtt_bridge {
 
-using Labels = prometheus_detail::Labels;
 using MetricsJsonPointer = prometheus_detail::MetricsJsonPointer;
 
 class JsonVisitor:
@@ -137,26 +137,21 @@ MqttJsonHandler::MqttJsonHandler(std::string_view p_handler_id,
   m_parser.handler().set_visitor(std::move(handler_visitor));
 }
 
-namespace {
-
-constexpr std::string g_topic_label{"topic"};
-constexpr std::string g_path_label{"path"};
-
-} // anonymous namespace
-
-void MqttJsonHandler::Event(std::string_view topic,
-                            const yy_mqtt::TopicLevels & topic_levels,
-                            std::string_view data) noexcept
+void MqttJsonHandler::Event(std::string_view p_topic,
+                            const yy_mqtt::TopicLevels & p_topic_levels,
+                            std::string_view p_data,
+                            const std::string & p_ts) noexcept
 {
-  spdlog::debug("\thandler [{}]", Id());
+  spdlog::debug("  handler [{}]", Id());
 
   auto & labels = m_json_visitor->labels();
-  labels.clear();
-  labels.set_label(g_topic_label, topic);
-  labels.set_label(g_path_label, topic_levels);
+  //labels.clear();
+  labels.set_label(g_label_path, p_topic_levels);
+  labels.set_label(g_label_timestamp, p_ts);
+  labels.set_label(g_label_topic, p_topic);
 
   boost::json::error_code ec{};
-  m_parser.write_some(false, data.data(), data.size(), ec);
+  m_parser.write_some(false, p_data.data(), p_data.size(), ec);
 }
 
 } // namespace yafiyogi::mqtt_bridge

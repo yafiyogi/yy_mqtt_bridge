@@ -63,10 +63,8 @@ class MqttHandler
 
     virtual void Event(std::string_view /* topic */,
                        const yy_mqtt::TopicLevels & /* topic_levels */,
-                       std::string_view /* data */) noexcept
-    {
-    }
-
+                       std::string_view /* data */,
+                       const std::string & ts) noexcept;
   private:
     const std::string m_handler_id{};
     const type m_type = type::Text;

@@ -44,7 +44,8 @@ mqtt_client::mqtt_client(mqtt_config & p_config):
   m_id(std::move(p_config.id)),
   m_host(std::move(p_config.host)),
   m_port(p_config.port),
-  m_is_connected(false)
+  m_is_connected(false),
+  m_ts()
 {
 }
 
@@ -101,17 +102,21 @@ void mqtt_client::on_message(const struct mosquitto_message * message)
   if(auto payloads = m_topics.find(topic);
      !payloads.empty())
   {
+    int64_t ts = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()).time_since_epoch().count();
+    m_ts.clear();
+    fmt::format_to(std::back_inserter(m_ts), "{}", ts);
+
     spdlog::debug("Processing [{}] payloads=[{}]", topic, payloads.size());
     yy_mqtt::TopicLevels topic_levels{yy_mqtt::topic_tokenize(topic)};
 
     for(const auto & handlers : payloads)
     {
-      spdlog::info("[{}]:", topic);
+      spdlog::info(" [{}]:", topic);
       for(auto & handler : *handlers)
       {
         std::string_view msg{static_cast<std::string_view::value_type *>(message->payload),
                              static_cast<std::string_view::size_type>(message->payloadlen)};
-        handler->Event(topic, topic_levels, msg);
+        handler->Event(topic, topic_levels, msg, m_ts);
       }
     }
   }

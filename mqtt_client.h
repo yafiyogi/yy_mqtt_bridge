@@ -74,6 +74,7 @@ class mqtt_client final:
     std::string m_host;
     int m_port = yy_mqtt::mqtt_default_port;
     std::atomic<bool> m_is_connected = false;
+    std::string m_ts;
     static constexpr int default_keepalive_seconds = 60;
 };
 

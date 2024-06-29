@@ -60,7 +60,8 @@ class MqttJsonHandler final:
 
     void Event(std::string_view topic,
                const yy_mqtt::TopicLevels & topic_levels,
-               std::string_view data) noexcept override;
+               std::string_view data,
+               const std::string & ts) noexcept override;
 
   private:
     JsonParser m_parser;
