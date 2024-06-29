@@ -53,7 +53,7 @@ class MqttJsonHandler final:
     MqttJsonHandler() = delete;
     MqttJsonHandler(const MqttJsonHandler &) = delete;
     MqttJsonHandler(MqttJsonHandler &&) noexcept = default;
-    ~MqttJsonHandler() noexcept = default;
+    ~MqttJsonHandler() noexcept override = default;
 
     MqttJsonHandler & operator=(const MqttJsonHandler &) = delete;
     MqttJsonHandler & operator=(MqttJsonHandler &&) noexcept = default;

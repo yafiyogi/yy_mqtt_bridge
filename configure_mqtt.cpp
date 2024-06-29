@@ -47,7 +47,7 @@ mqtt_config configure_mqtt(const YAML::Node & yaml_mqtt,
   }
   auto host = yaml_host.as<std::string>();
 
-  int port = 1883;
+  int port = yy_mqtt::mqtt_default_port;
   if(const auto yaml_port = yaml_mqtt["port"];
      yaml_port && yaml_port.IsScalar())
   {

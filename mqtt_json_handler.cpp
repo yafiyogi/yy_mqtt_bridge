@@ -50,11 +50,13 @@ class JsonVisitor:
     JsonVisitor & operator=(const JsonVisitor &) noexcept = default;
     JsonVisitor & operator=(JsonVisitor &&) noexcept = default;
 
+    [[nodiscard]]
     Labels & labels() noexcept
     {
       return m_labels;
     }
 
+    [[nodiscard]]
     const Labels & labels() const noexcept
     {
       return m_labels;

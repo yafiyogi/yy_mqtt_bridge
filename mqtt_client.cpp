@@ -24,6 +24,8 @@
 
 */
 
+#include <chrono>
+
 #include "spdlog/spdlog.h"
 
 #include "yy_mqtt/yy_mqtt_util.h"
@@ -57,7 +59,7 @@ void mqtt_client::connect()
   int quickack_flag = 1;
   mosqpp::mosquittopp::opts_set(MOSQ_OPT_TCP_QUICKACK, &quickack_flag);
 
-  mosqpp::mosquittopp::connect(m_host.c_str(), m_port, 60);
+  mosqpp::mosquittopp::connect(m_host.c_str(), m_port, default_keepalive_seconds);
 }
 
 void mqtt_client::on_connect(int rc)
@@ -66,7 +68,8 @@ void mqtt_client::on_connect(int rc)
 
   spdlog::debug("{}[{}]", "MQTT Connected status=", rc);
   spdlog::info("{}", "Subscribing to:");
-  yy_quad::simple_vector<char *> subs;
+
+  yy_quad::simple_vector<char *> subs{};
   subs.reserve(m_subscriptions.size());
 
   for(auto & sub : m_subscriptions)

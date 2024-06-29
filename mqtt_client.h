@@ -32,7 +32,7 @@
 #include <string_view>
 
 #include "mosquittopp.h"
-
+#include "yy_mqtt/yy_mqtt_constants.h"
 #include "mqtt_topics.h"
 
 namespace yafiyogi::mqtt_bridge {
@@ -48,7 +48,7 @@ class mqtt_client final:
     mqtt_client() = delete;
     mqtt_client(const mqtt_client &) = delete;
     mqtt_client(mqtt_client &&) noexcept = default;
-    ~mqtt_client() noexcept = default;
+    ~mqtt_client() noexcept override = default;
 
     mqtt_client & operator=(const mqtt_client &) = delete;
     mqtt_client & operator=(mqtt_client &&) noexcept = default;
@@ -72,8 +72,9 @@ class mqtt_client final:
     Subscriptions m_subscriptions;
     std::string m_id;
     std::string m_host;
-    int m_port = 1883;
+    int m_port = yy_mqtt::mqtt_default_port;
     std::atomic<bool> m_is_connected = false;
+    static constexpr int default_keepalive_seconds = 60;
 };
 
 } // namespace yafiyogi::mqtt_bridge

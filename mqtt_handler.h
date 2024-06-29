@@ -41,7 +41,13 @@ class MqttHandler
 
     MqttHandler(std::string_view p_handler_id,
                 const type p_type) noexcept;
+    MqttHandler() noexcept = default;
+    MqttHandler(const MqttHandler &) = delete;
+    MqttHandler(MqttHandler &&) noexcept = default;
     virtual ~MqttHandler() noexcept = default;
+
+    MqttHandler & operator=(const MqttHandler &) = delete;
+    MqttHandler & operator=(MqttHandler &&) noexcept = default;
 
     [[nodiscard]]
     const std::string & Id() const noexcept
@@ -62,8 +68,8 @@ class MqttHandler
     }
 
   private:
-    const std::string m_handler_id;
-    const type m_type = type::Json;
+    const std::string m_handler_id{};
+    const type m_type = type::Text;
 };
 
 } // namespace yafiyogi::mqtt_bridge

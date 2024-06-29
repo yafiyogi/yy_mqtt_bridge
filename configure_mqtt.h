@@ -26,6 +26,8 @@
 
 #pragma once
 
+#include "yy_mqtt/yy_mqtt_constants.h"
+
 #include "yaml_small.h"
 
 #include "mqtt_topics.h"
@@ -41,7 +43,7 @@ struct mqtt_config final
 {
     std::string id;
     std::string host;
-    int port = 1883;
+    int port = yy_mqtt::mqtt_default_port;
     MqttHandlerStore handlers;
     Subscriptions subscriptions;
     Topics topics;

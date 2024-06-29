@@ -43,8 +43,8 @@ namespace yafiyogi::mqtt_bridge {
 mqtt_topics configure_mqtt_topics(const YAML::Node & yaml_topics,
                                   const MqttHandlerStore & handlers_store)
 {
-  yy_quad::simple_vector<std::string> subscriptions;
-  TopicsConfig topics_config;
+  yy_quad::simple_vector<std::string> subscriptions{};
+  TopicsConfig topics_config{};
 
   spdlog::info("Configuring topics.");
   for(const auto & yaml_topic: yaml_topics)

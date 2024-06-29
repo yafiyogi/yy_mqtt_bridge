@@ -61,7 +61,7 @@ MetricType decode_metric_type(const std::string_view & guage_type)
 
 prometheus_detail::MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics)
 {
-  prometheus_detail::MetricsMap metrics;
+  prometheus_detail::MetricsMap metrics{};
 
   if(yaml_metrics)
   {

@@ -61,7 +61,10 @@ class Labels final
     void set_label(std::string_view p_label,
                    yy_mqtt::TopicLevels p_path);
 
+    [[nodiscard]]
     const std::string & get_label(const std::string & p_label) const;
+
+    [[nodiscard]]
     size_t size() const noexcept
     {
       return m_labels.size();
@@ -79,8 +82,11 @@ class Metric
     explicit Metric(std::string_view p_id,
                     const MetricType p_type,
                     std::string && p_property);
+    [[nodiscard]]
     const std::string & Id() const noexcept;
+    [[nodiscard]]
     MetricType Type() const noexcept;
+    [[nodiscard]]
     const std::string & Property() const noexcept;
 
     void Event(const Labels & p_labels,
@@ -96,10 +102,12 @@ using MetricPtr = std::shared_ptr<Metric>;
 using Metrics = yy_quad::simple_vector<MetricPtr>;
 using MetricsMap = yy_data::flat_map<std::string, Metrics>;
 
+inline constexpr int prometheus_default_port = 9100;
+
 struct prometheus_config final
 {
-    int port;
-    MetricsMap metrics;
+    int port = prometheus_default_port;
+    MetricsMap metrics{};
 };
 
 } // namespace yafiyogi::mqtt_bridge::prometheus_detail

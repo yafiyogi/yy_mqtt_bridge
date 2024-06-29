@@ -44,7 +44,7 @@ logger_ptr g_logger = spdlog::stderr_color_mt("stderr");
 
 void set_g_logger(logger_ptr log)
 {
-  std::unique_lock lck(g_logger_mtx);
+  std::unique_lock lck{g_logger_mtx};
 
   g_logger = log;
   spdlog::set_default_logger(g_logger);
@@ -74,7 +74,7 @@ void set_console_logger()
 
 logger_ptr get_log()
 {
-  std::unique_lock lck(g_logger_mtx);
+  std::unique_lock lck{g_logger_mtx};
 
   return g_logger;
 }
@@ -83,7 +83,7 @@ void stop_log()
 {
   stop_log(g_log_name);
 
-  std::unique_lock lck(g_logger_mtx);
+  std::unique_lock lck{g_logger_mtx};
   g_logger = spdlog::stderr_color_mt("stderr");
   spdlog::set_default_logger(g_logger);
 }
@@ -95,7 +95,7 @@ void stop_log(std::string_view logger_name)
 
 void stop_all_logs()
 {
-  std::unique_lock lck(g_logger_mtx);
+  std::unique_lock lck{g_logger_mtx};
   g_logger = logger_ptr{};
 
   spdlog::drop_all();

@@ -44,7 +44,7 @@
 namespace yafiyogi::mqtt_bridge {
 namespace {
 
-boost::json::parse_options g_json_options{ .numbers = boost::json::number_precision::none};
+const boost::json::parse_options g_json_options{ .numbers = boost::json::number_precision::none};
 
 constexpr std::string_view type_json{"json"};
 constexpr std::string_view type_value{"value"};
@@ -76,15 +76,16 @@ MqttHandlerPtr configure_json_property(std::string_view p_id,
 {
   spdlog::info("Configure [{}]", p_id);
 
-  MqttHandlerPtr mqtt_json_handler;
+  MqttHandlerPtr mqtt_json_handler{};
   auto yaml_properties = yaml_json_handler["properties"];
   if(yaml_properties && (0 != yaml_properties.size()))
   {
-    prometheus_detail::MetricsJsonPointerBuilder json_pointer_builder;
+    prometheus_detail::MetricsJsonPointerBuilder json_pointer_builder{};
     bool has_metrics = false;
     std::string_view json_pointer{};
     std::string_view property{};
-    yy_json::PathLevels path;
+    yy_json::PathLevels path{};
+
     auto do_add_property = [&property, &json_pointer, &json_pointer_builder, &has_metrics]
                            (prometheus_detail::Metrics * visitor_prometheus_metrics, auto /* pos */) {
       if(nullptr != visitor_prometheus_metrics)
@@ -109,7 +110,7 @@ MqttHandlerPtr configure_json_property(std::string_view p_id,
       }
     };
 
-    yy_quad::simple_vector<std::string> properties;
+    yy_quad::simple_vector<std::string> properties{};
     properties.reserve(yaml_properties.size());
 
     for(const auto & yaml_property : yaml_properties)
@@ -198,7 +199,7 @@ MqttHandlerStore configure_mqtt_handlers(const YAML::Node & yaml_handlers,
     return MqttHandlerStore{};
   }
 
-  MqttHandlerStore handler_store;
+  MqttHandlerStore handler_store{};
   handler_store.reserve(yaml_handlers.size());
 
   for(const auto & yaml_handler: yaml_handlers)
