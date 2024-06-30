@@ -59,12 +59,12 @@ void Labels::set_label(std::string_view p_label,
 }
 
 void Labels::set_label(std::string_view /* p_label */,
-                       yy_mqtt::TopicLevels p_path)
+                       const yy_mqtt::TopicLevels & p_path) noexcept
 {
   m_path = p_path;
 }
 
-const std::string & Labels::get_label(const std::string & p_label) const
+const std::string & Labels::get_label(const std::string & p_label) const noexcept
 {
   const std::string * label = &g_empty_str;
 

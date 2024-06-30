@@ -42,29 +42,29 @@ class JsonVisitor:
       public MetricsJsonPointer::visitor_type
 {
   public:
-    JsonVisitor() noexcept = default;
-    JsonVisitor(const JsonVisitor &) noexcept = default;
-    JsonVisitor(JsonVisitor &&) noexcept = default;
-    ~JsonVisitor() noexcept = default;
+    constexpr JsonVisitor() noexcept = default;
+    constexpr JsonVisitor(const JsonVisitor &) noexcept = default;
+    constexpr JsonVisitor(JsonVisitor &&) noexcept = default;
+    constexpr ~JsonVisitor() noexcept = default;
 
-    JsonVisitor & operator=(const JsonVisitor &) noexcept = default;
-    JsonVisitor & operator=(JsonVisitor &&) noexcept = default;
+    constexpr JsonVisitor & operator=(const JsonVisitor &) noexcept = default;
+    constexpr JsonVisitor & operator=(JsonVisitor &&) noexcept = default;
 
     [[nodiscard]]
-    Labels & labels() noexcept
+    constexpr Labels & labels() noexcept
     {
       return m_labels;
     }
 
     [[nodiscard]]
-    const Labels & labels() const noexcept
+    constexpr const Labels & labels() const noexcept
     {
       return m_labels;
     }
 
-    void apply(const MetricsJsonPointer::scope_type & /* scope */,
-               MetricsJsonPointer::value_type & metrics,
-               std::string_view str) override
+    constexpr void apply(const MetricsJsonPointer::scope_type & /* scope */,
+                         MetricsJsonPointer::value_type & metrics,
+                         std::string_view str) override
     {
       for(auto & metric : metrics)
       {
@@ -72,10 +72,10 @@ class JsonVisitor:
       }
     }
 
-    void apply(const MetricsJsonPointer::scope_type & /* scope */,
-               MetricsJsonPointer::value_type & metrics,
-               std::string_view raw,
-               std::int64_t /* num */) override
+    constexpr void apply(const MetricsJsonPointer::scope_type & /* scope */,
+                         MetricsJsonPointer::value_type & metrics,
+                         std::string_view raw,
+                         std::int64_t /* num */) override
     {
       for(auto & metric : metrics)
       {
@@ -83,10 +83,10 @@ class JsonVisitor:
       }
     }
 
-    void apply(const MetricsJsonPointer::scope_type & /* scope */,
-               MetricsJsonPointer::value_type & metrics,
-               std::string_view raw,
-               std::uint64_t /* num */) override
+    constexpr void apply(const MetricsJsonPointer::scope_type & /* scope */,
+                         MetricsJsonPointer::value_type & metrics,
+                         std::string_view raw,
+                         std::uint64_t /* num */) override
     {
       for(auto & metric : metrics)
       {
@@ -94,10 +94,10 @@ class JsonVisitor:
       }
     }
 
-    void apply(const MetricsJsonPointer::scope_type & /* scope */,
-               MetricsJsonPointer::value_type & metrics,
-               std::string_view raw,
-               double /* num */) override
+    constexpr void apply(const MetricsJsonPointer::scope_type & /* scope */,
+                         MetricsJsonPointer::value_type & metrics,
+                         std::string_view raw,
+                         double /* num */) override
     {
       for(auto & metric : metrics)
       {
@@ -105,9 +105,9 @@ class JsonVisitor:
       }
     }
 
-    void apply(const MetricsJsonPointer::scope_type & /* scope */,
-               MetricsJsonPointer::value_type & metrics,
-               bool flag) override
+    constexpr void apply(const MetricsJsonPointer::scope_type & /* scope */,
+                         MetricsJsonPointer::value_type & metrics,
+                         bool flag) override
     {
       for(auto & metric : metrics)
       {

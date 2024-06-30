@@ -39,9 +39,9 @@ class MqttHandler
   public:
     enum class type {Json, Text, Value};
 
-    MqttHandler(std::string_view p_handler_id,
-                const type p_type) noexcept;
-    MqttHandler() noexcept = default;
+    explicit MqttHandler(std::string_view p_handler_id,
+                         const type p_type) noexcept;
+    constexpr MqttHandler() noexcept = default;
     MqttHandler(const MqttHandler &) = delete;
     constexpr MqttHandler(MqttHandler &&) noexcept = default;
     constexpr virtual ~MqttHandler() noexcept = default;
