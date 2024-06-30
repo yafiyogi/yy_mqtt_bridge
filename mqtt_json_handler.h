@@ -46,17 +46,17 @@ class MqttJsonHandler final:
     using JsonParser = boost::json::basic_parser<MetricsJsonPointer>;
     using JsonParserOptions = boost::json::parse_options;
 
-    MqttJsonHandler(std::string_view p_handler_id,
-                    const JsonParserOptions & p_json_options,
-                    JsonParserConfig && p_json_handler_config) noexcept;
+    explicit MqttJsonHandler(std::string_view p_handler_id,
+                             const JsonParserOptions & p_json_options,
+                             JsonParserConfig && p_json_handler_config) noexcept;
 
     MqttJsonHandler() = delete;
     MqttJsonHandler(const MqttJsonHandler &) = delete;
-    MqttJsonHandler(MqttJsonHandler &&) noexcept = default;
+    constexpr MqttJsonHandler(MqttJsonHandler &&) noexcept = default;
     ~MqttJsonHandler() noexcept override = default;
 
     MqttJsonHandler & operator=(const MqttJsonHandler &) = delete;
-    MqttJsonHandler & operator=(MqttJsonHandler &&) noexcept = default;
+    constexpr MqttJsonHandler & operator=(MqttJsonHandler &&) noexcept = default;
 
     void Event(std::string_view topic,
                const yy_mqtt::TopicLevels & topic_levels,

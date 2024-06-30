@@ -43,15 +43,15 @@ class mqtt_client final:
       public mosqpp::mosquittopp
 {
   public:
-    mqtt_client(mqtt_config & config);
+    explicit mqtt_client(mqtt_config & config);
 
     mqtt_client() = delete;
     mqtt_client(const mqtt_client &) = delete;
-    mqtt_client(mqtt_client &&) noexcept = default;
+    constexpr mqtt_client(mqtt_client &&) noexcept = default;
     ~mqtt_client() noexcept override = default;
 
     mqtt_client & operator=(const mqtt_client &) = delete;
-    mqtt_client & operator=(mqtt_client &&) noexcept = default;
+    constexpr mqtt_client & operator=(mqtt_client &&) noexcept = default;
 
 
     void connect();

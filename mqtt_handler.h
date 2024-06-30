@@ -43,20 +43,20 @@ class MqttHandler
                 const type p_type) noexcept;
     MqttHandler() noexcept = default;
     MqttHandler(const MqttHandler &) = delete;
-    MqttHandler(MqttHandler &&) noexcept = default;
-    virtual ~MqttHandler() noexcept = default;
+    constexpr MqttHandler(MqttHandler &&) noexcept = default;
+    constexpr virtual ~MqttHandler() noexcept = default;
 
     MqttHandler & operator=(const MqttHandler &) = delete;
-    MqttHandler & operator=(MqttHandler &&) noexcept = default;
+    constexpr MqttHandler & operator=(MqttHandler &&) noexcept = default;
 
     [[nodiscard]]
-    const std::string & Id() const noexcept
+    constexpr const std::string & Id() const noexcept
     {
       return m_handler_id;
     }
 
     [[nodiscard]]
-    type Type() const noexcept
+    constexpr type Type() const noexcept
     {
       return m_type;
     }

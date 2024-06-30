@@ -43,13 +43,13 @@ inline constexpr const std::string_view g_label_topic{"topic"};
 class Labels final
 {
   public:
-    Labels() noexcept = default;
-    Labels(const Labels &) noexcept = default;
-    Labels(Labels &&) noexcept = default;
-    ~Labels() noexcept = default;
+    constexpr Labels() noexcept = default;
+    constexpr Labels(const Labels &) noexcept = default;
+    constexpr Labels(Labels &&) noexcept = default;
+    constexpr ~Labels() noexcept = default;
 
-    Labels & operator=(const Labels &) noexcept = default;
-    Labels & operator=(Labels &&) noexcept = default;
+    constexpr Labels & operator=(const Labels &) noexcept = default;
+    constexpr Labels & operator=(Labels &&) noexcept = default;
 
     void clear() noexcept;
     void set_label(std::string_view p_label,
@@ -61,7 +61,7 @@ class Labels final
     const std::string & get_label(const std::string & p_label) const;
 
     [[nodiscard]]
-    size_t size() const noexcept
+    constexpr size_t size() const noexcept
     {
       return m_labels.size();
     }
