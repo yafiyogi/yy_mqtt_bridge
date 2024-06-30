@@ -73,7 +73,7 @@ mqtt_topics configure_mqtt_topics(const YAML::Node & yaml_topics,
         for(const auto & yaml_subscription : yaml_subscriptions)
         {
           spdlog::debug("Configuring Subscription [line {}].", yaml_subscription.Mark().line + 1);
-          if(auto topic = yaml_subscription.as<std::string_view>();
+          if(auto topic = yy_mqtt::topic_trim(yaml_subscription.as<std::string_view>());
              yy_mqtt::topic_validate(topic, yy_mqtt::TopicType::Filter))
           {
             spdlog::info("\t- subscribing to topic [{}]", topic);
