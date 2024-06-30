@@ -55,15 +55,25 @@ class Labels final
     void set_label(std::string_view p_label,
                    std::string_view p_value);
     void set_label(std::string_view p_label,
-                   yy_mqtt::TopicLevels p_path);
+                   const yy_mqtt::TopicLevels & p_path) noexcept;
 
     [[nodiscard]]
-    const std::string & get_label(const std::string & p_label) const;
+    const std::string & get_label(const std::string & p_label) const noexcept;
 
     [[nodiscard]]
     constexpr size_t size() const noexcept
     {
       return m_labels.size();
+    }
+
+    constexpr bool operator<(const Labels & other) const noexcept
+    {
+      return std::tie(m_path, m_labels) < std::tie(other.m_path, other.m_labels);
+    }
+
+    constexpr bool operator==(const Labels & other) const noexcept
+    {
+      return std::tie(m_path, m_labels) == std::tie(other.m_path, other.m_labels);
     }
 
   private:
