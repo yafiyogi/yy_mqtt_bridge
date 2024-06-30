@@ -43,7 +43,7 @@ mqtt_config configure_mqtt(const YAML::Node & yaml_mqtt,
   if(!yaml_host)
   {
     spdlog::error("Not found mqtt host\n");
-    return {};
+    return mqtt_config{};
   }
   auto host = yaml_host.as<std::string>();
 
