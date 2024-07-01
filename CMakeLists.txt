@@ -54,16 +54,15 @@ add_executable(yy_mqtt_bridge
   configure_mqtt_handlers.cpp
   configure_mqtt_topics.cpp
   configure_prometheus.cpp
-  prometheus_metric.cpp
   configure_prometheus_metrics.cpp
-  labels.cpp
+  prometheus_labels.cpp
+  prometheus_metric.cpp
+  prometheus_style.cpp
   logger.cpp
-  #metric.cpp
   mqtt_client.cpp
   mqtt_handler.cpp
   mqtt_json_handler.cpp
-  #number_input_converter.cpp
-  #text_input_converter.cpp
+  mqtt_value_handler.cpp
   yy_mqtt_bridge.cpp )
 
 target_compile_options(yy_mqtt_bridge
