@@ -24,7 +24,7 @@
 
 */
 
-#include "labels.h"
+#include "prometheus_labels.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
 namespace {
