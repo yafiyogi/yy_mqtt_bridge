@@ -36,8 +36,11 @@
 #include "yy_mqtt/yy_mqtt_types.h"
 
 namespace yafiyogi::mqtt_bridge {
+namespace prometheus {
 
 class Labels;
+
+} // namespace prometheus
 
 enum class MetricType {Guage};
 
@@ -54,8 +57,8 @@ class Metric
     [[nodiscard]]
     const std::string & Property() const noexcept;
 
-    void Event(const Labels & p_labels,
-               std::string_view p_data);
+    void Event(std::string_view p_data,
+               const prometheus::Labels & p_labels);
 
   private:
     std::string m_id;

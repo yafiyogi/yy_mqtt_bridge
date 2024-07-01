@@ -26,7 +26,7 @@
 
 #include "spdlog/spdlog.h"
 
-#include "labels.h"
+#include "prometheus_labels.h"
 #include "prometheus_metric.h"
 
 namespace yafiyogi::mqtt_bridge {
@@ -56,8 +56,8 @@ const std::string & Metric::Property() const noexcept
   return m_property;
 }
 
-void Metric::Event(const Labels & p_labels,
-                   std::string_view p_data)
+void Metric::Event(std::string_view p_data,
+                   const prometheus::Labels & p_labels)
 {
   spdlog::debug("    [{}] topic=[{}] property=[{}] [{}]",
                 m_id,
