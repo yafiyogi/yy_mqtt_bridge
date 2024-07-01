@@ -26,7 +26,7 @@
 
 #include "labels.h"
 
-namespace yafiyogi::mqtt_bridge {
+namespace yafiyogi::mqtt_bridge::prometheus {
 namespace {
 
 const std::string g_empty_str{};
@@ -50,7 +50,6 @@ void Labels::set_label(std::string_view p_label,
   }
   else
   {
-    [[maybe_unused]]
     auto [label, value] = m_labels.add_empty(pos);
 
     label = p_label;
@@ -81,4 +80,4 @@ const std::string & Labels::get_label(const std::string & p_label) const noexcep
   return *label;
 }
 
-} // namespace yafiyogi::mqtt_bridge
+} // namespace yafiyogi::mqtt_bridge::prometheus

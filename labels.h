@@ -33,7 +33,7 @@
 
 #include "yy_mqtt/yy_mqtt_types.h"
 
-namespace yafiyogi::mqtt_bridge {
+namespace yafiyogi::mqtt_bridge::prometheus {
 
 inline constexpr const std::string_view g_label_help{"help"};
 inline constexpr const std::string_view g_label_path{"path"};
@@ -77,9 +77,12 @@ class Labels final
     }
 
   private:
-    using LabelStore = yy_data::flat_map<std::string, std::string, yy_data::ClearAction::Keep, yy_data::ClearAction::Keep>;
+    using LabelStore = yy_data::flat_map<std::string,
+                                         std::string,
+                                         yy_data::ClearAction::Keep,
+                                         yy_data::ClearAction::Keep>;
     LabelStore m_labels;
     yy_mqtt::TopicLevels m_path;
 };
 
-} // namespace yafiyogi::mqtt_bridge
+} // namespace yafiyogi::mqtt_bridge::prometheus
