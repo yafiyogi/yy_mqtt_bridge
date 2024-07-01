@@ -33,6 +33,11 @@
 #include "mqtt_handler_small.h"
 
 namespace yafiyogi::mqtt_bridge {
+namespace prometheus {
+
+class Labels;
+
+} // namespace prometheus
 
 class MqttHandler
 {
@@ -61,10 +66,8 @@ class MqttHandler
       return m_type;
     }
 
-    virtual void Event(std::string_view /* topic */,
-                       const yy_mqtt::TopicLevels & /* topic_levels */,
-                       std::string_view /* data */,
-                       const std::string & ts) noexcept;
+    virtual void Event(std::string_view /* p_data */,
+                       const prometheus::Labels & /* p_labels */) noexcept;
   private:
     const std::string m_handler_id{};
     const type m_type = type::Text;

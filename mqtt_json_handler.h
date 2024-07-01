@@ -58,10 +58,8 @@ class MqttJsonHandler final:
     MqttJsonHandler & operator=(const MqttJsonHandler &) = delete;
     constexpr MqttJsonHandler & operator=(MqttJsonHandler &&) noexcept = default;
 
-    void Event(std::string_view topic,
-               const yy_mqtt::TopicLevels & topic_levels,
-               std::string_view data,
-               const std::string & ts) noexcept override;
+    void Event(std::string_view p_data,
+               const prometheus::Labels & p_labels) noexcept override;
 
   private:
     JsonParser m_parser;

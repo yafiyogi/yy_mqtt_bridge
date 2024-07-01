@@ -30,8 +30,9 @@
 
 #include "yy_mqtt/yy_mqtt_util.h"
 
-#include "mqtt_handler.h"
 #include "configure_mqtt.h"
+#include "mqtt_handler.h"
+#include "prometheus_style.h"
 
 #include "mqtt_client.h"
 
@@ -102,21 +103,27 @@ void mqtt_client::on_message(const struct mosquitto_message * message)
   if(auto payloads = m_topics.find(topic);
      !payloads.empty())
   {
-    int64_t ts = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()).time_since_epoch().count();
+    auto & metric_style = prometheus::get_metric_style();
+
+    int64_t ts = metric_style.timestamp(std::chrono::system_clock::now());
     m_ts.clear();
     fmt::format_to(std::back_inserter(m_ts), "{}", ts);
 
-    spdlog::debug("Processing [{}] payloads=[{}]", topic, payloads.size());
-    yy_mqtt::TopicLevels topic_levels{yy_mqtt::topic_tokenize(topic)};
+    m_labels.set_label(prometheus::label_timestamp, m_ts);
+    m_labels.set_label(prometheus::label_topic, topic);
 
+    spdlog::debug("Processing [{}] payloads=[{}]", topic, payloads.size());
+    yy_mqtt::topic_tokenize(m_topic_levels, topic);
+    m_labels.set_label(prometheus::label_path, m_topic_levels);
+
+    std::string_view data{static_cast<std::string_view::value_type *>(message->payload),
+                         static_cast<std::string_view::size_type>(message->payloadlen)};
     for(const auto & handlers : payloads)
     {
       spdlog::info(" [{}]:", topic);
       for(auto & handler : *handlers)
       {
-        std::string_view msg{static_cast<std::string_view::value_type *>(message->payload),
-                             static_cast<std::string_view::size_type>(message->payloadlen)};
-        handler->Event(topic, topic_levels, msg, m_ts);
+        handler->Event(data, m_labels);
       }
     }
   }

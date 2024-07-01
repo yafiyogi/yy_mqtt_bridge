@@ -30,7 +30,7 @@
 #include "spdlog/spdlog.h"
 
 #include "prometheus_config.h"
-#include "labels.h"
+#include "prometheus_labels.h"
 #include "mqtt_json_handler.h"
 #include "prometheus_metric_query.h"
 
@@ -50,16 +50,13 @@ class JsonVisitor:
     constexpr JsonVisitor & operator=(const JsonVisitor &) noexcept = default;
     constexpr JsonVisitor & operator=(JsonVisitor &&) noexcept = default;
 
-    [[nodiscard]]
-    constexpr Labels & labels() noexcept
+    constexpr void labels(const prometheus::Labels * p_labels) noexcept
     {
-      return m_labels;
-    }
-
-    [[nodiscard]]
-    constexpr const Labels & labels() const noexcept
-    {
-      return m_labels;
+      if(nullptr == p_labels)
+      {
+        p_labels = &g_empty_labels;
+      }
+      m_labels = p_labels;
     }
 
     constexpr void apply(const MetricsJsonPointer::scope_type & /* scope */,
@@ -68,7 +65,7 @@ class JsonVisitor:
     {
       for(auto & metric : metrics)
       {
-        metric->Event(m_labels, str);
+        metric->Event(str, *m_labels);
       }
     }
 
@@ -79,7 +76,7 @@ class JsonVisitor:
     {
       for(auto & metric : metrics)
       {
-        metric->Event(m_labels, raw);
+        metric->Event(raw, *m_labels);
       }
     }
 
@@ -90,7 +87,7 @@ class JsonVisitor:
     {
       for(auto & metric : metrics)
       {
-        metric->Event(m_labels, raw);
+        metric->Event(raw, *m_labels);
       }
     }
 
@@ -101,7 +98,7 @@ class JsonVisitor:
     {
       for(auto & metric : metrics)
       {
-        metric->Event(m_labels, raw);
+        metric->Event(raw, *m_labels);
       }
     }
 
@@ -111,7 +108,7 @@ class JsonVisitor:
     {
       for(auto & metric : metrics)
       {
-        metric->Event(m_labels, flag ? g_true_str : g_false_str);
+        metric->Event(flag ? g_true_str : g_false_str, *m_labels);
       }
     }
 
@@ -119,8 +116,11 @@ class JsonVisitor:
     constexpr static std::string_view g_true_str{"true"};
     constexpr static std::string_view g_false_str{"false"};
 
-    Labels m_labels;
+    const prometheus::Labels * m_labels = &g_empty_labels;
+    static const prometheus::Labels g_empty_labels;
 };
+
+const prometheus::Labels JsonVisitor::g_empty_labels;
 
 MqttJsonHandler::MqttJsonHandler(std::string_view p_handler_id,
                                  const JsonParserOptions & p_json_options,
@@ -137,18 +137,12 @@ MqttJsonHandler::MqttJsonHandler(std::string_view p_handler_id,
   m_parser.handler().set_visitor(std::move(handler_visitor));
 }
 
-void MqttJsonHandler::Event(std::string_view p_topic,
-                            const yy_mqtt::TopicLevels & p_topic_levels,
-                            std::string_view p_data,
-                            const std::string & p_ts) noexcept
+void MqttJsonHandler::Event(std::string_view p_data,
+                            const prometheus::Labels & p_labels) noexcept
 {
   spdlog::debug("  handler [{}]", Id());
 
-  auto & labels = m_json_visitor->labels();
-  //labels.clear();
-  labels.set_label(g_label_path, p_topic_levels);
-  labels.set_label(g_label_timestamp, p_ts);
-  labels.set_label(g_label_topic, p_topic);
+  m_json_visitor->labels(&p_labels);
 
   boost::json::error_code ec{};
   m_parser.write_some(false, p_data.data(), p_data.size(), ec);

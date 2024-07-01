@@ -32,8 +32,11 @@
 #include <string_view>
 
 #include "mosquittopp.h"
+
 #include "yy_mqtt/yy_mqtt_constants.h"
+
 #include "mqtt_topics.h"
+#include "prometheus_labels.h"
 
 namespace yafiyogi::mqtt_bridge {
 
@@ -75,6 +78,8 @@ class mqtt_client final:
     int m_port = yy_mqtt::mqtt_default_port;
     std::atomic<bool> m_is_connected = false;
     std::string m_ts;
+    yy_mqtt::TopicLevels m_topic_levels;
+    prometheus::Labels m_labels;
     static constexpr int default_keepalive_seconds = 60;
 };
 
