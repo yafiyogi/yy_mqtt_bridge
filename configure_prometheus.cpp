@@ -29,6 +29,7 @@
 
 #include "configure_prometheus.h"
 #include "prometheus_config.h"
+#include "prometheus_style.h"
 #include "configure_prometheus_metrics.h"
 
 namespace yafiyogi::mqtt_bridge {
@@ -36,6 +37,12 @@ namespace yafiyogi::mqtt_bridge {
 prometheus_config configure_prometheus(const YAML::Node & yaml_prometheus)
 {
   int port = yaml_prometheus["exporter_port"].as<int>();
+
+  if(auto yaml_metric_style = yaml_prometheus["metric_style"];
+     yaml_metric_style && yaml_metric_style.IsScalar())
+  {
+    prometheus::set_metric_style(yaml_metric_style.as<std::string_view>());
+  }
 
   auto metrics = configure_prometheus_metrics(yaml_prometheus["metrics"]);
 
