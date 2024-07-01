@@ -24,12 +24,18 @@
 
 */
 
+#include <string>
+#include <string_view>
+
 #include "spdlog/spdlog.h"
 #include "yaml-cpp/yaml.h"
 
+#include "yy_cpp/yy_flat_map.h"
 #include "yy_cpp/yy_string_case.h"
 #include "yy_cpp/yy_string_util.h"
-#include "yy_cpp/yy_flat_map.h"
+#include "yy_cpp/yy_type_traits.h"
+#include "yy_cpp/yy_utility.h"
+#include "yy_cpp/yy_vector_util.h"
 
 #include "prometheus_config.h"
 #include "configure_prometheus_metrics.h"
@@ -40,18 +46,45 @@ namespace yafiyogi::mqtt_bridge {
 namespace prometheus_detail {
 namespace {
 
-const std::map<std::string, MetricType> g_metric_type_decode = {{"guage", MetricType::Guage}};
+static constexpr std::string_view g_type_guage{"gauge"};
+
+struct metric_type_lookup final
+{
+    constexpr bool operator<(const metric_type_lookup & other) const noexcept
+    {
+      return name < other.name;
+    }
+
+    constexpr bool operator==(const metric_type_lookup & other) const noexcept
+    {
+      return name == other.name;
+    }
+
+    std::string_view name;
+    MetricType type;
+};
+
+constexpr auto metric_types = yy_util::sort(yy_util::make_array(metric_type_lookup{g_type_guage, MetricType::Guage}));
+
+constexpr auto metric_type_comp = [](const metric_type_lookup & type,
+                                     const std::string & target) -> int
+{
+  return type.name.compare(target);
+};
 
 } // anonymous namespace
 
-MetricType decode_metric_type(const std::string_view & guage_type)
+MetricType decode_metric_type(const std::string_view & p_metric_type_name)
 {
   MetricType type = MetricType::Guage;
+  const std::string metric_type_name{yy_util::to_lower(yy_util::trim(p_metric_type_name))};
 
-  if(auto found = g_metric_type_decode.find(yy_util::to_lower(yy_util::trim(guage_type)));
-     found != g_metric_type_decode.end())
+  if(auto [pos, found] = yy_util::find(metric_types,
+                                       metric_type_name,
+                                       metric_type_comp);
+     found)
   {
-    type = found->second;
+    type = pos->type;
   }
 
   return type;

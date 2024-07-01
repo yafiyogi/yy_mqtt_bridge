@@ -40,34 +40,61 @@
 #include "prometheus_config.h"
 #include "mqtt_handler.h"
 #include "mqtt_json_handler.h"
+#include "mqtt_value_handler.h"
 
 namespace yafiyogi::mqtt_bridge {
 namespace {
 
 const boost::json::parse_options g_json_options{ .numbers = boost::json::number_precision::none};
 
-constexpr std::string_view type_json{"json"};
-constexpr std::string_view type_value{"value"};
-constexpr std::string_view type_text{"text"};
+constexpr std::string_view g_type_json{"json"};
+constexpr std::string_view g_type_value{"value"};
+constexpr std::string_view g_type_text{"text"};
+
+struct handler_type_lookup final
+{
+    constexpr bool operator<(const handler_type_lookup & other) const noexcept
+    {
+      return name < other.name;
+    }
+
+    constexpr bool operator==(const handler_type_lookup & other) const noexcept
+    {
+      return name == other.name;
+    }
+
+    std::string_view name;
+    MqttHandler::type type;
+};
+
+constexpr auto handler_type_comp = [](const handler_type_lookup & handler_type,
+                                      const std::string & target) -> int
+{
+  return handler_type.name.compare(target);
+};
+
+constexpr auto handler_types = yy_util::sort(yy_util::make_array(handler_type_lookup{g_type_json, MqttHandler::type::Json},
+                                                                 handler_type_lookup{g_type_text, MqttHandler::type::Text},
+                                                                 handler_type_lookup{g_type_value, MqttHandler::type::Value}));
+
 
 MqttHandler::type decode_type(const YAML::Node & yaml_type)
 {
-  if(yaml_type)
+  MqttHandler::type handler_type = MqttHandler::type::Json;
+  if(yaml_type && yaml_type.IsScalar())
   {
-    auto raw_type = yy_util::to_lower(yy_util::trim(yaml_type.as<std::string_view>()));
+    std::string type_name = yy_util::to_lower(yy_util::trim(yaml_type.as<std::string_view>()));
 
-    if(type_text == raw_type)
+    if(auto [pos, found] = yy_util::find(handler_types,
+                                         type_name,
+                                         handler_type_comp);
+       found)
     {
-      return MqttHandler::type::Text;
-    }
-
-    if(type_value == raw_type)
-    {
-      return MqttHandler::type::Value;
+      handler_type = pos->type;
     }
   }
 
-  return MqttHandler::type::Json;
+  return handler_type;
 }
 
 MqttHandlerPtr configure_json_property(std::string_view p_id,
@@ -161,8 +188,7 @@ MqttHandlerPtr configure_value_property(std::string_view p_id,
                                         const YAML::Node & /* yaml_value_handler */,
                                         MetricsMap & /* prometheus_metrics */)
 {
-  return std::make_unique<MqttHandler>(p_id,
-                                       MqttHandler::type::Value);
+  return std::make_unique<MqttValueHandler>(p_id);
 }
 
 } // anonymous namespace
