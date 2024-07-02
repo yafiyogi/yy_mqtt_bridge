@@ -31,6 +31,7 @@
 #include "yaml-cpp/yaml.h"
 
 #include "yy_cpp/yy_flat_map.h"
+#include "yy_cpp/yy_flat_set.h"
 #include "yy_cpp/yy_string_case.h"
 #include "yy_cpp/yy_string_util.h"
 #include "yy_cpp/yy_type_traits.h"
@@ -100,42 +101,53 @@ MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics)
   {
     for(const auto & yaml_metric : yaml_metrics)
     {
+      auto & yaml_handlers = yaml_metric["handlers"];
+      yy_data::flat_set<std::string_view> handlers{};
+      handlers.reserve(yaml_handlers.size());
+
       auto metric_id = yy_util::trim(yaml_metric["metric"].as<std::string_view>());
-      spdlog::debug("Configuring Prometheus Metric [{}] [line {}].",
-                    metric_id,
+      spdlog::info(" Configuring Prometheus Metric [{}].",
+                    metric_id);
+      spdlog::debug("  [line {}].",
                     yaml_metric.Mark().line + 1);
       MetricType type = prometheus_detail::decode_metric_type(yaml_metric["type"].as<std::string_view>());
 
-      for(const auto & yaml_handler : yaml_metric["handlers"])
+      for(const auto & yaml_handler : yaml_handlers)
       {
-        std::string handler_id = yaml_handler["handler_id"].as<std::string>();
-        spdlog::debug("\thandler [{}] [line {}].", handler_id, yaml_handler.Mark().line + 1);
+        std::string_view handler_id{yy_util::trim(yaml_handler["handler_id"].as<std::string_view>())};
+        spdlog::info("   handler [{}]:", handler_id);
+        spdlog::debug("    [line {}].", yaml_handler.Mark().line + 1);
 
-        MetricPtr metric;
-        if(auto & yaml_value = yaml_handler["value"];
-           yaml_value.IsScalar())
+        if(auto [ignore, emplaced] = handlers.emplace(handler_id);
+           emplaced)
         {
-          std::string property = yaml_value.as<std::string>();
-          spdlog::debug("\tvalue [{}] [line {}].", property, yaml_handler.Mark().line + 1);
+          MetricPtr metric;
+          if(auto & yaml_value = yaml_handler["value"];
+             yaml_value.IsScalar())
+          {
+            std::string property = yaml_value.as<std::string>();
+            spdlog::info("     - value [{}].", property);
+            spdlog::debug("        [line {}].", yaml_value.Mark().line + 1);
 
-          metric = std::make_unique<Metric>(metric_id,
-                                            type,
-                                            std::move(property));
-        }
+            metric = std::make_unique<Metric>(metric_id,
+                                              type,
+                                              std::move(property));
+          }
 
-        if(metric)
-        {
-          spdlog::debug("\tadd [{}] to [{}] property [{}].",
-                        metric->Id(),
-                        handler_id,
-                        metric->Property());
-          [[maybe_unused]]
-          auto [metrics_pos, ignore_found] = metrics.emplace(std::move(handler_id),
-                                                             Metrics{});
+          if(metric)
+          {
+            spdlog::info("     - add metric [{}] to handler [{}] property [{}].",
+                          metric->Id(),
+                          handler_id,
+                          metric->Property());
+            [[maybe_unused]]
+            auto [metrics_pos, ignore_found] = metrics.emplace(std::string{handler_id},
+                                                               Metrics{});
 
-          auto [ignore_key, handler_metrics] = metrics[metrics_pos];
+            auto [ignore_key, handler_metrics] = metrics[metrics_pos];
 
-          handler_metrics.emplace_back(std::move(metric));
+            handler_metrics.emplace_back(std::move(metric));
+          }
         }
       }
     }

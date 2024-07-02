@@ -28,6 +28,7 @@
 #include "spdlog/spdlog.h"
 #include "yaml-cpp/yaml.h"
 
+#include "yy_cpp/yy_flat_set.h"
 #include "yy_cpp/yy_string_case.h"
 #include "yy_cpp/yy_string_util.h"
 #include "yy_cpp/yy_vector.h"
@@ -101,8 +102,6 @@ MqttHandlerPtr configure_json_property(std::string_view p_id,
                                        const YAML::Node & yaml_json_handler,
                                        MetricsMap & prometheus_metrics)
 {
-  spdlog::info("Configure [{}]", p_id);
-
   MqttHandlerPtr mqtt_json_handler{};
   auto yaml_properties = yaml_json_handler["properties"];
   if(yaml_properties && (0 != yaml_properties.size()))
@@ -126,10 +125,8 @@ MqttHandlerPtr configure_json_property(std::string_view p_id,
             if(metric && (metric->Property() == property))
             {
               has_metrics = true;
-              spdlog::debug("      - metric [{}] added to property [{}] path=[{}].",
-                            metric->Id(),
-                            property,
-                            json_pointer);
+              spdlog::info("       metric [{}] added.",
+                           metric->Id());
               builder_metrics->emplace_back(std::move(metric));
             }
           }
@@ -137,6 +134,8 @@ MqttHandlerPtr configure_json_property(std::string_view p_id,
       }
     };
 
+    yy_data::flat_set<std::string_view> properties{};
+    properties.reserve(yaml_properties.size());
     for(const auto & yaml_property : yaml_properties)
     {
       if(yaml_property.IsScalar())
@@ -150,16 +149,20 @@ MqttHandlerPtr configure_json_property(std::string_view p_id,
         json_pointer = yy_json::json_pointer_trim(yaml_property["json"].as<std::string_view>());
         property = yy_util::trim(yaml_property["id"].as<std::string_view>());
       }
-      spdlog::debug("    property [{}] path=[{}] [line {}].",
-                    property,
-                    json_pointer,
+      spdlog::info("     - property [{}] path=[{}]:",
+                   property,
+                   json_pointer);
+      spdlog::debug("        [line {}].",
                     yaml_property.Mark().line + 1);
-
       if(!json_pointer.empty()
          && !property.empty())
       {
-        [[maybe_unused]]
-        auto ignore = prometheus_metrics.find_value(do_add_property, p_id);
+        if(auto [ignore_1, inserted] = properties.emplace(property);
+           inserted)
+        {
+          [[maybe_unused]]
+          auto ignore_2 = prometheus_metrics.find_value(do_add_property, p_id);
+        }
       }
     }
 
@@ -211,10 +214,11 @@ MqttHandlerStore configure_mqtt_handlers(const YAML::Node & yaml_handlers,
     std::string_view l_id{yy_util::trim(yaml_handler["id"].as<std::string_view>())};
     const MqttHandler::type type = decode_type(yaml_handler["type"]);
 
-    spdlog::debug("Configuring MQTT Handler id [{}] [line {}].", l_id, yaml_handler.Mark().line + 1);
+    spdlog::info(" Configuring MQTT Handler id [{}]:", l_id);
+    spdlog::debug("  [line {}].", yaml_handler.Mark().line + 1);
     MqttHandlerPtr handler;
 
-    spdlog::debug("  - type [{}]", yaml_handler["type"].as<std::string_view>());
+    spdlog::info("   - type [{}]", yaml_handler["type"].as<std::string_view>());
     switch(type)
     {
       case MqttHandler::type::Json:
