@@ -32,6 +32,9 @@
 
 namespace yafiyogi::mqtt_bridge::prometheus {
 
+inline constexpr std::string_view style_prometheus{"prometheus"};
+inline constexpr std::string_view style_open_metric{"open-metric"};
+
 struct metric_style
 {
     using clock_type = std::chrono::system_clock;

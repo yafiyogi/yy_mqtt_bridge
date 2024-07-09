@@ -27,6 +27,7 @@
 #include <array>
 #include <mutex>
 
+#include "yy_cpp/yy_make_lookup.h"
 #include "yy_cpp/yy_type_traits.h"
 #include "yy_cpp/yy_utility.h"
 #include "yy_cpp/yy_vector_util.h"
@@ -39,39 +40,18 @@ namespace yafiyogi::mqtt_bridge::prometheus {
 namespace {
 
 enum class Style { Prometheus, OpenMetric };
-static constexpr std::string_view g_style_prometheus{"prometheus"};
-static constexpr std::string_view g_style_open_metric_1{"openmetric"};
-static constexpr std::string_view g_style_open_metric_2{"open metric"};
-static constexpr std::string_view g_style_open_metric_3{"open-metric"};
-static constexpr std::string_view g_style_open_metric_4{"open_metric"};
 
-struct style_lookup final
-{
-    constexpr bool operator<(const style_lookup & other) const noexcept
-    {
-      return name < other.name;
-    }
+constexpr std::string_view g_style_prometheus{"prometheus"};
+constexpr std::string_view g_style_open_metric_1{"openmetric"};
+constexpr std::string_view g_style_open_metric_2{"open metric"};
+constexpr std::string_view g_style_open_metric_3{"open_metric"};
 
-    constexpr bool operator==(const style_lookup & other) const noexcept
-    {
-      return name == other.name;
-    }
-
-    std::string_view name;
-    Style style;
-};
-
-constexpr auto styles = yy_util::sort(yy_util::make_array(style_lookup{g_style_prometheus, Style::Prometheus},
-                                                          style_lookup{g_style_open_metric_1, Style::OpenMetric},
-                                                          style_lookup{g_style_open_metric_2, Style::OpenMetric},
-                                                          style_lookup{g_style_open_metric_3, Style::OpenMetric},
-                                                          style_lookup{g_style_open_metric_4, Style::OpenMetric}));
-
-constexpr auto style_comp = [](const style_lookup & style,
-                               const std::string_view target)
-{
-  return style.name.compare(target);
-};
+constexpr auto styles =
+  yy_data::make_lookup<std::string_view, Style>({{style_prometheus, Style::Prometheus},
+                                                 {style_open_metric, Style::OpenMetric},
+                                                 {g_style_open_metric_1, Style::OpenMetric},
+                                                 {g_style_open_metric_2, Style::OpenMetric},
+                                                 {g_style_open_metric_3, Style::OpenMetric}});
 
 metric_style_ptr create_style(std::string_view p_style_name)
 {
@@ -79,21 +59,15 @@ metric_style_ptr create_style(std::string_view p_style_name)
 
   std::string style_name{yy_util::to_lower(yy_util::trim(p_style_name))};
 
-  if(auto [pos, found] = yy_util::find(styles,
-                                       style_name,
-                                       style_comp);
-     found)
+  switch(styles.lookup(style_name, Style::Prometheus))
   {
-    switch(pos->style)
-    {
-      case Style::Prometheus:
-        style = std::make_unique<prometheus_style>();
-        break;
+    case Style::Prometheus:
+      style = std::make_unique<prometheus_style>();
+      break;
 
-      case Style::OpenMetric:
-        style = std::make_unique<open_metric_style>();
-        break;
-    }
+    case Style::OpenMetric:
+      style = std::make_unique<open_metric_style>();
+      break;
   }
 
   return style;
