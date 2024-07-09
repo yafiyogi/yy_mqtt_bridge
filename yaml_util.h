@@ -35,13 +35,18 @@
 
 namespace yafiyogi::mqtt_bridge {
 
+inline bool yaml_is_scalar(const YAML::Node & node)
+{
+  return node && node.IsScalar();
+}
+
 template<typename T,
          std::enable_if_t<!yy_traits::is_std_string_v<T>
                           && !yy_traits::is_c_string_v<T>,
                           bool> = true>
-auto yaml_get_value(const YAML::Node & node, T value)
+inline auto yaml_get_value(const YAML::Node & node, T value)
 {
-  if(node && node.IsScalar())
+  if(yaml_is_scalar(node))
   {
     value = node.as<T>();
   }
@@ -53,13 +58,13 @@ template<typename T,
          std::enable_if_t<yy_traits::is_std_string_v<T>
                           || yy_traits::is_c_string_v<T>,
                           bool> = true>
-auto yaml_get_value(const YAML::Node & node, T value)
+inline auto yaml_get_value(const YAML::Node & node, T value)
 {
   return yaml_get_value(node, std::string_view{value});
 }
 
 template<typename T>
-auto yaml_get_value(const YAML::Node & node)
+inline auto yaml_get_value(const YAML::Node & node)
 {
   return yaml_get_value(node, T{});
 }
