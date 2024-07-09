@@ -39,6 +39,7 @@ include(${YY_CMAKE}/cmake_boost-1.84.0.txt)
 
 find_package(Boost 1.84.0 REQUIRED COMPONENTS json locale)
 find_package(fmt REQUIRED)
+find_package(re2 REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
@@ -54,7 +55,9 @@ add_executable(yy_mqtt_bridge
   configure_mqtt_handlers.cpp
   configure_mqtt_topics.cpp
   configure_prometheus.cpp
+  configure_prometheus_label_actions.cpp
   configure_prometheus_metrics.cpp
+  prometheus_replace_path_label_action.cpp
   prometheus_labels.cpp
   prometheus_metric.cpp
   prometheus_style.cpp
@@ -87,6 +90,7 @@ target_link_libraries(yy_mqtt_bridge
   Boost::json
   Boost::locale
   fmt::fmt
+  re2::re2
   spdlog::spdlog
   yaml-cpp::yaml-cpp
   PkgConfig::Mosquitto_cpp
