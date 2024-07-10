@@ -28,15 +28,18 @@
 
 #include "prometheus_labels.h"
 #include "prometheus_metric.h"
+#include "prometheus_label_action.h"
 
-namespace yafiyogi::mqtt_bridge {
+namespace yafiyogi::mqtt_bridge::prometheus {
 
 Metric::Metric(std::string_view p_id,
                const MetricType p_type,
-               std::string && p_property):
+               std::string && p_property,
+               LabelActions && p_actions):
   m_id(p_id),
   m_type(p_type),
-  m_property(std::move(p_property))
+  m_property(std::move(p_property)),
+  m_actions(std::move(p_actions))
 {
 }
 
@@ -59,11 +62,21 @@ const std::string & Metric::Property() const noexcept
 void Metric::Event(std::string_view p_data,
                    const prometheus::Labels & p_labels)
 {
-  spdlog::debug("    [{}] topic=[{}] property=[{}] [{}]",
+  spdlog::debug("    [{}] property=[{}] [{}]",
                 m_id,
-                p_labels.get_label("topic"),
                 m_property,
                 p_data);
+  for(const auto & action : m_actions)
+  {
+    auto metric_labels{p_labels};
+
+    action->Apply(p_labels, metric_labels);
+
+    metric_labels.visit([](const auto & label,
+                           const auto & value) {
+      spdlog::debug("      - [{}]:[{}]", label, value);
+    });
+  }
 }
 
-} // namespace yafiyogi::mqtt_bridge
+} // namespace yafiyogi::mqtt_bridge::prometheus
