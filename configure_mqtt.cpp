@@ -31,13 +31,14 @@
 #include "configure_mqtt_handlers.h"
 #include "configure_mqtt_topics.h"
 #include "prometheus_config.h"
+#include "yaml_util.h"
 
 #include "mqtt_handler.h"
 
 namespace yafiyogi::mqtt_bridge {
 
 mqtt_config configure_mqtt(const YAML::Node & yaml_mqtt,
-                           prometheus_config & p_prometheus_config)
+                           prometheus::config & p_prometheus_config)
 {
   const auto yaml_host = yaml_mqtt["host"];
   if(!yaml_host)
@@ -47,12 +48,7 @@ mqtt_config configure_mqtt(const YAML::Node & yaml_mqtt,
   }
   auto host = yaml_host.as<std::string>();
 
-  int port = yy_mqtt::mqtt_default_port;
-  if(const auto yaml_port = yaml_mqtt["port"];
-     yaml_port && yaml_port.IsScalar())
-  {
-    port = yaml_port.as<int>();
-  }
+  int port = yaml_get_value(yaml_mqtt["port"], yy_mqtt::mqtt_default_port);
 
   spdlog::info("host=[{}] port=[{}]\n", host, port);
 
