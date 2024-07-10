@@ -62,6 +62,16 @@ class Labels final
     [[nodiscard]]
     const std::string & get_label(const std::string_view p_label) const noexcept;
 
+    template<typename Visitor>
+    [[nodiscard]]
+    bool get_label(const std::string_view p_label,
+                   Visitor && visitor) const noexcept
+    {
+      return m_labels.find_value(std::forward<Visitor>(visitor), p_label).found;
+    }
+
+    void erase(const std::string_view p_label);
+
     void set_path(const yy_mqtt::TopicLevels & p_path) noexcept;
 
     [[nodiscard]]

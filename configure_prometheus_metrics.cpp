@@ -46,6 +46,10 @@
 #include "prometheus_metric.h"
 #include "yaml_util.h"
 
+#include "prometheus_label_action_drop.h"
+#include "prometheus_label_action_keep.h"
+#include "prometheus_label_action_replace_path.h"
+
 namespace yafiyogi::mqtt_bridge::prometheus {
 namespace {
 
@@ -55,14 +59,16 @@ constexpr const auto metric_types =
   yy_data::make_lookup<std::string_view, MetricType>({{g_type_guage, MetricType::Guage}});
 
 
-enum class ActionType {Keep, ReplacePath};
+enum class ActionType {Drop, Keep, ReplacePath};
+constexpr const std::string_view g_action_drop{"drop"};
 constexpr const std::string_view g_action_keep{"keep"};
 constexpr const std::string_view g_action_replace_path{"replace-path"};
 constexpr const std::string_view g_action_replace_path_1{"replacepath"};
 constexpr const std::string_view g_action_replace_path_2{"replace_path"};
 
 constexpr const auto action_types =
-  yy_data::make_lookup<std::string_view, ActionType>({{g_action_keep, ActionType::Keep},
+  yy_data::make_lookup<std::string_view, ActionType>({{g_action_drop, ActionType::Drop},
+                                                      {g_action_keep, ActionType::Keep},
                                                       {g_action_replace_path, ActionType::ReplacePath},
                                                       {g_action_replace_path_1, ActionType::ReplacePath},
                                                       {g_action_replace_path_2, ActionType::ReplacePath}});
@@ -132,22 +138,41 @@ MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics)
           for(const auto & yaml_label_action : yaml_label_actions)
           {
             auto action_name = yy_util::to_lower(yy_util::trim(yaml_get_value(yaml_label_action[g_yaml_action], "")));
+            LabelActionPtr action;
 
             spdlog::info("       - action [{}].", action_name);
             spdlog::debug("          [line {}].", yaml_label_action.Mark().line + 1);
             switch(action_types.lookup(action_name, ActionType::Keep))
             {
+              case ActionType::Drop:
+              {
+                std::string_view target{yy_util::trim(yaml_get_value(yaml_label_action[g_yaml_target], ""))};
+                if(!target.empty())
+                {
+                  action = yy_util::static_unique_cast<LabelAction>(std::make_unique<DropLabelAction>(std::string{target}));
+               }
+              }
+              break;
+
+              case ActionType::Keep:
+              {
+                std::string_view target{yy_util::trim(yaml_get_value(yaml_label_action[g_yaml_target], ""))};
+                if(!target.empty())
+                {
+                  action = yy_util::static_unique_cast<LabelAction>(std::make_unique<KeepLabelAction>(std::string{target}));
+               }
+              }
+              break;
+
               case ActionType::ReplacePath:
               {
-                std::string target{yy_util::trim(yaml_get_value(yaml_label_action[g_yaml_target], ""))};
+                std::string_view target{yy_util::trim(yaml_get_value(yaml_label_action[g_yaml_target], ""))};
 
                 if(!target.empty())
                 {
                   auto topics = configure_label_action_replace_path(yaml_label_action[g_yaml_replace]);
 
-                  auto action = yy_util::static_unique_cast<LabelAction>(std::make_unique<ReplacePathLabelAction>(std::move(target), std::move(topics)));
-
-                  actions.emplace_back(std::move(action));
+                  action = yy_util::static_unique_cast<LabelAction>(std::make_unique<ReplacePathLabelAction>(std::string{target}, std::move(topics)));
                 }
               }
               break;
@@ -157,25 +182,33 @@ MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics)
                 spdlog::debug("  [line {}].", yaml_label_action.Mark().line + 1);
                 break;
             }
+
+            if(action)
+            {
+              actions.emplace_back(std::move(action));
+            }
           }
 
-          auto metric = std::make_shared<Metric>(metric_id,
-                                                 type,
-                                                 std::move(property),
-                                                 std::move(actions));
+          if(!actions.empty())
+          {
+            auto metric = std::make_shared<Metric>(metric_id,
+                                                   type,
+                                                   std::move(property),
+                                                   std::move(actions));
 
-          spdlog::info("     - add metric [{}] to handler [{}] property [{}].",
-                       metric->Id(),
-                       handler_id,
-                       metric->Property());
+            spdlog::info("     - add metric [{}] to handler [{}] property [{}].",
+                         metric->Id(),
+                         handler_id,
+                         metric->Property());
 
-          [[maybe_unused]]
-          auto [metrics_pos, ignore_found] = metrics.emplace(std::string{handler_id},
-                                                             Metrics{});
+            [[maybe_unused]]
+            auto [metrics_pos, ignore_found] = metrics.emplace(std::string{handler_id},
+                                                               Metrics{});
 
-          auto [ignore_key, handler_metrics] = metrics[metrics_pos];
+            auto [ignore_key, handler_metrics] = metrics[metrics_pos];
 
-          handler_metrics.emplace_back(std::move(metric));
+            handler_metrics.emplace_back(std::move(metric));
+          }
         }
       }
     }

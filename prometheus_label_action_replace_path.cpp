@@ -25,7 +25,7 @@
 */
 
 #include "prometheus_labels.h"
-#include "prometheus_replace_path_label_action.h"
+#include "prometheus_label_action_replace_path.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
 

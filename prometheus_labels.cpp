@@ -58,11 +58,6 @@ void Labels::set_label(std::string_view p_label,
   }
 }
 
-void Labels::set_path(const yy_mqtt::TopicLevels & p_path) noexcept
-{
-  m_path = p_path;
-}
-
 const std::string & Labels::get_label(const std::string_view p_label) const noexcept
 {
   const std::string * label = &g_empty_str;
@@ -75,9 +70,19 @@ const std::string & Labels::get_label(const std::string_view p_label) const noex
   };
 
   [[maybe_unused]]
-  auto ignore = m_labels.find_value(do_get_value, p_label);
+  auto ignore = get_label(p_label, do_get_value);
 
   return *label;
+}
+
+void Labels::erase(const std::string_view p_label)
+{
+  m_labels.erase(p_label);
+}
+
+void Labels::set_path(const yy_mqtt::TopicLevels & p_path) noexcept
+{
+  m_path = p_path;
 }
 
 } // namespace yafiyogi::mqtt_bridge::prometheus
