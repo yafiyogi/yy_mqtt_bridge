@@ -29,6 +29,7 @@
 #include "yaml-cpp/yaml.h"
 
 #include "yy_cpp/yy_flat_set.h"
+#include "yy_cpp/yy_make_lookup.h"
 #include "yy_cpp/yy_string_case.h"
 #include "yy_cpp/yy_string_util.h"
 #include "yy_cpp/yy_vector.h"
@@ -42,6 +43,7 @@
 #include "mqtt_handler.h"
 #include "mqtt_json_handler.h"
 #include "mqtt_value_handler.h"
+#include "yaml_util.h"
 
 namespace yafiyogi::mqtt_bridge {
 namespace {
@@ -52,72 +54,39 @@ constexpr std::string_view g_type_json{"json"};
 constexpr std::string_view g_type_value{"value"};
 constexpr std::string_view g_type_text{"text"};
 
-struct handler_type_lookup final
-{
-    constexpr bool operator<(const handler_type_lookup & other) const noexcept
-    {
-      return name < other.name;
-    }
-
-    constexpr bool operator==(const handler_type_lookup & other) const noexcept
-    {
-      return name == other.name;
-    }
-
-    std::string_view name;
-    MqttHandler::type type;
-};
-
-constexpr auto handler_type_comp = [](const handler_type_lookup & handler_type,
-                                      const std::string & target) -> int
-{
-  return handler_type.name.compare(target);
-};
-
-constexpr auto handler_types = yy_util::sort(yy_util::make_array(handler_type_lookup{g_type_json, MqttHandler::type::Json},
-                                                                 handler_type_lookup{g_type_text, MqttHandler::type::Text},
-                                                                 handler_type_lookup{g_type_value, MqttHandler::type::Value}));
-
+constexpr auto handler_types =
+  yy_data::make_lookup<std::string_view, MqttHandler::type>({{g_type_json, MqttHandler::type::Json},
+                                                             {g_type_text, MqttHandler::type::Text},
+                                                             {g_type_value, MqttHandler::type::Value}});
 
 MqttHandler::type decode_type(const YAML::Node & yaml_type)
 {
-  MqttHandler::type handler_type = MqttHandler::type::Json;
-  if(yaml_type && yaml_type.IsScalar())
-  {
-    std::string type_name = yy_util::to_lower(yy_util::trim(yaml_type.as<std::string_view>()));
 
-    if(auto [pos, found] = yy_util::find(handler_types,
-                                         type_name,
-                                         handler_type_comp);
-       found)
-    {
-      handler_type = pos->type;
-    }
-  }
+  std::string type_name = yy_util::to_lower(yy_util::trim(yaml_get_value<std::string_view>(yaml_type)));
 
-  return handler_type;
+  return handler_types.lookup(type_name, MqttHandler::type::Json);
 }
 
-MqttHandlerPtr configure_json_property(std::string_view p_id,
-                                       const YAML::Node & yaml_json_handler,
-                                       MetricsMap & prometheus_metrics)
+MqttHandlerPtr configure_json_handler(std::string_view p_id,
+                                      const YAML::Node & yaml_json_handler,
+                                      prometheus::MetricsMap & prometheus_metrics)
 {
   MqttHandlerPtr mqtt_json_handler{};
   auto yaml_properties = yaml_json_handler["properties"];
   if(yaml_properties && (0 != yaml_properties.size()))
   {
-    prometheus_detail::MetricsJsonPointerBuilder json_pointer_builder{};
+    prometheus::MetricsJsonPointerBuilder json_pointer_builder{};
     bool has_metrics = false;
     std::string_view json_pointer{};
     std::string_view property{};
     yy_json::PathLevels path{};
 
     auto do_add_property = [&property, &json_pointer, &json_pointer_builder, &has_metrics]
-                           (Metrics * visitor_prometheus_metrics, auto /* pos */) {
+                           (prometheus::Metrics * visitor_prometheus_metrics, auto /* pos */) {
       if(nullptr != visitor_prometheus_metrics)
       {
         auto [builder_metrics, added] = json_pointer_builder.add_pointer(json_pointer,
-                                                                         Metrics{});
+                                                                         prometheus::Metrics{});
         if(nullptr != builder_metrics)
         {
           for(auto & metric : *visitor_prometheus_metrics)
@@ -157,11 +126,16 @@ MqttHandlerPtr configure_json_property(std::string_view p_id,
       if(!json_pointer.empty()
          && !property.empty())
       {
+        // Avoid duplicates.
         if(auto [ignore_1, inserted] = properties.emplace(property);
            inserted)
         {
           [[maybe_unused]]
           auto ignore_2 = prometheus_metrics.find_value(do_add_property, p_id);
+        }
+        else
+        {
+          spdlog::warn("   * already added!");
         }
       }
     }
@@ -179,25 +153,52 @@ MqttHandlerPtr configure_json_property(std::string_view p_id,
   return mqtt_json_handler;
 }
 
-MqttHandlerPtr configure_text_property(std::string_view p_id,
+MqttHandlerPtr configure_text_handler(std::string_view p_id,
                                        const YAML::Node & /* yaml_text_handler */,
-                                       MetricsMap & /* prometheus_metrics */)
+                                        prometheus::MetricsMap & /* prometheus_metrics */)
 {
   return std::make_unique<MqttHandler>(p_id,
                                        MqttHandler::type::Text);
 }
 
-MqttHandlerPtr configure_value_property(std::string_view p_id,
+MqttHandlerPtr configure_value_handler(std::string_view p_id,
                                         const YAML::Node & /* yaml_value_handler */,
-                                        MetricsMap & /* prometheus_metrics */)
+                                         prometheus::MetricsMap & prometheus_metrics)
 {
-  return std::make_unique<MqttValueHandler>(p_id);
+  prometheus::Metrics handler_metrics{} ;
+  auto do_add_property = [&handler_metrics]
+                         (prometheus::Metrics * visitor_prometheus_metrics, auto /* pos */) {
+    if(nullptr != visitor_prometheus_metrics)
+    {
+      handler_metrics.reserve(visitor_prometheus_metrics->size());
+
+      for(auto & metric : *visitor_prometheus_metrics)
+      {
+        if(metric)
+        {
+          spdlog::info("       metric [{}] added.",
+                       metric->Id());
+          handler_metrics.emplace_back(std::move(metric));
+        }
+      }
+    }
+  };
+
+  [[maybe_unused]]
+  auto ignore = prometheus_metrics.find_value(do_add_property, p_id);
+
+  MqttHandlerPtr handler{};
+  if(!handler_metrics.empty())
+  {
+    handler = std::make_unique<MqttValueHandler>(p_id, std::move(handler_metrics));
+  }
+  return handler;
 }
 
 } // anonymous namespace
 
 MqttHandlerStore configure_mqtt_handlers(const YAML::Node & yaml_handlers,
-                                         prometheus_config & prometheus_config)
+                                         prometheus::config & prometheus_config)
 {
   if(!yaml_handlers.IsSequence())
   {
@@ -222,15 +223,15 @@ MqttHandlerStore configure_mqtt_handlers(const YAML::Node & yaml_handlers,
     switch(type)
     {
       case MqttHandler::type::Json:
-        handler = configure_json_property(l_id, yaml_handler, prometheus_config.metrics);
+        handler = configure_json_handler(l_id, yaml_handler, prometheus_config.metrics);
         break;
 
       case MqttHandler::type::Text:
-        handler = configure_text_property(l_id, yaml_handler, prometheus_config.metrics);
+        handler = configure_text_handler(l_id, yaml_handler, prometheus_config.metrics);
         break;
 
       case MqttHandler::type::Value:
-        handler = configure_value_property(l_id, yaml_handler, prometheus_config.metrics);
+        handler = configure_value_handler(l_id, yaml_handler, prometheus_config.metrics);
         break;
     }
 
@@ -242,8 +243,11 @@ MqttHandlerStore configure_mqtt_handlers(const YAML::Node & yaml_handlers,
         if(auto [handler_pos, emplaced] = handler_store.emplace(std::move(id), std::move(handler));
            !emplaced)
         {
-          auto [key, ignore] = handler_store[handler_pos];
-          spdlog::warn("Handler id [{}] already created. Ignoring [line {}]", key, yaml_handler.Mark().line + 1);
+          if(auto [key, added] = handler_store[handler_pos];
+             !added)
+          {
+             spdlog::warn("Handler id [{}] already created. Ignoring [line {}]", key, yaml_handler.Mark().line + 1);
+          }
         }
       }
     }
