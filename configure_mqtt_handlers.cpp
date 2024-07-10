@@ -77,9 +77,8 @@ MqttHandlerPtr configure_json_handler(std::string_view p_id,
   {
     prometheus::MetricsJsonPointerBuilder json_pointer_builder{};
     bool has_metrics = false;
-    std::string_view json_pointer{};
+    std::string json_pointer{};
     std::string_view property{};
-    yy_json::PathLevels path{};
 
     auto do_add_property = [&property, &json_pointer, &json_pointer_builder, &has_metrics]
                            (prometheus::Metrics * visitor_prometheus_metrics, auto /* pos */) {
@@ -109,14 +108,13 @@ MqttHandlerPtr configure_json_handler(std::string_view p_id,
     {
       if(yaml_property.IsScalar())
       {
-        json_pointer = yy_util::trim(yaml_property.as<std::string_view>());
-        path = yy_json::json_pointer_tokenize(yy_json::json_pointer_trim(json_pointer));
-        property = path.back();
+        property = yy_util::trim(yaml_property.as<std::string_view>());
+        json_pointer = fmt::format("/{}", property);
       }
       else
       {
-        json_pointer = yy_json::json_pointer_trim(yaml_property["json"].as<std::string_view>());
         property = yy_util::trim(yaml_property["id"].as<std::string_view>());
+        json_pointer = yy_json::json_pointer_trim(yaml_property["json"].as<std::string_view>());
       }
       spdlog::info("     - property [{}] path=[{}]:",
                    property,
