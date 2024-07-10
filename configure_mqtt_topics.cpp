@@ -83,7 +83,7 @@ mqtt_topics configure_mqtt_topics(const YAML::Node & yaml_topics,
           }
         }
 
-        subscriptions.reserve(subscriptions.size() + filters.size());
+        subscriptions.reserve(subscriptions.size() + std::max(std::size_t{0}, filters.size() - (subscriptions.capacity() - subscriptions.size())));
         for(std::size_t idx = 0; idx < filters.size(); ++idx)
         {
           auto filter = filters[idx];
@@ -103,14 +103,15 @@ mqtt_topics configure_mqtt_topics(const YAML::Node & yaml_topics,
           }
 
           yy_mqtt::faster_topics_add(topics_config, filter, MqttHandlerList{mqtt_handlers});
-          subscriptions.emplace_back(std::string{filter});
+          if(auto [pos, found] = yy_util::find(subscriptions, filter);
+             !found)
+          {
+            subscriptions.emplace(pos, std::string{filter});
+          }
         }
       }
     }
   }
-
-  yy_util::sort(subscriptions);
-  yy_util::unique(subscriptions);
 
   return mqtt_topics{std::move(subscriptions), topics_config.create_automaton()};
 }
