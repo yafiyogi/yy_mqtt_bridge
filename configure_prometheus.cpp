@@ -27,26 +27,28 @@
 #include "spdlog/spdlog.h"
 #include "yaml-cpp/yaml.h"
 
+#include "yy_cpp/yy_string_util.h"
+#include "yy_cpp/yy_string_case.h"
+
 #include "configure_prometheus.h"
+#include "configure_prometheus_metrics.h"
 #include "prometheus_config.h"
 #include "prometheus_style.h"
-#include "configure_prometheus_metrics.h"
+#include "yaml_util.h"
+namespace yafiyogi::mqtt_bridge::prometheus {
 
-namespace yafiyogi::mqtt_bridge {
-
-prometheus_config configure_prometheus(const YAML::Node & yaml_prometheus)
+config configure_prometheus(const YAML::Node & yaml_prometheus)
 {
-  int port = yaml_prometheus["exporter_port"].as<int>();
+  int port = yaml_get_value(yaml_prometheus["exporter_port"], prometheus_default_port);
 
-  if(auto yaml_metric_style = yaml_prometheus["metric_style"];
-     yaml_metric_style && yaml_metric_style.IsScalar())
-  {
-    prometheus::set_metric_style(yaml_metric_style.as<std::string_view>());
-  }
+  std::string metric_style = yy_util::to_lower(yy_util::trim(yaml_get_value(yaml_prometheus["metric_style"],
+                                                                            prometheus::style_prometheus)));
+
+  prometheus::set_metric_style(metric_style);
 
   auto metrics = configure_prometheus_metrics(yaml_prometheus["metrics"]);
 
-  return prometheus_config{port, std::move(metrics)};
+  return config{port, std::move(metrics)};
 }
 
-} // namespace yafiyogi::mqtt_bridge
+} // namespace yafiyogi::mqtt_bridge::prometheus
