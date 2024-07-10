@@ -41,7 +41,7 @@ class MqttJsonHandler final:
       public MqttHandler
 {
   public:
-    using MetricsJsonPointer = prometheus_detail::MetricsJsonPointer;
+    using MetricsJsonPointer = prometheus::MetricsJsonPointer;
     using JsonParserConfig = MetricsJsonPointer::pointers_config_type;
     using JsonParser = boost::json::basic_parser<MetricsJsonPointer>;
     using JsonParserOptions = boost::json::parse_options;

@@ -27,10 +27,10 @@
 #pragma once
 
 #include "prometheus_config.h"
-#include "yaml_small.h"
+#include "yaml_fwd.h"
 
-namespace yafiyogi::mqtt_bridge {
+namespace yafiyogi::mqtt_bridge::prometheus {
 
-prometheus_config configure_prometheus(const YAML::Node & yaml_prometheus);
+config configure_prometheus(const YAML::Node & yaml_prometheus);
 
-} // namespace yafiyogi::mqtt_bridge
+} // namespace yafiyogi::mqtt_bridge::prometheus

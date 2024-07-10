@@ -74,7 +74,7 @@ int main()
     return 1;
   }
 
-  auto prometheus_config = yafiyogi::mqtt_bridge::configure_prometheus(yaml_prometheus);
+  auto prometheus_config = yafiyogi::mqtt_bridge::prometheus::configure_prometheus(yaml_prometheus);
 
   const auto yaml_mqtt = yaml_config["mqtt"];
 

@@ -36,7 +36,7 @@
 
 namespace yafiyogi::mqtt_bridge {
 
-using MetricsJsonPointer = prometheus_detail::MetricsJsonPointer;
+using MetricsJsonPointer = prometheus::MetricsJsonPointer;
 
 class JsonVisitor:
       public MetricsJsonPointer::visitor_type

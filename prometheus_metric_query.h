@@ -29,9 +29,9 @@
 #include "yy_json/yy_json_pointer.h"
 #include "prometheus_metric.h"
 
-namespace yafiyogi::mqtt_bridge::prometheus_detail {
+namespace yafiyogi::mqtt_bridge::prometheus {
 
 using MetricsJsonPointerBuilder = yy_json::json_pointer_builder<Metrics>;
 using MetricsJsonPointer = MetricsJsonPointerBuilder::handler_type;
 
-} // namespace yafiyogi::mqtt_bridge::prometheus_detail
+} // namespace yafiyogi::mqtt_bridge::prometheus

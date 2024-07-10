@@ -28,13 +28,12 @@
 
 #include "yy_mqtt/yy_mqtt_constants.h"
 
-#include "yaml_small.h"
+#include "yaml_fwd.h"
 
 #include "mqtt_topics.h"
+#include "prometheus_config_fwd.h"
 
 namespace yafiyogi::mqtt_bridge {
-
-struct prometheus_config;
 
 struct mqtt_config final
 {
@@ -47,6 +46,6 @@ struct mqtt_config final
 };
 
 mqtt_config configure_mqtt(const YAML::Node & yaml_mqtt,
-                           prometheus_config & prometheus_config);
+                           prometheus::config & prometheus_config);
 
 } // namespace yafiyogi::mqtt_bridge

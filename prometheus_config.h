@@ -28,14 +28,14 @@
 
 #include "prometheus_metric.h"
 
-namespace yafiyogi::mqtt_bridge {
+namespace yafiyogi::mqtt_bridge::prometheus {
 
 inline constexpr int prometheus_default_port = 9100;
 
-struct prometheus_config final
+struct config final
 {
     int port = prometheus_default_port;
     MetricsMap metrics{};
 };
 
-} // namespace yafiyogi::mqtt_bridge
+} // namespace yafiyogi::mqtt_bridge::prometheus

@@ -28,14 +28,20 @@
 
 namespace yafiyogi::mqtt_bridge {
 
-MqttValueHandler::MqttValueHandler(std::string_view p_handler_id) noexcept:
-  MqttHandler(p_handler_id, type::Value)
+MqttValueHandler::MqttValueHandler(std::string_view p_handler_id,
+                                   prometheus::Metrics && p_metrics) noexcept:
+  MqttHandler(p_handler_id, type::Value),
+  m_metrics(std::move(p_metrics))
 {
 }
 
-void MqttValueHandler::Event(std::string_view /* p_data */,
-                        const prometheus::Labels & /* p_labels */) noexcept
+void MqttValueHandler::Event(std::string_view p_data,
+                        const prometheus::Labels & p_labels) noexcept
 {
+  for(auto & metric : m_metrics)
+  {
+    metric->Event(p_data, p_labels);
+  }
 }
 
 } // namespace yafiyogi::mqtt_bridge

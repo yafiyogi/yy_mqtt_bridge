@@ -26,7 +26,7 @@
 
 #pragma once
 
-#include "yaml_small.h"
+#include "yaml_fwd.h"
 
 #include "yy_cpp/yy_vector.h"
 

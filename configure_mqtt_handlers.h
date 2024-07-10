@@ -26,15 +26,14 @@
 
 #pragma once
 
-#include "yaml_small.h"
+#include "yaml_fwd.h"
 
-#include "mqtt_handler_small.h"
+#include "mqtt_handler_fwd.h"
+#include "prometheus_config_fwd.h"
 
 namespace yafiyogi::mqtt_bridge {
 
-struct prometheus_config;
-
 MqttHandlerStore configure_mqtt_handlers(const YAML::Node & yaml_handlers,
-                                         prometheus_config & prometheus_config);
+                                         prometheus::config & prometheus_config);
 
 } // namespace yafiyogi::mqtt_bridge {

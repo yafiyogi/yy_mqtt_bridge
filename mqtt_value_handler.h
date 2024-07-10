@@ -28,7 +28,7 @@
 
 #include <string_view>
 
-#include "yy_mqtt/yy_mqtt_types.h"
+#include "prometheus_metric_query.h"
 
 #include "mqtt_handler.h"
 
@@ -43,7 +43,8 @@ class MqttValueHandler:
       public MqttHandler
 {
   public:
-    explicit MqttValueHandler(std::string_view p_handler_id) noexcept;
+    explicit MqttValueHandler(std::string_view p_handler_id,
+                              prometheus::Metrics && p_metrics) noexcept;
     constexpr MqttValueHandler() noexcept = default;
     MqttValueHandler(const MqttValueHandler &) = delete;
     constexpr MqttValueHandler(MqttValueHandler &&) noexcept = default;
@@ -55,6 +56,7 @@ class MqttValueHandler:
     void Event(std::string_view p_data ,
                const prometheus::Labels & p_labels) noexcept override;
   private:
+    prometheus::Metrics m_metrics;
 };
 
 } // namespace yafiyogi::mqtt_bridge

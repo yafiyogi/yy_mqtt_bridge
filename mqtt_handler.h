@@ -30,7 +30,7 @@
 
 #include "yy_mqtt/yy_mqtt_types.h"
 
-#include "mqtt_handler_small.h"
+#include "mqtt_handler_fwd.h"
 
 namespace yafiyogi::mqtt_bridge {
 namespace prometheus {

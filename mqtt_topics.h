@@ -32,7 +32,7 @@
 
 #include "yy_mqtt/yy_mqtt_faster_topics.h"
 
-#include "mqtt_handler_small.h"
+#include "mqtt_handler_fwd.h"
 
 namespace yafiyogi::mqtt_bridge {
 
