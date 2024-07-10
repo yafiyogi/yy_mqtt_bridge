@@ -42,28 +42,28 @@ void Labels::clear() noexcept
 void Labels::set_label(std::string_view p_label,
                        std::string_view p_value)
 {
-  auto [pos, found] = m_labels.find_pos(p_label);
+  auto do_set_value = [p_value](auto value, auto) {
+    *value = p_value;
+  };
 
-  if(found)
+  if(auto [pos, found] = m_labels.find_value(do_set_value, p_label);
+     !found)
   {
-    m_labels[pos].value = p_value;
-  }
-  else
-  {
-    auto [label, value] = m_labels.add_empty(pos);
-
-    label = p_label;
-    value = p_value;
+    if(auto [label, value, inserted] = m_labels.add_empty(pos);
+       inserted)
+    {
+      *label = p_label;
+      *value = p_value;
+    }
   }
 }
 
-void Labels::set_label(std::string_view /* p_label */,
-                       const yy_mqtt::TopicLevels & p_path) noexcept
+void Labels::set_path(const yy_mqtt::TopicLevels & p_path) noexcept
 {
   m_path = p_path;
 }
 
-const std::string & Labels::get_label(const std::string & p_label) const noexcept
+const std::string & Labels::get_label(const std::string_view p_label) const noexcept
 {
   const std::string * label = &g_empty_str;
 

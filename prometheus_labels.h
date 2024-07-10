@@ -36,13 +36,17 @@
 namespace yafiyogi::mqtt_bridge::prometheus {
 
 inline constexpr const std::string_view label_help{"help"};
-inline constexpr const std::string_view label_path{"path"};
 inline constexpr const std::string_view label_timestamp{"timestamp"};
 inline constexpr const std::string_view label_topic{"topic"};
 
 class Labels final
 {
   public:
+    using LabelStore = yy_data::flat_map<std::string,
+                                         std::string,
+                                         yy_data::ClearAction::Keep,
+                                         yy_data::ClearAction::Keep>;
+    using size_type = LabelStore::size_type;
     constexpr Labels() noexcept = default;
     constexpr Labels(const Labels &) noexcept = default;
     constexpr Labels(Labels &&) noexcept = default;
@@ -54,11 +58,17 @@ class Labels final
     void clear() noexcept;
     void set_label(std::string_view p_label,
                    std::string_view p_value);
-    void set_label(std::string_view p_label,
-                   const yy_mqtt::TopicLevels & p_path) noexcept;
 
     [[nodiscard]]
-    const std::string & get_label(const std::string & p_label) const noexcept;
+    const std::string & get_label(const std::string_view p_label) const noexcept;
+
+    void set_path(const yy_mqtt::TopicLevels & p_path) noexcept;
+
+    [[nodiscard]]
+    const yy_mqtt::TopicLevels & get_path() const noexcept
+    {
+      return m_path;
+    }
 
     [[nodiscard]]
     constexpr size_t size() const noexcept
@@ -73,14 +83,17 @@ class Labels final
 
     constexpr bool operator==(const Labels & other) const noexcept
     {
-      return std::tie(m_path, m_labels) == std::tie(other.m_path, other.m_labels);
+      return std::tie(m_metric, m_path, m_labels) == std::tie(other.m_metric, other.m_path, other.m_labels);
+    }
+
+    template<typename Visitor>
+    void visit(Visitor && visitor) const
+    {
+      m_labels.visit(std::forward<Visitor>(visitor));
     }
 
   private:
-    using LabelStore = yy_data::flat_map<std::string,
-                                         std::string,
-                                         yy_data::ClearAction::Keep,
-                                         yy_data::ClearAction::Keep>;
+    std::string m_metric;
     LabelStore m_labels;
     yy_mqtt::TopicLevels m_path;
 };
