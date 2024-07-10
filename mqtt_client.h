@@ -78,7 +78,7 @@ class mqtt_client final:
     int m_port = yy_mqtt::mqtt_default_port;
     std::atomic<bool> m_is_connected = false;
     std::string m_ts;
-    yy_mqtt::TopicLevels m_topic_levels;
+    yy_mqtt::TopicLevels m_topic_path;
     prometheus::Labels m_labels;
     static constexpr int default_keepalive_seconds = 60;
 };

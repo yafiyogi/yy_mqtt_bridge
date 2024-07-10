@@ -113,14 +113,13 @@ void mqtt_client::on_message(const struct mosquitto_message * message)
     m_labels.set_label(prometheus::label_topic, topic);
 
     spdlog::debug("Processing [{}] payloads=[{}]", topic, payloads.size());
-    yy_mqtt::topic_tokenize(m_topic_levels, topic);
-    m_labels.set_label(prometheus::label_path, m_topic_levels);
+    yy_mqtt::topic_tokenize(m_topic_path, topic);
+    m_labels.set_path(m_topic_path);
 
     std::string_view data{static_cast<std::string_view::value_type *>(message->payload),
                          static_cast<std::string_view::size_type>(message->payloadlen)};
     for(const auto & handlers : payloads)
     {
-      spdlog::info(" [{}]:", topic);
       for(auto & handler : *handlers)
       {
         handler->Event(data, m_labels);
