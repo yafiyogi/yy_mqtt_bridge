@@ -57,6 +57,7 @@ add_executable(yy_mqtt_bridge
   configure_prometheus.cpp
   configure_prometheus_label_actions.cpp
   configure_prometheus_metrics.cpp
+  prometheus_label_action_copy.cpp
   prometheus_label_action_drop.cpp
   prometheus_label_action_keep.cpp
   prometheus_label_action_replace_path.cpp

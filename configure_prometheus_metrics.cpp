@@ -43,9 +43,11 @@
 #include "prometheus_label_action.h"
 #include "mqtt_handler.h"
 #include "prometheus_config.h"
+#include "prometheus_label_action_replace_path.h"
 #include "prometheus_metric.h"
 #include "yaml_util.h"
 
+#include "prometheus_label_action_copy.h"
 #include "prometheus_label_action_drop.h"
 #include "prometheus_label_action_keep.h"
 #include "prometheus_label_action_replace_path.h"
@@ -59,7 +61,8 @@ constexpr const auto metric_types =
   yy_data::make_lookup<std::string_view, MetricType>({{g_type_guage, MetricType::Guage}});
 
 
-enum class ActionType {Drop, Keep, ReplacePath};
+enum class ActionType {Copy, Drop, Keep, ReplacePath};
+constexpr const std::string_view g_action_copy{"copy"};
 constexpr const std::string_view g_action_drop{"drop"};
 constexpr const std::string_view g_action_keep{"keep"};
 constexpr const std::string_view g_action_replace_path{"replace-path"};
@@ -67,7 +70,8 @@ constexpr const std::string_view g_action_replace_path_1{"replacepath"};
 constexpr const std::string_view g_action_replace_path_2{"replace_path"};
 
 constexpr const auto action_types =
-  yy_data::make_lookup<std::string_view, ActionType>({{g_action_drop, ActionType::Drop},
+  yy_data::make_lookup<std::string_view, ActionType>({{g_action_drop, ActionType::Copy},
+                                                      {g_action_drop, ActionType::Drop},
                                                       {g_action_keep, ActionType::Keep},
                                                       {g_action_replace_path, ActionType::ReplacePath},
                                                       {g_action_replace_path_1, ActionType::ReplacePath},
@@ -87,6 +91,7 @@ constexpr const std::string_view g_yaml_handler_id{"handler_id"};
 constexpr const std::string_view g_yaml_value{"value"};
 constexpr const std::string_view g_yaml_label_actions{"label_actions"};
 constexpr const std::string_view g_yaml_action{"action"};
+constexpr const std::string_view g_yaml_source{"source"};
 constexpr const std::string_view g_yaml_target{"target"};
 constexpr const std::string_view g_yaml_replace{"replace"};
 
@@ -144,6 +149,19 @@ MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics)
             spdlog::debug("          [line {}].", yaml_label_action.Mark().line + 1);
             switch(action_types.lookup(action_name, ActionType::Keep))
             {
+              case ActionType::Copy:
+              {
+                std::string_view source{yy_util::trim(yaml_get_value(yaml_label_action[g_yaml_source], ""))};
+                std::string_view target{yy_util::trim(yaml_get_value(yaml_label_action[g_yaml_target], ""))};
+                if(!source.empty()
+                   || !target.empty())
+                {
+                  action = yy_util::static_unique_cast<LabelAction>(std::make_unique<CopyLabelAction>(std::string{source},
+                                                                                                      std::string{target}));
+               }
+              }
+              break;
+
               case ActionType::Drop:
               {
                 std::string_view target{yy_util::trim(yaml_get_value(yaml_label_action[g_yaml_target], ""))};
