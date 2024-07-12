@@ -29,19 +29,19 @@
 
 namespace yafiyogi::mqtt_bridge::prometheus {
 
-KeepLabelAction::KeepLabelAction(std::string && p_label_name) noexcept:
-  m_label_name(std::move(p_label_name))
+KeepLabelAction::KeepLabelAction(std::string && p_label) noexcept:
+  m_label(std::move(p_label))
 {
 }
 
 void KeepLabelAction::Apply(const Labels & labels, Labels & metric_labels) noexcept
 {
   auto do_keep_label = [this, &metric_labels](const std::string * label_value, auto) {
-    metric_labels.set_label(m_label_name, *label_value);
+    metric_labels.set_label(m_label, *label_value);
   };
 
   [[maybe_unused]]
-  bool found = labels.get_label(m_label_name, do_keep_label);
+  bool found = labels.get_label(m_label, do_keep_label);
 }
 
 

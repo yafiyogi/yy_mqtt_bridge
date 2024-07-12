@@ -40,7 +40,7 @@ class KeepLabelAction:
       public LabelAction
 {
   public:
-    explicit KeepLabelAction(std::string && p_label_name) noexcept;
+    explicit KeepLabelAction(std::string && p_label) noexcept;
     constexpr KeepLabelAction() noexcept = default;
     constexpr KeepLabelAction(const KeepLabelAction &) noexcept = default;
     constexpr KeepLabelAction(KeepLabelAction &&) noexcept = default;
@@ -52,7 +52,7 @@ class KeepLabelAction:
     void Apply(const Labels & /* labels */, Labels & /* metric_labels */) noexcept override;
 
   private:
-    std::string m_label_name;
+    std::string m_label;
 };
 
 } // namespace yafiyogi::mqtt_bridge::prometheus
