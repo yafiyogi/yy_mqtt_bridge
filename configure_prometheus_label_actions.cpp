@@ -37,6 +37,7 @@
 
 #include "configure_prometheus_label_actions.h"
 #include "prometheus_label_action.h"
+#include "replacement_format.h"
 #include "yaml_util.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
@@ -55,10 +56,64 @@ constexpr auto escapes =
 } // namespace
 
 
+template<typename Visitor>
+void configure_label_action_replace_format(std::string_view replacement_format,
+                                           Visitor && visitor)
+{
+  if(!replacement_format.empty())
+  {
+    ReplaceFormat format;
+    absl::string_view config_format{replacement_format.data(), replacement_format.size()};
+
+    format.clear();
+    std::string_view prefix;
+    std::string_view escape;
+    std::string_view idx;
+    std::string format_prefix;
+
+    while(RE2::Consume(&config_format, re_idx, &prefix, &idx, &escape))
+    {
+      format_prefix.append(prefix);
+      if(!idx.empty())
+      {
+        if(auto [format_idx, state] = yy_util::fast_atoi<PathReplaceElement::size_type>(idx);
+           (yy_util::FastFloatRV::Ok == state) && (format_idx > 0))
+        {
+          format.emplace_back(PathReplaceElement{std::string{format_prefix}, format_idx - 1});
+          format_prefix.clear();
+        }
+        else
+        {
+          spdlog::warn("Format error: error with format [{}].",
+                       replacement_format);
+        }
+      }
+      else if(!escape.empty())
+      {
+        format_prefix.append(escapes.lookup(escape, escape));
+      }
+
+      if(config_format.empty())
+      {
+        break;
+      }
+    }
+
+    if(!format_prefix.empty())
+    {
+      format.emplace_back(PathReplaceElement{std::move(format_prefix), PathReplaceElement::no_param});
+    }
+
+    if(!format.empty())
+    {
+      visitor(format);
+    }
+  }
+}
+
 ReplacementTopics configure_label_action_replace_path(const YAML::Node & yaml_replace)
 {
   ReplacementTopicsConfig topics_config;
-  ReplaceFormat format;
 
   for(const auto & yaml_format : yaml_replace)
   {
@@ -77,59 +132,15 @@ ReplacementTopics configure_label_action_replace_path(const YAML::Node & yaml_re
         replacement_format = yy_util::trim(yaml_get_value(yaml_format["format"], ""));
       }
 
-      if(!replacement_format.empty())
+      if(yy_mqtt::topic_validate(replacement_pattern, yy_mqtt::TopicType::Filter))
       {
-        if(yy_mqtt::topic_validate(replacement_pattern, yy_mqtt::TopicType::Filter))
-        {
-          absl::string_view config_format{replacement_format.data(), replacement_format.size()};
+        configure_label_action_replace_format(replacement_format,
+                                              [replacement_pattern, &topics_config](ReplaceFormat & format)
+                                              {
+                                                auto [topic_formats, ignore] = yy_mqtt::faster_topics_add(topics_config, replacement_pattern, ReplaceFormats{});
 
-          format.clear();
-          std::string_view prefix;
-          std::string_view escape;
-          std::string_view idx;
-          std::string format_prefix;
-
-          while(RE2::Consume(&config_format, re_idx, &prefix, &idx, &escape))
-          {
-            format_prefix.append(prefix);
-            if(!idx.empty())
-            {
-              if(auto [format_idx, state] = yy_util::fast_atoi<PathReplaceElement::size_type>(idx);
-                 (yy_util::FastFloatRV::Ok == state) && (format_idx > 0))
-              {
-                format.emplace_back(PathReplaceElement{std::string{format_prefix}, format_idx - 1});
-                format_prefix.clear();
-              }
-              else
-              {
-                spdlog::warn("Format error: error with format [{}] on line [{}]",
-                             replacement_format,
-                             yaml_format.Mark().line + 1);
-              }
-            }
-            else if(!escape.empty())
-            {
-              format_prefix.append(escapes.lookup(escape, escape));
-            }
-
-            if(config_format.empty())
-            {
-              break;
-            }
-          }
-
-          if(!format_prefix.empty())
-          {
-            format.emplace_back(PathReplaceElement{std::move(format_prefix), PathReplaceElement::no_param});
-          }
-
-          if(!format.empty())
-          {
-            auto [topic_formats, ignore] = yy_mqtt::faster_topics_add(topics_config, replacement_pattern, ReplaceFormats{});
-
-            topic_formats->emplace_back(ReplaceFormat{format});
-          }
-        }
+                                                topic_formats->emplace_back(format);
+                                              });
       }
     }
   }

@@ -35,20 +35,9 @@
 #include "yy_mqtt/yy_mqtt_faster_topics.h"
 
 #include "prometheus_label_action.h"
+#include "replacement_format.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
-
-struct PathReplaceElement
-{
-    using size_type = uint32_t;
-    static constexpr size_type no_param = std::numeric_limits<size_type>::max();
-
-    std::string prefix;
-    size_type idx = no_param;
-};
-
-using ReplaceFormat = yy_quad::simple_vector<PathReplaceElement>;
-using ReplaceFormats = yy_quad::simple_vector<ReplaceFormat>;
 
 using ReplacementTopicsConfig = yy_mqtt::faster_topics<ReplaceFormats>;
 using ReplacementTopics = ReplacementTopicsConfig::automaton;
