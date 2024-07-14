@@ -24,8 +24,16 @@
 
 */
 
+#include <cstddef>
+
+#include <string>
+#include <memory>
+
 #include "prometheus_labels.h"
 #include "prometheus_label_action.h"
+
+#include "replacement_format.h"
+
 #include "prometheus_label_action_replace_path.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
@@ -40,13 +48,13 @@ ReplacePathLabelAction::ReplacePathLabelAction(std::string && p_label_name,
 
 void ReplacePathLabelAction::Apply(const Labels & /* labels */, Labels & metric_labels) noexcept
 {
-  if(auto payloads = m_topics.find(metric_labels.get_label(label_topic));
+  if(auto payloads = m_topics.find(metric_labels.get_label(g_label_topic));
      !payloads.empty())
   {
     const auto & levels = metric_labels.get_path();
     const Labels::size_type max_levels = levels.size();
 
-    for(const auto replacements : payloads)
+    for(const auto * replacements : payloads)
     {
       for(const auto & format : *replacements)
       {

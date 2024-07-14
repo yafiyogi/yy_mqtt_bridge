@@ -24,6 +24,9 @@
 
 */
 
+#include <string>
+#include <memory>
+
 #include "prometheus_labels.h"
 #include "prometheus_label_action_drop.h"
 

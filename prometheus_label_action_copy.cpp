@@ -24,6 +24,8 @@
 
 */
 
+#include <memory>
+
 #include "prometheus_labels.h"
 #include "prometheus_label_action_copy.h"
 
@@ -43,7 +45,7 @@ void CopyLabelAction::Apply(const Labels & labels, Labels & metric_labels) noexc
   };
 
   [[maybe_unused]]
-  bool found = labels.get_label(m_label_source, do_copy_label);
+  const bool found = labels.get_label(m_label_source, do_copy_label);
 }
 
 

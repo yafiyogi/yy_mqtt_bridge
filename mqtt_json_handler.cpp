@@ -24,15 +24,19 @@
 
 */
 
-#include <memory>
+#include <cstdint>
 
-#include "boost/json/basic_parser_impl.hpp"
+#include <memory>
+#include <string_view>
+
 #include "spdlog/spdlog.h"
 
-#include "prometheus_config.h"
+#include "yy_cpp/yy_assert.h"
+
 #include "prometheus_labels.h"
+#include "mqtt_handler.h"
+
 #include "mqtt_json_handler.h"
-#include "prometheus_metric_query.h"
 
 namespace yafiyogi::mqtt_bridge {
 
@@ -144,8 +148,7 @@ void MqttJsonHandler::Event(std::string_view p_data,
 
   m_json_visitor->labels(&p_labels);
 
-  boost::json::error_code ec{};
-  m_parser.write_some(false, p_data.data(), p_data.size(), ec);
+  m_parser.write_some(false, p_data.data(), p_data.size(), boost::json::error_code{});
 }
 
 } // namespace yafiyogi::mqtt_bridge

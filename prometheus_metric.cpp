@@ -24,6 +24,9 @@
 
 */
 
+#include <string>
+#include <string_view>
+
 #include "spdlog/spdlog.h"
 
 #include "prometheus_labels.h"
@@ -66,17 +69,19 @@ void Metric::Event(std::string_view p_data,
                 m_id,
                 m_property,
                 p_data);
+
+  auto metric_labels{p_labels};
+
   for(const auto & action : m_actions)
   {
-    auto metric_labels{p_labels};
-
     action->Apply(p_labels, metric_labels);
-
-    metric_labels.visit([](const auto & label,
-                           const auto & value) {
-      spdlog::debug("      - [{}]:[{}]", label, value);
-    });
   }
+
+  metric_labels.visit([](const auto & label,
+                         const auto & value) {
+    spdlog::debug("      - [{}]:[{}]", label, value);
+  });
+
 }
 
 } // namespace yafiyogi::mqtt_bridge::prometheus

@@ -24,7 +24,10 @@
 
 */
 
+#include <cstdint>
+
 #include <chrono>
+#include <string_view>
 
 #include "spdlog/spdlog.h"
 
@@ -44,9 +47,7 @@ mqtt_client::mqtt_client(mqtt_config & p_config):
   m_subscriptions(std::move(p_config.subscriptions)),
   m_id(std::move(p_config.id)),
   m_host(std::move(p_config.host)),
-  m_port(p_config.port),
-  m_is_connected(false),
-  m_ts()
+  m_port(p_config.port)
 {
 }
 
@@ -109,14 +110,14 @@ void mqtt_client::on_message(const struct mosquitto_message * message)
     m_ts.clear();
     fmt::format_to(std::back_inserter(m_ts), "{}", ts);
 
-    m_labels.set_label(prometheus::label_timestamp, m_ts);
-    m_labels.set_label(prometheus::label_topic, topic);
+    m_labels.set_label(prometheus::g_label_timestamp, m_ts);
+    m_labels.set_label(prometheus::g_label_topic, topic);
 
     spdlog::debug("Processing [{}] payloads=[{}]", topic, payloads.size());
     yy_mqtt::topic_tokenize(m_topic_path, topic);
     m_labels.set_path(m_topic_path);
 
-    std::string_view data{static_cast<std::string_view::value_type *>(message->payload),
+    const std::string_view data{static_cast<std::string_view::value_type *>(message->payload),
                          static_cast<std::string_view::size_type>(message->payloadlen)};
     for(const auto & handlers : payloads)
     {

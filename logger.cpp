@@ -39,8 +39,8 @@ constexpr std::string_view g_std_err{"stderr"};
 constexpr std::string_view g_log_name{"mqtt_bridge_log"};
 constexpr std::string_view g_default_file_path{"./mqtt_bridge.log"};
 
-std::mutex g_logger_mtx{};
-logger_ptr g_logger = spdlog::stderr_color_mt("stderr");
+static std::mutex g_logger_mtx{};
+static logger_ptr g_logger = spdlog::stderr_color_mt("stderr");
 
 void set_g_logger(logger_ptr log)
 {

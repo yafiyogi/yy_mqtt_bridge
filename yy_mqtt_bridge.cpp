@@ -31,6 +31,7 @@
 
 #include "spdlog/spdlog.h"
 #include "yaml-cpp/yaml.h"
+#include "mosquittopp.h"
 
 #include "yy_cpp/yy_locale.h"
 
@@ -42,7 +43,7 @@
 
 namespace {
 
-std::atomic<bool> exit_program;
+static std::atomic<bool> exit_program{false};
 
 void signal_handler(int /* signal */)
 {

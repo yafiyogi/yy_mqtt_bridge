@@ -24,7 +24,8 @@
 
 */
 
-#include "spdlog/spdlog.h"
+#include <string>
+
 #include "yaml-cpp/yaml.h"
 
 #include "yy_cpp/yy_string_util.h"
@@ -35,6 +36,7 @@
 #include "prometheus_config.h"
 #include "prometheus_style.h"
 #include "yaml_util.h"
+
 namespace yafiyogi::mqtt_bridge::prometheus {
 
 config configure_prometheus(const YAML::Node & yaml_prometheus)

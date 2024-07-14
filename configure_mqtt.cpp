@@ -24,16 +24,18 @@
 
 */
 
+#include <string>
+
 #include "spdlog/spdlog.h"
 #include "yaml-cpp/yaml.h"
 
-#include "configure_mqtt.h"
 #include "configure_mqtt_handlers.h"
 #include "configure_mqtt_topics.h"
+#include "mqtt_handler.h"
 #include "prometheus_config.h"
 #include "yaml_util.h"
 
-#include "mqtt_handler.h"
+#include "configure_mqtt.h"
 
 namespace yafiyogi::mqtt_bridge {
 

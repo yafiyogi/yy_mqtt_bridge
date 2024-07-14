@@ -24,14 +24,13 @@
 
 */
 
+#include <string>
+
 #include "prometheus_labels.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
-namespace {
 
 const std::string g_empty_str{};
-
-} // anonymous namespace
 
 void Labels::clear() noexcept
 {

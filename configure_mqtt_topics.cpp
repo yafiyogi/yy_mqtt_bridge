@@ -27,7 +27,6 @@
 #include "spdlog/spdlog.h"
 #include "yaml-cpp/yaml.h"
 
-#include "yy_cpp/yy_binary_search.h"
 #include "yy_cpp/yy_flat_set.h"
 #include "yy_cpp/yy_string_util.h"
 #include "yy_cpp/yy_vector_util.h"
@@ -35,9 +34,9 @@
 #include "yy_mqtt/yy_mqtt_util.h"
 #include "yy_mqtt/yy_mqtt_faster_topics.h"
 
-#include "configure_mqtt_topics.h"
-#include "mqtt_topics.h"
 #include "mqtt_handler.h"
+
+#include "configure_mqtt_topics.h"
 
 namespace yafiyogi::mqtt_bridge {
 
@@ -83,7 +82,7 @@ mqtt_topics configure_mqtt_topics(const YAML::Node & yaml_topics,
           }
         }
 
-        subscriptions.reserve(subscriptions.size() + std::max(std::size_t{0}, filters.size() - (subscriptions.capacity() - subscriptions.size())));
+        subscriptions.reserve(subscriptions.size() + filters.size());
         for(std::size_t idx = 0; idx < filters.size(); ++idx)
         {
           auto filter = filters[idx];

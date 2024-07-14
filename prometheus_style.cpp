@@ -24,13 +24,11 @@
 
 */
 
-#include <array>
 #include <mutex>
+#include <string>
+#include <string_view>
 
 #include "yy_cpp/yy_make_lookup.h"
-#include "yy_cpp/yy_type_traits.h"
-#include "yy_cpp/yy_utility.h"
-#include "yy_cpp/yy_vector_util.h"
 
 #include "yy_cpp/yy_string_case.h"
 #include "yy_cpp/yy_string_util.h"
@@ -73,10 +71,10 @@ metric_style_ptr create_style(std::string_view p_style_name)
   return style;
 }
 
-std::once_flag g_metric_style_flag;
-metric_style_ptr g_metric_style;
-std::once_flag g_metric_style_name_flag;
-std::string g_metric_style_name{g_style_prometheus};
+static std::once_flag g_metric_style_flag;
+static metric_style_ptr g_metric_style;
+static std::once_flag g_metric_style_name_flag;
+static std::string g_metric_style_name{g_style_prometheus};
 
 const std::string & get_metric_style_name()
 {

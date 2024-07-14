@@ -24,6 +24,8 @@
 
 */
 
+#include <string>
+
 #include "absl/strings/string_view.h"
 #include "re2/re2.h"
 #include "spdlog/spdlog.h"

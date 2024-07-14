@@ -62,20 +62,12 @@ constexpr const auto metric_types =
 
 
 enum class ActionType {Copy, Drop, Keep, ReplacePath};
-constexpr const std::string_view g_action_copy{"copy"};
-constexpr const std::string_view g_action_drop{"drop"};
-constexpr const std::string_view g_action_keep{"keep"};
-constexpr const std::string_view g_action_replace_path{"replace-path"};
-constexpr const std::string_view g_action_replace_path_1{"replacepath"};
-constexpr const std::string_view g_action_replace_path_2{"replace_path"};
 
 constexpr const auto action_types =
-  yy_data::make_lookup<std::string_view, ActionType>({{g_action_drop, ActionType::Copy},
-                                                      {g_action_drop, ActionType::Drop},
-                                                      {g_action_keep, ActionType::Keep},
-                                                      {g_action_replace_path, ActionType::ReplacePath},
-                                                      {g_action_replace_path_1, ActionType::ReplacePath},
-                                                      {g_action_replace_path_2, ActionType::ReplacePath}});
+  yy_data::make_lookup<std::string_view, ActionType>({{CopyLabelAction::action_name, ActionType::Copy},
+                                                      {DropLabelAction::action_name, ActionType::Drop},
+                                                      {KeepLabelAction::action_name, ActionType::Keep},
+                                                      {ReplacePathLabelAction::action_name, ActionType::ReplacePath}});
 
 MetricType decode_metric_type(const std::string_view & p_metric_type_name)
 {

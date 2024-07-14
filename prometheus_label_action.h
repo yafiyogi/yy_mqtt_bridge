@@ -43,9 +43,8 @@ class LabelAction
     constexpr LabelAction & operator=(const LabelAction &) noexcept = default;
     constexpr LabelAction & operator=(LabelAction &&) noexcept = default;
 
-    virtual void Apply(const Labels & /* labels */, Labels & /* metric_labels */) noexcept
-    {
-    }
+    virtual void Apply(const Labels & /* labels */, Labels & /* metric_labels */) noexcept = 0;
+    virtual std::string_view Name() const noexcept = 0;
 };
 
 } // namespace yafiyogi::mqtt_bridge::prometheus

@@ -24,7 +24,9 @@
 
 */
 
-#include "boost/json/basic_parser_impl.hpp"
+#include <memory>
+#include <string_view>
+
 #include "spdlog/spdlog.h"
 #include "yaml-cpp/yaml.h"
 
@@ -32,18 +34,14 @@
 #include "yy_cpp/yy_make_lookup.h"
 #include "yy_cpp/yy_string_case.h"
 #include "yy_cpp/yy_string_util.h"
-#include "yy_cpp/yy_vector.h"
-#include "yy_cpp/yy_vector_util.h"
 
-#include "yy_json/yy_json_pointer.h"
-#include "yy_json/yy_json_pointer_util.h"
-
-#include "configure_mqtt_handlers.h"
-#include "prometheus_config.h"
 #include "mqtt_handler.h"
 #include "mqtt_json_handler.h"
 #include "mqtt_value_handler.h"
+#include "prometheus_config.h"
 #include "yaml_util.h"
+
+#include "configure_mqtt_handlers.h"
 
 namespace yafiyogi::mqtt_bridge {
 namespace {

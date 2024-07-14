@@ -35,9 +35,9 @@
 
 namespace yafiyogi::mqtt_bridge::prometheus {
 
-inline constexpr const std::string_view label_help{"help"};
-inline constexpr const std::string_view label_timestamp{"timestamp"};
-inline constexpr const std::string_view label_topic{"topic"};
+inline constexpr const std::string_view g_label_help{"help"};
+inline constexpr const std::string_view g_label_timestamp{"timestamp"};
+inline constexpr const std::string_view g_label_topic{"topic"};
 
 class Labels final
 {

@@ -24,6 +24,10 @@
 
 */
 
+#include <string_view>
+
+#include "prometheus_metric.h"
+
 #include "mqtt_value_handler.h"
 
 namespace yafiyogi::mqtt_bridge {

@@ -24,6 +24,9 @@
 
 */
 
+#include <string>
+#include <memory>
+
 #include "prometheus_labels.h"
 #include "prometheus_label_action_keep.h"
 
@@ -41,7 +44,7 @@ void KeepLabelAction::Apply(const Labels & labels, Labels & metric_labels) noexc
   };
 
   [[maybe_unused]]
-  bool found = labels.get_label(m_label, do_keep_label);
+  const bool found = labels.get_label(m_label, do_keep_label);
 }
 
 

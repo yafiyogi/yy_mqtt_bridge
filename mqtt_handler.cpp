@@ -24,6 +24,8 @@
 
 */
 
+#include <string_view>
+
 #include "mqtt_handler.h"
 
 namespace yafiyogi::mqtt_bridge {

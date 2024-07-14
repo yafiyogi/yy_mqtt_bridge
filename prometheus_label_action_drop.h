@@ -51,6 +51,12 @@ class DropLabelAction:
 
     void Apply(const Labels & /* labels */, Labels & /* metric_labels */) noexcept override;
 
+    static constexpr const std::string_view action_name{"drop"};
+    constexpr std::string_view Name() const noexcept override
+    {
+      return action_name;
+    }
+
   private:
     std::string m_label_name;
 };

@@ -71,15 +71,15 @@ class mqtt_client final:
                       const int * granted_qos) override;
 
   private:
-    Topics m_topics;
-    Subscriptions m_subscriptions;
-    std::string m_id;
-    std::string m_host;
+    Topics m_topics{};
+    Subscriptions m_subscriptions{};
+    std::string m_id{};
+    std::string m_host{};
     int m_port = yy_mqtt::mqtt_default_port;
     std::atomic<bool> m_is_connected = false;
-    std::string m_ts;
-    yy_mqtt::TopicLevels m_topic_path;
-    prometheus::Labels m_labels;
+    std::string m_ts{};
+    yy_mqtt::TopicLevels m_topic_path{};
+    prometheus::Labels m_labels{};
     static constexpr int default_keepalive_seconds = 60;
 };
 
