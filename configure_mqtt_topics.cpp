@@ -62,8 +62,7 @@ mqtt_topics configure_mqtt_topics(const YAML::Node & yaml_topics,
       {
         auto handler_id = yy_util::trim(yaml_handler.as<std::string_view>());
 
-        [[maybe_unused]]
-        bool found = handlers_store.find_value(do_add_handler, handler_id).found;
+        std::ignore = handlers_store.find_value(do_add_handler, handler_id).found;
       }
 
       if(!mqtt_handlers.empty())

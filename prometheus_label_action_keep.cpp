@@ -43,8 +43,7 @@ void KeepLabelAction::Apply(const Labels & labels, Labels & metric_labels) noexc
     metric_labels.set_label(m_label, *label_value);
   };
 
-  [[maybe_unused]]
-  const bool found = labels.get_label(m_label, do_keep_label);
+  std::ignore = labels.get_label(m_label, do_keep_label);
 }
 
 

@@ -211,7 +211,6 @@ MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics)
                          handler_id,
                          metric->Property());
 
-            [[maybe_unused]]
             auto [metrics_pos, ignore_found] = metrics.emplace(std::string{handler_id},
                                                                Metrics{});
 

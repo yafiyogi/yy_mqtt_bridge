@@ -68,8 +68,7 @@ const std::string & Labels::get_label(const std::string_view p_label) const noex
     }
   };
 
-  [[maybe_unused]]
-  auto ignore = get_label(p_label, do_get_value);
+  std::ignore = get_label(p_label, do_get_value);
 
   return *label;
 }
