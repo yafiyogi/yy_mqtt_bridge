@@ -69,8 +69,8 @@ add_executable(yy_mqtt_bridge
   logger.cpp
   mqtt_client.cpp
   mqtt_handler.cpp
-  mqtt_json_handler.cpp
-  mqtt_value_handler.cpp
+  mqtt_handler_json.cpp
+  mqtt_handler_value.cpp
   yy_mqtt_bridge.cpp )
 
 target_compile_options(yy_mqtt_bridge
