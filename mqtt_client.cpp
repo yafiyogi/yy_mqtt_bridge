@@ -110,20 +110,21 @@ void mqtt_client::on_message(const struct mosquitto_message * message)
     m_ts.clear();
     fmt::format_to(std::back_inserter(m_ts), "{}", ts);
 
-    m_labels.set_label(prometheus::g_label_timestamp, m_ts);
-    m_labels.set_label(prometheus::g_label_topic, topic);
+    m_labels.set_label(yy_prometheus::g_label_timestamp, m_ts);
+    m_labels.set_label(yy_prometheus::g_label_topic, topic);
 
     spdlog::debug("Processing [{}] payloads=[{}]", topic, payloads.size());
     yy_mqtt::topic_tokenize(m_topic_path, topic);
     m_labels.set_path(m_topic_path);
 
     const std::string_view data{static_cast<std::string_view::value_type *>(message->payload),
-                         static_cast<std::string_view::size_type>(message->payloadlen)};
+                                static_cast<std::string_view::size_type>(message->payloadlen)};
+
     for(const auto & handlers : payloads)
     {
       for(auto & handler : *handlers)
       {
-        handler->Event(data, m_labels);
+        m_metric_data = handler->Event(data, m_labels);
       }
     }
   }

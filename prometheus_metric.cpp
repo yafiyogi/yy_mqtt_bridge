@@ -29,7 +29,7 @@
 
 #include "spdlog/spdlog.h"
 
-#include "prometheus_labels.h"
+#include "yy_prometheus/yy_prometheus_labels.h"
 #include "prometheus_metric.h"
 #include "prometheus_label_action.h"
 
@@ -39,22 +39,21 @@ Metric::Metric(std::string_view p_id,
                const MetricType p_type,
                std::string && p_property,
                LabelActions && p_actions):
-  m_id(p_id),
-  m_type(p_type),
   m_property(std::move(p_property)),
+  m_metric_data(std::string{p_id}, p_type, Labels{}),
   m_actions(std::move(p_actions))
 {
 }
 
 const std::string & Metric::Id() const noexcept
 {
-  return m_id;
+  return m_metric_data.id;
 }
 
 
-MetricType Metric::Type() const noexcept
+Metric::MetricType Metric::Type() const noexcept
 {
-  return m_type;
+  return m_metric_data.type;
 }
 
 const std::string & Metric::Property() const noexcept
@@ -63,25 +62,28 @@ const std::string & Metric::Property() const noexcept
 }
 
 void Metric::Event(std::string_view p_data,
-                   const prometheus::Labels & p_labels)
+                   const prometheus::Labels & p_labels,
+                   MetricDataVector & p_metric_data)
 {
   spdlog::debug("    [{}] property=[{}] [{}]",
-                m_id,
+                Id(),
                 m_property,
                 p_data);
 
-  auto metric_labels{p_labels};
+  m_metric_data.value = p_data;
+  m_metric_data.labels = p_labels;
 
   for(const auto & action : m_actions)
   {
-    action->Apply(p_labels, metric_labels);
+    action->Apply(p_labels, m_metric_data.labels);
   }
 
-  metric_labels.visit([](const auto & label,
-                         const auto & value) {
+  m_metric_data.labels.visit([](const auto & label,
+                                const auto & value) {
     spdlog::debug("      - [{}]:[{}]", label, value);
   });
 
+  p_metric_data.emplace_back(m_metric_data);
 }
 
 } // namespace yafiyogi::mqtt_bridge::prometheus

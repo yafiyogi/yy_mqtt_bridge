@@ -29,7 +29,7 @@
 #include <string>
 #include <memory>
 
-#include "prometheus_labels.h"
+#include "yy_prometheus/yy_prometheus_labels.h"
 #include "prometheus_label_action.h"
 
 #include "replacement_format.h"
@@ -48,7 +48,7 @@ ReplacePathLabelAction::ReplacePathLabelAction(std::string && p_label_name,
 
 void ReplacePathLabelAction::Apply(const Labels & /* labels */, Labels & metric_labels) noexcept
 {
-  if(auto payloads = m_topics.find(metric_labels.get_label(g_label_topic));
+  if(auto payloads = m_topics.find(metric_labels.get_label(yy_prometheus::g_label_topic));
      !payloads.empty())
   {
     const auto & levels = metric_labels.get_path();

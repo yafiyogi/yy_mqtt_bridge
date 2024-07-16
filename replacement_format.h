@@ -24,27 +24,25 @@
 
 */
 
-#include <string>
-#include <memory>
+#pragma once
 
-#include "yy_prometheus/yy_prometheus_labels.h"
-#include "prometheus_label_action_keep.h"
+#include <limits>
+#include <string>
+
+#include "yy_cpp/yy_vector.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
 
-KeepLabelAction::KeepLabelAction(std::string && p_label) noexcept:
-  m_label(std::move(p_label))
+struct PathReplaceElement
 {
-}
+    using size_type = uint32_t;
+    static constexpr size_type no_param = std::numeric_limits<size_type>::max();
 
-void KeepLabelAction::Apply(const Labels & labels, Labels & metric_labels) noexcept
-{
-  auto do_keep_label = [this, &metric_labels](const std::string * label_value, auto) {
-    metric_labels.set_label(m_label, *label_value);
-  };
+    std::string prefix;
+    size_type idx = no_param;
+};
 
-  std::ignore = labels.get_label(m_label, do_keep_label);
-}
-
+using ReplaceFormat = yy_quad::simple_vector<PathReplaceElement>;
+using ReplaceFormats = yy_quad::simple_vector<ReplaceFormat>;
 
 } // namespace yafiyogi::mqtt_bridge::prometheus

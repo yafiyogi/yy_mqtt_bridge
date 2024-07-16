@@ -26,9 +26,11 @@
 
 #include <string_view>
 
+#include "yy_prometheus/yy_prometheus_metric_data.h"
+
 #include "prometheus_metric.h"
 
-#include "mqtt_value_handler.h"
+#include "mqtt_handler_value.h"
 
 namespace yafiyogi::mqtt_bridge {
 
@@ -37,15 +39,19 @@ MqttValueHandler::MqttValueHandler(std::string_view p_handler_id,
   MqttHandler(p_handler_id, type::Value),
   m_metrics(std::move(p_metrics))
 {
+  m_metric_data.reserve(m_metrics.size());
 }
 
-void MqttValueHandler::Event(std::string_view p_data,
-                        const prometheus::Labels & p_labels) noexcept
+const yy_prometheus::MetricDataVector & MqttValueHandler::Event(std::string_view p_data,
+                                                             const prometheus::Labels & p_labels) noexcept
 {
+  m_metric_data.clear(yy_data::ClearAction::Keep);
   for(auto & metric : m_metrics)
   {
-    metric->Event(p_data, p_labels);
+    metric->Event(p_data, p_labels, m_metric_data);
   }
+
+  return m_metric_data;
 }
 
 } // namespace yafiyogi::mqtt_bridge

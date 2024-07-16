@@ -26,12 +26,16 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include "boost/json/basic_parser_impl.hpp"
 
 #include "yy_mqtt/yy_mqtt_types.h"
 
+#include "yy_prometheus/yy_prometheus_metric_data.h"
+
 #include "mqtt_handler.h"
-#include "prometheus_metric_query.h"
+#include "prometheus_metrics_json_pointer.h"
 
 namespace yafiyogi::mqtt_bridge {
 
@@ -41,14 +45,16 @@ class MqttJsonHandler final:
       public MqttHandler
 {
   public:
+    using size_type = std::size_t;
     using MetricsJsonPointer = prometheus::MetricsJsonPointer;
-    using JsonParserConfig = MetricsJsonPointer::pointers_config_type;
+    using JsonPointerConfig = MetricsJsonPointer::pointers_config_type;
     using JsonParser = boost::json::basic_parser<MetricsJsonPointer>;
     using JsonParserOptions = boost::json::parse_options;
 
     explicit MqttJsonHandler(std::string_view p_handler_id,
                              const JsonParserOptions & p_json_options,
-                             JsonParserConfig && p_json_handler_config) noexcept;
+                             JsonPointerConfig && p_json_handler_config,
+                             size_type metric_count) noexcept;
 
     MqttJsonHandler() = delete;
     MqttJsonHandler(const MqttJsonHandler &) = delete;
@@ -58,8 +64,8 @@ class MqttJsonHandler final:
     MqttJsonHandler & operator=(const MqttJsonHandler &) = delete;
     constexpr MqttJsonHandler & operator=(MqttJsonHandler &&) noexcept = default;
 
-    void Event(std::string_view p_data,
-               const prometheus::Labels & p_labels) noexcept override;
+    const yy_prometheus::MetricDataVector & Event(std::string_view p_data,
+                                                  const prometheus::Labels & p_labels) noexcept override;
 
   private:
     JsonParser m_parser;

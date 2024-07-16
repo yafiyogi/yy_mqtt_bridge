@@ -58,7 +58,7 @@ namespace {
 constexpr const std::string_view g_type_guage{"gauge"};
 
 constexpr const auto metric_types =
-  yy_data::make_lookup<std::string_view, MetricType>({{g_type_guage, MetricType::Guage}});
+  yy_data::make_lookup<std::string_view, Metric::MetricType>({{g_type_guage, Metric::MetricType::Guage}});
 
 
 enum class ActionType {Copy, Drop, Keep, ReplacePath};
@@ -69,11 +69,11 @@ constexpr const auto action_types =
                                                       {KeepLabelAction::action_name, ActionType::Keep},
                                                       {ReplacePathLabelAction::action_name, ActionType::ReplacePath}});
 
-MetricType decode_metric_type(const std::string_view & p_metric_type_name)
+Metric::MetricType decode_metric_type(const std::string_view & p_metric_type_name)
 {
   const std::string metric_type_name{yy_util::to_lower(yy_util::trim(p_metric_type_name))};
 
-  return metric_types.lookup(metric_type_name, MetricType::Guage);
+  return metric_types.lookup(metric_type_name, Metric::MetricType::Guage);
 }
 
 constexpr const std::string_view g_yaml_handlers{"handlers"};
@@ -106,7 +106,7 @@ MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics)
                    metric_id);
       spdlog::debug("  [line {}].",
                     yaml_metric.Mark().line + 1);
-      MetricType type = decode_metric_type(yaml_metric[g_yaml_type].as<std::string_view>());
+      auto type = decode_metric_type(yaml_metric[g_yaml_type].as<std::string_view>());
 
       for(const auto & yaml_handler : yaml_handlers)
       {

@@ -31,17 +31,16 @@
 #include "yy_mqtt/yy_mqtt_types.h"
 
 #include "mqtt_handler_fwd.h"
+#include "yy_prometheus/yy_prometheus_labels.h"
+#include "yy_prometheus/yy_prometheus_metric_data.h"
 
 namespace yafiyogi::mqtt_bridge {
-namespace prometheus {
-
-class Labels;
-
-} // namespace prometheus
 
 class MqttHandler
 {
   public:
+    using Labels = yy_prometheus::Labels;
+
     enum class type {Json, Text, Value};
 
     explicit MqttHandler(std::string_view p_handler_id,
@@ -66,8 +65,8 @@ class MqttHandler
       return m_type;
     }
 
-    virtual void Event(std::string_view /* p_data */,
-                       const prometheus::Labels & /* p_labels */) noexcept;
+    virtual const yy_prometheus::MetricDataVector & Event(std::string_view p_data,
+                                                       const Labels & /* p_labels */) noexcept = 0;
   private:
     const std::string m_handler_id{};
     const type m_type = type::Text;

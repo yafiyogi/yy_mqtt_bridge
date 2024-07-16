@@ -33,10 +33,12 @@
 
 #include "yy_cpp/yy_assert.h"
 
-#include "prometheus_labels.h"
+#include "yy_prometheus/yy_prometheus_labels.h"
+#include "yy_prometheus/yy_prometheus_metric_data.h"
+
 #include "mqtt_handler.h"
 
-#include "mqtt_json_handler.h"
+#include "mqtt_handler_json.h"
 
 namespace yafiyogi::mqtt_bridge {
 
@@ -46,6 +48,13 @@ class JsonVisitor:
       public MetricsJsonPointer::visitor_type
 {
   public:
+    using size_type = yy_prometheus::MetricDataVector::size_type;
+
+    constexpr JsonVisitor(size_type p_metric_count) noexcept
+    {
+      m_metric_data.reserve(p_metric_count);
+    }
+
     constexpr JsonVisitor() noexcept = default;
     constexpr JsonVisitor(const JsonVisitor &) noexcept = default;
     constexpr JsonVisitor(JsonVisitor &&) noexcept = default;
@@ -69,7 +78,7 @@ class JsonVisitor:
     {
       for(auto & metric : metrics)
       {
-        metric->Event(str, *m_labels);
+        metric->Event(str, *m_labels, m_metric_data);
       }
     }
 
@@ -80,7 +89,7 @@ class JsonVisitor:
     {
       for(auto & metric : metrics)
       {
-        metric->Event(raw, *m_labels);
+        metric->Event(raw, *m_labels, m_metric_data);
       }
     }
 
@@ -91,7 +100,7 @@ class JsonVisitor:
     {
       for(auto & metric : metrics)
       {
-        metric->Event(raw, *m_labels);
+        metric->Event(raw, *m_labels, m_metric_data);
       }
     }
 
@@ -102,7 +111,7 @@ class JsonVisitor:
     {
       for(auto & metric : metrics)
       {
-        metric->Event(raw, *m_labels);
+        metric->Event(raw, *m_labels, m_metric_data);
       }
     }
 
@@ -112,27 +121,39 @@ class JsonVisitor:
     {
       for(auto & metric : metrics)
       {
-        metric->Event(flag ? g_true_str : g_false_str, *m_labels);
+        metric->Event(flag ? g_true_str : g_false_str, *m_labels, m_metric_data);
       }
+    }
+
+    constexpr void reset() noexcept
+    {
+      m_metric_data.clear(yy_data::ClearAction::Keep);
+    }
+
+    constexpr const yy_prometheus::MetricDataVector & metric_data() const noexcept
+    {
+      return m_metric_data;
     }
 
   private:
     constexpr static std::string_view g_true_str{"true"};
     constexpr static std::string_view g_false_str{"false"};
 
-    const prometheus::Labels * m_labels = &g_empty_labels;
-    static const prometheus::Labels g_empty_labels;
+    const yy_prometheus::Labels * m_labels = &g_empty_labels;
+    static const yy_prometheus::Labels g_empty_labels;
+    yy_prometheus::MetricDataVector m_metric_data{};
 };
 
 const prometheus::Labels JsonVisitor::g_empty_labels;
 
 MqttJsonHandler::MqttJsonHandler(std::string_view p_handler_id,
                                  const JsonParserOptions & p_json_options,
-                                 JsonParserConfig && p_json_handler_config) noexcept:
+                                 JsonPointerConfig && p_json_handler_config,
+                                 size_type p_metric_count) noexcept:
   MqttHandler(p_handler_id, type::Json),
   m_parser(p_json_options, std::move(p_json_handler_config))
 {
-  auto visitor = std::make_unique<JsonVisitor>();
+  auto visitor = std::make_unique<JsonVisitor>(p_metric_count);
   YY_ASSERT(visitor);
   m_json_visitor = visitor.get();
 
@@ -141,14 +162,17 @@ MqttJsonHandler::MqttJsonHandler(std::string_view p_handler_id,
   m_parser.handler().set_visitor(std::move(handler_visitor));
 }
 
-void MqttJsonHandler::Event(std::string_view p_data,
-                            const prometheus::Labels & p_labels) noexcept
+const yy_prometheus::MetricDataVector & MqttJsonHandler::Event(std::string_view p_data,
+                                                               const prometheus::Labels & p_labels) noexcept
 {
   spdlog::debug("  handler [{}]", Id());
 
+  m_json_visitor->reset();
   m_json_visitor->labels(&p_labels);
 
   m_parser.write_some(false, p_data.data(), p_data.size(), boost::json::error_code{});
+
+  return m_json_visitor->metric_data();
 }
 
 } // namespace yafiyogi::mqtt_bridge

@@ -26,11 +26,13 @@
 
 #pragma once
 
+#include "yy_prometheus/yy_prometheus_labels_fwd.h"
+
 #include "prometheus_label_action_fwd.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
 
-class Labels;
+using Labels = yy_prometheus::Labels;
 
 class LabelAction
 {

@@ -28,16 +28,13 @@
 
 #include <string_view>
 
-#include "prometheus_metric_query.h"
+#include "yy_prometheus/yy_prometheus_metric_data.h"
+
+#include "prometheus_metric.h"
 
 #include "mqtt_handler.h"
 
 namespace yafiyogi::mqtt_bridge {
-namespace prometheus {
-
-class Labels;
-
-} // namespace prometheus
 
 class MqttValueHandler:
       public MqttHandler
@@ -53,10 +50,11 @@ class MqttValueHandler:
     MqttValueHandler & operator=(const MqttValueHandler &) = delete;
     constexpr MqttValueHandler & operator=(MqttValueHandler &&) noexcept = default;
 
-    void Event(std::string_view p_data ,
-               const prometheus::Labels & p_labels) noexcept override;
+    const yy_prometheus::MetricDataVector & Event(std::string_view p_data,
+                                                  const prometheus::Labels & p_labels) noexcept override;
   private:
-    prometheus::Metrics m_metrics;
+    prometheus::Metrics m_metrics{};
+    yy_prometheus::MetricDataVector m_metric_data{};
 };
 
 } // namespace yafiyogi::mqtt_bridge

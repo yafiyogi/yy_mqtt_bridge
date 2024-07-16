@@ -35,19 +35,22 @@
 
 #include "yy_mqtt/yy_mqtt_types.h"
 
+#include "yy_prometheus/yy_prometheus_metric_data.h"
+
 #include "prometheus_label_action.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
 
-class Labels;
-
-enum class MetricType {Guage};
-
 class Metric final
 {
   public:
+    using Labels = yy_prometheus::Labels;
+    using MetricType = yy_prometheus::MetricType;
+    using MetricData = yy_prometheus::MetricData;
+    using MetricDataVector = yy_prometheus::MetricDataVector;
+
     explicit Metric(std::string_view p_id,
-                    const MetricType p_type,
+                    const Metric::MetricType p_type,
                     std::string && p_property,
                     LabelActions && p_actions);
 
@@ -63,19 +66,19 @@ class Metric final
     const std::string & Id() const noexcept;
 
     [[nodiscard]]
-    MetricType Type() const noexcept;
+    Metric::MetricType Type() const noexcept;
 
     [[nodiscard]]
     const std::string & Property() const noexcept;
 
     void Event(std::string_view p_data,
-               const Labels & p_labels);
+               const Labels & p_labels,
+               MetricDataVector & p_metric_data);
 
   private:
-    std::string m_id;
-    MetricType m_type;
-    std::string m_property;
-    LabelActions m_actions;
+    std::string m_property{};
+    MetricData m_metric_data;
+    LabelActions m_actions{};
 };
 
 using MetricPtr = std::shared_ptr<Metric>;

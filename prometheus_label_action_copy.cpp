@@ -26,7 +26,7 @@
 
 #include <memory>
 
-#include "prometheus_labels.h"
+#include "yy_prometheus/yy_prometheus_labels.h"
 #include "prometheus_label_action_copy.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {

@@ -36,8 +36,8 @@
 #include "yy_cpp/yy_string_util.h"
 
 #include "mqtt_handler.h"
-#include "mqtt_json_handler.h"
-#include "mqtt_value_handler.h"
+#include "mqtt_handler_json.h"
+#include "mqtt_handler_value.h"
 #include "prometheus_config.h"
 #include "yaml_util.h"
 
@@ -74,11 +74,11 @@ MqttHandlerPtr configure_json_handler(std::string_view p_id,
   if(yaml_properties && (0 != yaml_properties.size()))
   {
     prometheus::MetricsJsonPointerBuilder json_pointer_builder{};
-    bool has_metrics = false;
+    int metrics_count{};
     std::string json_pointer{};
     std::string_view property{};
 
-    auto do_add_property = [&property, &json_pointer, &json_pointer_builder, &has_metrics]
+    auto do_add_property = [&property, &json_pointer, &json_pointer_builder, &metrics_count]
                            (prometheus::Metrics * visitor_prometheus_metrics, auto /* pos */) {
       if(nullptr != visitor_prometheus_metrics)
       {
@@ -90,7 +90,7 @@ MqttHandlerPtr configure_json_handler(std::string_view p_id,
           {
             if(metric && (metric->Property() == property))
             {
-              has_metrics = true;
+              ++metrics_count;
               spdlog::info("       metric [{}] added.",
                            metric->Id());
               builder_metrics->emplace_back(std::move(metric));
@@ -119,15 +119,15 @@ MqttHandlerPtr configure_json_handler(std::string_view p_id,
                    json_pointer);
       spdlog::debug("        [line {}].",
                     yaml_property.Mark().line + 1);
+
       if(!json_pointer.empty()
          && !property.empty())
       {
         // Avoid duplicates.
-        if(auto [ignore_1, inserted] = properties.emplace(property);
+        if(auto [ignore, inserted] = properties.emplace(property);
            inserted)
         {
-          [[maybe_unused]]
-          auto ignore_2 = prometheus_metrics.find_value(do_add_property, p_id);
+          std::ignore = prometheus_metrics.find_value(do_add_property, p_id);
         }
         else
         {
@@ -136,25 +136,27 @@ MqttHandlerPtr configure_json_handler(std::string_view p_id,
       }
     }
 
-    if(has_metrics)
+    if(metrics_count > 0)
     {
-      auto config{json_pointer_builder.create(g_json_options.max_depth)};
+      MqttJsonHandler::JsonPointerConfig config{json_pointer_builder.create(g_json_options.max_depth)};
 
       mqtt_json_handler = std::make_unique<MqttJsonHandler>(p_id,
                                                             g_json_options,
-                                                            std::move(config));
+                                                            std::move(config),
+                                                            metrics_count);
     }
   }
 
   return mqtt_json_handler;
 }
 
-MqttHandlerPtr configure_text_handler(std::string_view p_id,
+MqttHandlerPtr configure_text_handler(std::string_view /* p_id */,
                                        const YAML::Node & /* yaml_text_handler */,
                                         prometheus::MetricsMap & /* prometheus_metrics */)
 {
-  return std::make_unique<MqttHandler>(p_id,
-                                       MqttHandler::type::Text);
+  return MqttHandlerPtr{};
+  // return std::make_unique<MqttHandler>(p_id,
+  //                                      MqttHandler::type::Text);
 }
 
 MqttHandlerPtr configure_value_handler(std::string_view p_id,
@@ -180,8 +182,7 @@ MqttHandlerPtr configure_value_handler(std::string_view p_id,
     }
   };
 
-  [[maybe_unused]]
-  auto ignore = prometheus_metrics.find_value(do_add_property, p_id);
+  std::ignore = prometheus_metrics.find_value(do_add_property, p_id);
 
   MqttHandlerPtr handler{};
   if(!handler_metrics.empty())
