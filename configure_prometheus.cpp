@@ -31,10 +31,11 @@
 #include "yy_cpp/yy_string_util.h"
 #include "yy_cpp/yy_string_case.h"
 
+#include "yy_prometheus/yy_prometheus_style.h"
+
 #include "configure_prometheus.h"
 #include "configure_prometheus_metrics.h"
 #include "prometheus_config.h"
-#include "prometheus_style.h"
 #include "yaml_util.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
@@ -44,9 +45,9 @@ config configure_prometheus(const YAML::Node & yaml_prometheus)
   int port = yaml_get_value(yaml_prometheus["exporter_port"], prometheus_default_port);
 
   std::string metric_style = yy_util::to_lower(yy_util::trim(yaml_get_value(yaml_prometheus["metric_style"],
-                                                                            prometheus::style_prometheus)));
+                                                                            yy_prometheus::style_prometheus)));
 
-  prometheus::set_metric_style(metric_style);
+  yy_prometheus::set_metric_style(metric_style);
 
   auto metrics = configure_prometheus_metrics(yaml_prometheus["metrics"]);
 

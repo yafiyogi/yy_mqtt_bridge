@@ -33,9 +33,10 @@
 
 #include "yy_mqtt/yy_mqtt_util.h"
 
+#include "yy_prometheus/yy_prometheus_style.h"
+
 #include "configure_mqtt.h"
 #include "mqtt_handler.h"
-#include "prometheus_style.h"
 
 #include "mqtt_client.h"
 
@@ -104,7 +105,7 @@ void mqtt_client::on_message(const struct mosquitto_message * message)
   if(auto payloads = m_topics.find(topic);
      !payloads.empty())
   {
-    auto & metric_style = prometheus::get_metric_style();
+    auto & metric_style = yy_prometheus::get_metric_style();
 
     int64_t ts = metric_style.timestamp(std::chrono::system_clock::now());
     m_ts.clear();

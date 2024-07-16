@@ -63,9 +63,7 @@ add_executable(yy_mqtt_bridge
   prometheus_label_action_drop.cpp
   prometheus_label_action_keep.cpp
   prometheus_label_action_replace_path.cpp
-  #prometheus_labels.cpp
   prometheus_metric.cpp
-  prometheus_style.cpp
   logger.cpp
   mqtt_client.cpp
   mqtt_handler.cpp
