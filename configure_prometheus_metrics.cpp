@@ -38,6 +38,8 @@
 #include "yy_cpp/yy_utility.h"
 #include "yy_cpp/yy_vector_util.h"
 
+#include "yy_prometheus/yy_prometheus_configure.h"
+
 #include "configure_prometheus_label_actions.h"
 #include "configure_prometheus_metrics.h"
 #include "prometheus_label_action.h"
@@ -55,12 +57,6 @@
 namespace yafiyogi::mqtt_bridge::prometheus {
 namespace {
 
-constexpr const std::string_view g_type_guage{"gauge"};
-
-constexpr const auto metric_types =
-  yy_data::make_lookup<std::string_view, Metric::MetricType>({{g_type_guage, Metric::MetricType::Guage}});
-
-
 enum class ActionType {Copy, Drop, Keep, ReplacePath};
 
 constexpr const auto action_types =
@@ -69,16 +65,10 @@ constexpr const auto action_types =
                                                       {KeepLabelAction::action_name, ActionType::Keep},
                                                       {ReplacePathLabelAction::action_name, ActionType::ReplacePath}});
 
-Metric::MetricType decode_metric_type(const std::string_view & p_metric_type_name)
-{
-  const std::string metric_type_name{yy_util::to_lower(yy_util::trim(p_metric_type_name))};
-
-  return metric_types.lookup(metric_type_name, Metric::MetricType::Guage);
-}
-
 constexpr const std::string_view g_yaml_handlers{"handlers"};
 constexpr const std::string_view g_yaml_metric{"metric"};
 constexpr const std::string_view g_yaml_type{"type"};
+constexpr const std::string_view g_yaml_unit{"unit"};
 constexpr const std::string_view g_yaml_handler_id{"handler_id"};
 constexpr const std::string_view g_yaml_value{"value"};
 constexpr const std::string_view g_yaml_label_actions{"label_actions"};
@@ -106,118 +96,124 @@ MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics)
                    metric_id);
       spdlog::debug("  [line {}].",
                     yaml_metric.Mark().line + 1);
-      auto type = decode_metric_type(yaml_metric[g_yaml_type].as<std::string_view>());
+      auto type = yy_prometheus::decode_metric_type(yaml_get_optional_value(yaml_metric[g_yaml_type], ""));
+      auto unit = yy_prometheus::decode_metric_unit(yaml_get_optional_value(yaml_metric[g_yaml_unit], ""));
 
       for(const auto & yaml_handler : yaml_handlers)
       {
-        std::string_view handler_id{yy_util::trim(yaml_handler[g_yaml_handler_id].as<std::string_view>())};
+        std::string_view handler_id{yy_util::trim(yaml_get_value(yaml_handler[g_yaml_handler_id], ""))};
         spdlog::info("   handler [{}]:", handler_id);
         spdlog::debug("    [line {}].", yaml_handler.Mark().line + 1);
 
         if(auto [ignore, emplaced] = handlers.emplace(handler_id);
            emplaced)
         {
-          std::string property;
-
           const auto & yaml_value = yaml_handler[g_yaml_value];
-          property = yaml_get_value(yaml_value, "");
-          if(!property.empty())
+          auto property = yaml_get_optional_value(yaml_value, "");
+
+          if(property.has_value() && !property.value().empty())
           {
-            spdlog::info("     - value [{}].", property);
+            spdlog::info("     - value [{}].", property.value());
             spdlog::debug("        [line {}].", yaml_value.Mark().line + 1);
-          }
 
-          const auto & yaml_label_actions = yaml_handler[g_yaml_label_actions];
+            const auto & yaml_label_actions = yaml_handler[g_yaml_label_actions];
 
-          LabelActions actions;
-          actions.reserve(yaml_label_actions.size());
+            LabelActions actions;
+            actions.reserve(yaml_label_actions.size());
 
-          for(const auto & yaml_label_action : yaml_label_actions)
-          {
-            auto action_name = yy_util::to_lower(yy_util::trim(yaml_get_value(yaml_label_action[g_yaml_action], "")));
-            LabelActionPtr action;
-
-            spdlog::info("       - action [{}].", action_name);
-            spdlog::debug("          [line {}].", yaml_label_action.Mark().line + 1);
-            switch(action_types.lookup(action_name, ActionType::Keep))
+            for(const auto & yaml_label_action : yaml_label_actions)
             {
-              case ActionType::Copy:
+              auto action_name = yy_util::to_lower(yy_util::trim(yaml_get_value(yaml_label_action[g_yaml_action], "")));
+              LabelActionPtr action;
+
+              spdlog::info("       - action [{}].", action_name);
+              spdlog::debug("          [line {}].", yaml_label_action.Mark().line + 1);
+              switch(action_types.lookup(action_name, ActionType::Keep))
               {
-                std::string_view source{yy_util::trim(yaml_get_value(yaml_label_action[g_yaml_source], ""))};
-                std::string_view target{yy_util::trim(yaml_get_value(yaml_label_action[g_yaml_target], ""))};
-                if(!source.empty()
-                   || !target.empty())
+                case ActionType::Copy:
                 {
-                  action = yy_util::static_unique_cast<LabelAction>(std::make_unique<CopyLabelAction>(std::string{source},
-                                                                                                      std::string{target}));
-               }
-              }
-              break;
-
-              case ActionType::Drop:
-              {
-                std::string_view target{yy_util::trim(yaml_get_value(yaml_label_action[g_yaml_target], ""))};
-                if(!target.empty())
-                {
-                  action = yy_util::static_unique_cast<LabelAction>(std::make_unique<DropLabelAction>(std::string{target}));
-               }
-              }
-              break;
-
-              case ActionType::Keep:
-              {
-                std::string_view target{yy_util::trim(yaml_get_value(yaml_label_action[g_yaml_target], ""))};
-                if(!target.empty())
-                {
-                  action = yy_util::static_unique_cast<LabelAction>(std::make_unique<KeepLabelAction>(std::string{target}));
-               }
-              }
-              break;
-
-              case ActionType::ReplacePath:
-              {
-                std::string_view target{yy_util::trim(yaml_get_value(yaml_label_action[g_yaml_target], ""))};
-
-                if(!target.empty())
-                {
-                  auto topics = configure_label_action_replace_path(yaml_label_action[g_yaml_replace]);
-
-                  action = yy_util::static_unique_cast<LabelAction>(std::make_unique<ReplacePathLabelAction>(std::string{target}, std::move(topics)));
+                  std::string_view source{yy_util::trim(yaml_get_value(yaml_label_action[g_yaml_source], ""))};
+                  std::string_view target{yy_util::trim(yaml_get_value(yaml_label_action[g_yaml_target], ""))};
+                  if(!source.empty()
+                     || !target.empty())
+                  {
+                    action = yy_util::static_unique_cast<LabelAction>(std::make_unique<CopyLabelAction>(std::string{source},
+                                                                                                        std::string{target}));
+                  }
                 }
-              }
-              break;
-
-              default:
-                spdlog::warn("Unrecognized action [{}]", action_name);
-                spdlog::debug("  [line {}].", yaml_label_action.Mark().line + 1);
                 break;
+
+                case ActionType::Drop:
+                {
+                  std::string_view target{yy_util::trim(yaml_get_value(yaml_label_action[g_yaml_target], ""))};
+                  if(!target.empty())
+                  {
+                    action = yy_util::static_unique_cast<LabelAction>(std::make_unique<DropLabelAction>(std::string{target}));
+                  }
+                }
+                break;
+
+                case ActionType::Keep:
+                {
+                  std::string_view target{yy_util::trim(yaml_get_value(yaml_label_action[g_yaml_target], ""))};
+                  if(!target.empty())
+                  {
+                    action = yy_util::static_unique_cast<LabelAction>(std::make_unique<KeepLabelAction>(std::string{target}));
+                  }
+                }
+                break;
+
+                case ActionType::ReplacePath:
+                {
+                  std::string_view target{yy_util::trim(yaml_get_value(yaml_label_action[g_yaml_target], ""))};
+
+                  if(!target.empty())
+                  {
+                    auto topics = configure_label_action_replace_path(yaml_label_action[g_yaml_replace]);
+
+                    action = yy_util::static_unique_cast<LabelAction>(std::make_unique<ReplacePathLabelAction>(std::string{target}, std::move(topics)));
+                  }
+                }
+                break;
+
+                default:
+                  spdlog::warn("Unrecognized action [{}]", action_name);
+                  spdlog::debug("  [line {}].", yaml_label_action.Mark().line + 1);
+                  break;
+              }
+
+              if(action)
+              {
+                actions.emplace_back(std::move(action));
+              }
             }
 
-            if(action)
+            if(!actions.empty())
             {
-              actions.emplace_back(std::move(action));
+              auto metric = std::make_shared<Metric>(metric_id,
+                                                     type,
+                                                     unit,
+                                                     std::string{property.value()},
+                                                     std::move(actions));
+
+              spdlog::info("     - add metric [{}] to handler [{}] property [{}].",
+                           metric->Id(),
+                           handler_id,
+                           metric->Property());
+
+              auto [metrics_pos, ignore_found] = metrics.emplace(std::string{handler_id},
+                                                                 Metrics{});
+
+              auto [ignore_key, handler_metrics] = metrics[metrics_pos];
+
+              handler_metrics.emplace_back(std::move(metric));
             }
           }
-
-          if(!actions.empty())
-          {
-            auto metric = std::make_shared<Metric>(metric_id,
-                                                   type,
-                                                   std::move(property),
-                                                   std::move(actions));
-
-            spdlog::info("     - add metric [{}] to handler [{}] property [{}].",
-                         metric->Id(),
-                         handler_id,
-                         metric->Property());
-
-            auto [metrics_pos, ignore_found] = metrics.emplace(std::string{handler_id},
-                                                               Metrics{});
-
-            auto [ignore_key, handler_metrics] = metrics[metrics_pos];
-
-            handler_metrics.emplace_back(std::move(metric));
-          }
+        }
+        else
+        {
+          spdlog::warn("   'property' setting!");
+          spdlog::debug("    [line {}].", yaml_metric.Mark().line + 1);
         }
       }
     }

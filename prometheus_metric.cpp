@@ -37,10 +37,11 @@ namespace yafiyogi::mqtt_bridge::prometheus {
 
 Metric::Metric(std::string_view p_id,
                const MetricType p_type,
+               const MetricUnit p_unit,
                std::string && p_property,
                LabelActions && p_actions):
   m_property(std::move(p_property)),
-  m_metric_data(std::string{p_id}, p_type, Labels{}),
+  m_metric_data(std::string{p_id}, p_type, p_unit, Labels{}),
   m_actions(std::move(p_actions))
 {
 }

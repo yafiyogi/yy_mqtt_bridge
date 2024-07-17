@@ -46,11 +46,13 @@ class Metric final
   public:
     using Labels = yy_prometheus::Labels;
     using MetricType = yy_prometheus::MetricType;
+    using MetricUnit = yy_prometheus::MetricUnit;
     using MetricData = yy_prometheus::MetricData;
     using MetricDataVector = yy_prometheus::MetricDataVector;
 
     explicit Metric(std::string_view p_id,
                     const Metric::MetricType p_type,
+                    const MetricUnit p_unit,
                     std::string && p_property,
                     LabelActions && p_actions);
 
