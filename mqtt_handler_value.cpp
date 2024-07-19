@@ -43,7 +43,7 @@ MqttValueHandler::MqttValueHandler(std::string_view p_handler_id,
 }
 
 const yy_prometheus::MetricDataVector & MqttValueHandler::Event(std::string_view p_data,
-                                                             const prometheus::Labels & p_labels) noexcept
+                                                                const prometheus::Labels & p_labels) noexcept
 {
   m_metric_data.clear(yy_data::ClearAction::Keep);
   for(auto & metric : m_metrics)
