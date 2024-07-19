@@ -44,23 +44,22 @@
 #include "configure_mqtt_handlers.h"
 
 namespace yafiyogi::mqtt_bridge {
+
+using namespace std::string_view_literals;
+
 namespace {
 
 const boost::json::parse_options g_json_options{ .numbers = boost::json::number_precision::none};
 
-constexpr std::string_view g_type_json{"json"};
-constexpr std::string_view g_type_value{"value"};
-constexpr std::string_view g_type_text{"text"};
-
 constexpr auto handler_types =
-  yy_data::make_lookup<std::string_view, MqttHandler::type>({{g_type_json, MqttHandler::type::Json},
-                                                             {g_type_text, MqttHandler::type::Text},
-                                                             {g_type_value, MqttHandler::type::Value}});
+  yy_data::make_lookup<std::string_view, MqttHandler::type>({{"json"sv, MqttHandler::type::Json},
+                                                             {"text"sv, MqttHandler::type::Text},
+                                                             {"value"sv, MqttHandler::type::Value}});
 
 MqttHandler::type decode_type(const YAML::Node & yaml_type)
 {
 
-  std::string type_name = yy_util::to_lower(yy_util::trim(yaml_get_value(yaml_type, "")));
+  std::string type_name = yy_util::to_lower(yy_util::trim(yaml_get_value(yaml_type, ""sv)));
 
   return handler_types.lookup(type_name, MqttHandler::type::Json);
 }
@@ -70,7 +69,7 @@ MqttHandlerPtr configure_json_handler(std::string_view p_id,
                                       prometheus::MetricsMap & prometheus_metrics)
 {
   MqttHandlerPtr mqtt_json_handler{};
-  auto yaml_properties = yaml_json_handler["properties"];
+  auto yaml_properties = yaml_json_handler["properties"sv];
   if(yaml_properties && (0 != yaml_properties.size()))
   {
     prometheus::MetricsJsonPointerBuilder json_pointer_builder{};
@@ -91,7 +90,7 @@ MqttHandlerPtr configure_json_handler(std::string_view p_id,
             if(metric && (metric->Property() == property))
             {
               ++metrics_count;
-              spdlog::info("       metric [{}] added.",
+              spdlog::info("       metric [{}] added."sv,
                            metric->Id());
               builder_metrics->emplace_back(std::move(metric));
             }
@@ -107,17 +106,17 @@ MqttHandlerPtr configure_json_handler(std::string_view p_id,
       if(yaml_property.IsScalar())
       {
         property = yy_util::trim(yaml_property.as<std::string_view>());
-        json_pointer = fmt::format("/{}", property);
+        json_pointer = fmt::format("/{}"sv, property);
       }
       else
       {
-        property = yy_util::trim(yaml_property["id"].as<std::string_view>());
-        json_pointer = yy_json::json_pointer_trim(yaml_property["json"].as<std::string_view>());
+        property = yy_util::trim(yaml_property["id"sv].as<std::string_view>());
+        json_pointer = yy_json::json_pointer_trim(yaml_property["json"sv].as<std::string_view>());
       }
-      spdlog::info("     - property [{}] path=[{}]:",
+      spdlog::info("     - property [{}] path=[{}]:"sv,
                    property,
                    json_pointer);
-      spdlog::debug("        [line {}].",
+      spdlog::debug("        [line {}]."sv,
                     yaml_property.Mark().line + 1);
 
       if(!json_pointer.empty()
@@ -131,7 +130,7 @@ MqttHandlerPtr configure_json_handler(std::string_view p_id,
         }
         else
         {
-          spdlog::warn("   * already added!");
+          spdlog::warn("   * already added!"sv);
         }
       }
     }
@@ -151,8 +150,8 @@ MqttHandlerPtr configure_json_handler(std::string_view p_id,
 }
 
 MqttHandlerPtr configure_text_handler(std::string_view /* p_id */,
-                                       const YAML::Node & /* yaml_text_handler */,
-                                        prometheus::MetricsMap & /* prometheus_metrics */)
+                                      const YAML::Node & /* yaml_text_handler */,
+                                      prometheus::MetricsMap & /* prometheus_metrics */)
 {
   return MqttHandlerPtr{};
   // return std::make_unique<MqttHandler>(p_id,
@@ -160,8 +159,8 @@ MqttHandlerPtr configure_text_handler(std::string_view /* p_id */,
 }
 
 MqttHandlerPtr configure_value_handler(std::string_view p_id,
-                                        const YAML::Node & /* yaml_value_handler */,
-                                         prometheus::MetricsMap & prometheus_metrics)
+                                       const YAML::Node & /* yaml_value_handler */,
+                                       prometheus::MetricsMap & prometheus_metrics)
 {
   prometheus::Metrics handler_metrics{} ;
   auto do_add_property = [&handler_metrics]
@@ -174,7 +173,7 @@ MqttHandlerPtr configure_value_handler(std::string_view p_id,
       {
         if(metric)
         {
-          spdlog::info("       metric [{}] added.",
+          spdlog::info("       metric [{}] added."sv,
                        metric->Id());
           handler_metrics.emplace_back(std::move(metric));
         }
@@ -209,14 +208,14 @@ MqttHandlerStore configure_mqtt_handlers(const YAML::Node & yaml_handlers,
 
   for(const auto & yaml_handler: yaml_handlers)
   {
-    std::string_view l_id{yy_util::trim(yaml_handler["id"].as<std::string_view>())};
-    const MqttHandler::type type = decode_type(yaml_handler["type"]);
+    std::string_view l_id{yy_util::trim(yaml_handler["id"sv].as<std::string_view>())};
+    const MqttHandler::type type = decode_type(yaml_handler["type"sv]);
 
-    spdlog::info(" Configuring MQTT Handler id [{}]:", l_id);
-    spdlog::debug("  [line {}].", yaml_handler.Mark().line + 1);
+    spdlog::info(" Configuring MQTT Handler id [{}]:"sv, l_id);
+    spdlog::debug("  [line {}]."sv, yaml_handler.Mark().line + 1);
     MqttHandlerPtr handler;
 
-    spdlog::info("   - type [{}]", yaml_handler["type"].as<std::string_view>());
+    spdlog::info("   - type [{}]"sv, yaml_handler["type"sv].as<std::string_view>());
     switch(type)
     {
       case MqttHandler::type::Json:
@@ -243,14 +242,14 @@ MqttHandlerStore configure_mqtt_handlers(const YAML::Node & yaml_handlers,
           if(auto [key, added] = handler_store[handler_pos];
              !added)
           {
-             spdlog::warn("Handler id [{}] already created. Ignoring [line {}]", key, yaml_handler.Mark().line + 1);
+            spdlog::warn("Handler id [{}] already created. Ignoring [line {}]"sv, key, yaml_handler.Mark().line + 1);
           }
         }
       }
     }
     else
     {
-      spdlog::warn("MQTT Handler id [{}] not created!", l_id);
+      spdlog::warn("MQTT Handler id [{}] not created!"sv, l_id);
     }
   }
 

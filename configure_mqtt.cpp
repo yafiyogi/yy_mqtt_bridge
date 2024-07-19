@@ -39,23 +39,25 @@
 
 namespace yafiyogi::mqtt_bridge {
 
+using namespace std::string_view_literals;
+
 mqtt_config configure_mqtt(const YAML::Node & yaml_mqtt,
                            prometheus::config & p_prometheus_config)
 {
-  const auto yaml_host = yaml_mqtt["host"];
+  const auto yaml_host = yaml_mqtt["host"sv];
   if(!yaml_host)
   {
-    spdlog::error("Not found mqtt host\n");
+    spdlog::error("Not found mqtt host\n"sv);
     return mqtt_config{};
   }
   auto host = yaml_host.as<std::string>();
 
-  int port = yaml_get_value(yaml_mqtt["port"], yy_mqtt::mqtt_default_port);
+  int port = yaml_get_value(yaml_mqtt["port"sv], yy_mqtt::mqtt_default_port);
 
-  spdlog::info("host=[{}] port=[{}]\n", host, port);
+  spdlog::info("host=[{}] port=[{}]\n"sv, host, port);
 
-  auto handlers = configure_mqtt_handlers(yaml_mqtt["handlers"], p_prometheus_config);
-  auto [subscriptions, topics] = configure_mqtt_topics(yaml_mqtt["topics"], handlers);
+  auto handlers = configure_mqtt_handlers(yaml_mqtt["handlers"sv], p_prometheus_config);
+  auto [subscriptions, topics] = configure_mqtt_topics(yaml_mqtt["topics"sv], handlers);
 
   return mqtt_config{"", std::move(host), port, std::move(handlers), std::move(subscriptions), std::move(topics)};
 }

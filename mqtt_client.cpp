@@ -42,6 +42,8 @@
 
 namespace yafiyogi::mqtt_bridge {
 
+using namespace std::string_view_literals;
+
 mqtt_client::mqtt_client(mqtt_config & p_config):
   mosqpp::mosquittopp(),
   m_topics(std::move(p_config.topics)),
@@ -70,15 +72,15 @@ void mqtt_client::on_connect(int rc)
 {
   m_is_connected = true;
 
-  spdlog::debug("{}[{}]", "MQTT Connected status=", rc);
-  spdlog::info("{}", "Subscribing to:");
+  spdlog::debug("{}[{}]"sv, "MQTT Connected status="sv, rc);
+  spdlog::info("{}"sv, "Subscribing to:"sv);
 
   yy_quad::simple_vector<char *> subs{};
   subs.reserve(m_subscriptions.size());
 
   for(auto & sub : m_subscriptions)
   {
-    spdlog::info("{}[{}]", "\t - ", sub);
+    spdlog::info("{}[{}]"sv, "\t - "sv, sub);
 
     subs.emplace_back(sub.data());
   }
@@ -90,12 +92,12 @@ void mqtt_client::on_subscribe(int /* mid */,
                                int /* qos_count */,
                                const int * /* granted_qos */)
 {
-  spdlog::info("MQTT Subscribed.");
+  spdlog::info("MQTT Subscribed."sv);
 }
 
 void mqtt_client::on_disconnect(int rc)
 {
-  spdlog::info("{}[{}]", "MQTT Disconnected status=", rc);
+  spdlog::info("{}[{}]"sv, "MQTT Disconnected status="sv, rc);
   m_is_connected = false;
 }
 
@@ -109,17 +111,17 @@ void mqtt_client::on_message(const struct mosquitto_message * message)
 
     int64_t ts = metric_style.timestamp(std::chrono::system_clock::now());
     m_ts.clear();
-    fmt::format_to(std::back_inserter(m_ts), "{}", ts);
+    fmt::format_to(std::back_inserter(m_ts), "{}"sv, ts);
 
     m_labels.set_label(yy_prometheus::g_label_timestamp, m_ts);
     m_labels.set_label(yy_prometheus::g_label_topic, topic);
 
-    spdlog::debug("Processing [{}] payloads=[{}]", topic, payloads.size());
+    spdlog::debug("Processing [{}] payloads=[{}]"sv, topic, payloads.size());
     yy_mqtt::topic_tokenize(m_topic_path, topic);
     m_labels.set_path(m_topic_path);
 
     const std::string_view data{static_cast<std::string_view::value_type *>(message->payload),
-                                static_cast<std::string_view::size_type>(message->payloadlen)};
+        static_cast<std::string_view::size_type>(message->payloadlen)};
 
     for(const auto & handlers : payloads)
     {

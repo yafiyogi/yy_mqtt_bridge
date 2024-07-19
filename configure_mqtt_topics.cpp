@@ -40,17 +40,19 @@
 
 namespace yafiyogi::mqtt_bridge {
 
+using namespace std::string_view_literals;
+
 mqtt_topics configure_mqtt_topics(const YAML::Node & yaml_topics,
                                   const MqttHandlerStore & handlers_store)
 {
   yy_quad::simple_vector<std::string> subscriptions{};
   TopicsConfig topics_config{};
 
-  spdlog::info("Configuring topics.");
+  spdlog::info("Configuring topics."sv);
   for(const auto & yaml_topic: yaml_topics)
   {
-    spdlog::debug("Configuring Topic [line {}].", yaml_topic.Mark().line + 1);
-    if(auto yaml_handlers = yaml_topic["handlers"];
+    spdlog::debug("Configuring Topic [line {}]."sv, yaml_topic.Mark().line + 1);
+    if(auto yaml_handlers = yaml_topic["handlers"sv];
        yaml_handlers)
     {
       MqttHandlerList mqtt_handlers;
@@ -67,13 +69,13 @@ mqtt_topics configure_mqtt_topics(const YAML::Node & yaml_topics,
 
       if(!mqtt_handlers.empty())
       {
-        auto yaml_subscriptions = yaml_topic["subscriptions"];
+        auto yaml_subscriptions = yaml_topic["subscriptions"sv];
         yy_data::flat_set<std::string_view> filters{};
         filters.reserve(yaml_subscriptions.size());
 
         for(const auto & yaml_subscription : yaml_subscriptions)
         {
-          spdlog::debug("Configuring Subscription [line {}].", yaml_subscription.Mark().line + 1);
+          spdlog::debug("Configuring Subscription [line {}]."sv, yaml_subscription.Mark().line + 1);
           if(auto topic = yy_mqtt::topic_trim(yaml_subscription.as<std::string_view>());
              yy_mqtt::topic_validate(topic, yy_mqtt::TopicType::Filter))
           {
@@ -85,19 +87,19 @@ mqtt_topics configure_mqtt_topics(const YAML::Node & yaml_topics,
         for(std::size_t idx = 0; idx < filters.size(); ++idx)
         {
           auto filter = filters[idx];
-          spdlog::info("   - subscribing to topic [{}]", filter);
+          spdlog::info("   - subscribing to topic [{}]"sv, filter);
           if(mqtt_handlers.size() == 1)
           {
-            spdlog::info("     with handler:");
+            spdlog::info("     with handler:"sv);
           }
           else if(mqtt_handlers.size() > 1)
           {
-            spdlog::info("     with handlers [{}]:", mqtt_handlers.size());
+            spdlog::info("     with handlers [{}]:"sv, mqtt_handlers.size());
           }
 
           for(const auto & handler : mqtt_handlers)
           {
-            spdlog::info("     * [{}]", handler->Id());
+            spdlog::info("     * [{}]"sv, handler->Id());
           }
 
           yy_mqtt::faster_topics_add(topics_config, filter, MqttHandlerList{mqtt_handlers});

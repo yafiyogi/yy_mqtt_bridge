@@ -43,6 +43,9 @@
 #include "yaml_util.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
+
+using namespace std::string_view_literals;
+
 namespace {
 
 // '([^\\]*)' -> capture everything before '\'
@@ -86,7 +89,7 @@ void configure_label_action_replace_format(std::string_view replacement_format,
         }
         else
         {
-          spdlog::warn("Format error: error with format [{}].",
+          spdlog::warn("Format error: error with format [{}]."sv,
                        replacement_format);
         }
       }
@@ -130,8 +133,8 @@ ReplacementTopics configure_label_action_replace_path(const YAML::Node & yaml_re
       }
       else
       {
-        replacement_pattern = yy_util::trim(yaml_get_value(yaml_format["pattern"], "#"));
-        replacement_format = yy_util::trim(yaml_get_value(yaml_format["format"], ""));
+        replacement_pattern = yy_util::trim(yaml_get_value(yaml_format["pattern"sv], "#"sv));
+        replacement_format = yy_util::trim(yaml_get_value(yaml_format["format"sv], ""sv));
       }
 
       if(yy_mqtt::topic_validate(replacement_pattern, yy_mqtt::TopicType::Filter))

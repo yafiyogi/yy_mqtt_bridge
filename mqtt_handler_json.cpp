@@ -42,6 +42,8 @@
 
 namespace yafiyogi::mqtt_bridge {
 
+using namespace std::string_view_literals;
+
 using MetricsJsonPointer = prometheus::MetricsJsonPointer;
 
 class JsonVisitor:
@@ -165,7 +167,7 @@ MqttJsonHandler::MqttJsonHandler(std::string_view p_handler_id,
 const yy_prometheus::MetricDataVector & MqttJsonHandler::Event(std::string_view p_data,
                                                                const prometheus::Labels & p_labels) noexcept
 {
-  spdlog::debug("  handler [{}]", Id());
+  spdlog::debug("  handler [{}]"sv, Id());
 
   m_json_visitor->reset();
   m_json_visitor->labels(&p_labels);

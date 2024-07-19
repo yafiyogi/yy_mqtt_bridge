@@ -35,6 +35,8 @@
 
 namespace yafiyogi::mqtt_bridge::prometheus {
 
+using namespace std::string_view_literals;
+
 Metric::Metric(std::string_view p_id,
                const MetricType p_type,
                const MetricUnit p_unit,
@@ -66,7 +68,7 @@ void Metric::Event(std::string_view p_data,
                    const prometheus::Labels & p_labels,
                    MetricDataVector & p_metric_data)
 {
-  spdlog::debug("    [{}] property=[{}] [{}]",
+  spdlog::debug("    [{}] property=[{}] [{}]"sv,
                 Id(),
                 m_property,
                 p_data);
@@ -81,7 +83,7 @@ void Metric::Event(std::string_view p_data,
 
   m_metric_data.labels.visit([](const auto & label,
                                 const auto & value) {
-    spdlog::debug("      - [{}]:[{}]", label, value);
+    spdlog::debug("      - [{}]:[{}]"sv, label, value);
   });
 
   p_metric_data.emplace_back(m_metric_data);
