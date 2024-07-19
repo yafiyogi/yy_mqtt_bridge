@@ -66,7 +66,7 @@ class MqttHandler
     }
 
     virtual const yy_prometheus::MetricDataVector & Event(std::string_view p_data,
-                                                       const Labels & /* p_labels */) noexcept = 0;
+                                                          const Labels & /* p_labels */) noexcept = 0;
   private:
     const std::string m_handler_id{};
     const type m_type = type::Text;
