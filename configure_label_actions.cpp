@@ -56,10 +56,7 @@ void create_replace_formats(std::string_view source,
     auto create_regex = [regex]() {
       return re2::RE2(absl::string_view{regex.data(), regex.size()});
     };
-
-
   }
-
 }
 
 } // namespace yafiyogi::mqtt_bridge
