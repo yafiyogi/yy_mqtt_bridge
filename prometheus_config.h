@@ -26,15 +26,18 @@
 
 #pragma once
 
+#include <string>
+
+#include "yy_web/yy_web_server.h"
+
 #include "prometheus_metric.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
 
-inline constexpr int prometheus_default_port = 9100;
-
 struct config final
 {
-    int port = prometheus_default_port;
+    std::string uri;
+    yy_web::WebServer::Options options;
     MetricsMap metrics{};
 };
 
