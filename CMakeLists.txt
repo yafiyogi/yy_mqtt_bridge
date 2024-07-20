@@ -40,6 +40,7 @@ include(${YY_CMAKE}/cmake_boost-1.84.0.txt)
 include(${YY_CMAKE}/cmake_clang_tidy.txt)
 
 find_package(Boost 1.84.0 REQUIRED COMPONENTS json locale)
+find_package(civetweb REQUIRED)
 find_package(fmt REQUIRED)
 find_package(re2 REQUIRED)
 find_package(spdlog REQUIRED)
@@ -63,6 +64,7 @@ add_executable(yy_mqtt_bridge
   prometheus_label_action_drop.cpp
   prometheus_label_action_keep.cpp
   prometheus_label_action_replace_path.cpp
+  prometheus_civetweb_handler.cpp
   prometheus_metric.cpp
   logger.cpp
   mqtt_client.cpp
@@ -87,12 +89,14 @@ target_link_directories(yy_mqtt_bridge
   /opt/local/lib )
 
 target_link_libraries(yy_mqtt_bridge
+  yy_web
   yy_prometheus
   yy_json
   yy_mqtt
   yy_cpp
   Boost::json
   Boost::locale
+  civetweb::civetweb-cpp
   fmt::fmt
   re2::re2
   spdlog::spdlog
