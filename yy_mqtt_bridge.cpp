@@ -35,11 +35,14 @@
 
 #include "yy_cpp/yy_locale.h"
 
+#include "yy_web/yy_web_server.h"
+
 #include "configure_mqtt.h"
 #include "configure_prometheus.h"
 #include "logger.h"
 #include "mqtt_client.h"
 #include "mqtt_handler.h"
+#include "prometheus_civetweb_handler.h"
 
 namespace {
 
@@ -56,38 +59,46 @@ void signal_handler(int /* signal */)
 
 int main()
 {
+  using namespace yafiyogi;
+  using namespace std::string_view_literals;
+
+
   std::signal(SIGINT, signal_handler);
   std::signal(SIGTERM, signal_handler);
-  mosqpp::lib_init();
 
-  yafiyogi::mqtt_bridge::set_console_logger();
+  mqtt_bridge::set_console_logger();
   spdlog::set_level(spdlog::level::debug);
-  yafiyogi::yy_locale::set_locale();
+  yy_locale::set_locale();
 
   const YAML::Node yaml_config = YAML::LoadFile("mqtt_bridge.yaml");
 
-
-  const auto yaml_prometheus = yaml_config["prometheus"];
-
+  const auto yaml_prometheus = yaml_config["prometheus"sv];
   if(!yaml_prometheus)
   {
-    spdlog::error("Not found prometheus config");
+    spdlog::error("Not found prometheus config"sv);
+
     return 1;
   }
 
-  auto prometheus_config = yafiyogi::mqtt_bridge::prometheus::configure_prometheus(yaml_prometheus);
+  auto prometheus_config{mqtt_bridge::prometheus::configure_prometheus(yaml_prometheus)};
 
-  const auto yaml_mqtt = yaml_config["mqtt"];
-
+  const auto yaml_mqtt = yaml_config["mqtt"sv];
   if(!yaml_mqtt)
   {
-    spdlog::error("Not found mqtt config");
+    spdlog::error("Not found mqtt config"sv);
+
     return 1;
   }
 
-  auto mqtt_config{yafiyogi::mqtt_bridge::configure_mqtt(yaml_mqtt, prometheus_config)};
+  auto mqtt_config{mqtt_bridge::configure_mqtt(yaml_mqtt,
+                                               prometheus_config)};
 
-  auto client = std::make_unique<yafiyogi::mqtt_bridge::mqtt_client>(mqtt_config);
+  auto http_server{std::make_unique<yy_web::WebServer>(prometheus_config.options)};
+  http_server->AddHandler(prometheus_config.uri, std::make_unique<mqtt_bridge::prometheus::PrometheusWebHandler>());
+
+  mosqpp::lib_init();
+
+  auto client = std::make_unique<mqtt_bridge::mqtt_client>(mqtt_config);
 
   client->connect();
   while(!exit_program)
@@ -95,7 +106,7 @@ int main()
     if(auto rc = client->loop();
        rc)
     {
-      spdlog::info("reconnect [{}]", rc);
+      spdlog::info("reconnect [{}]"sv, rc);
       client->reconnect();
     }
   }
@@ -108,8 +119,9 @@ int main()
   }
 
   mosqpp::lib_cleanup();
+  http_server.reset();
 
-  spdlog::info("Ende");
-  yafiyogi::mqtt_bridge::stop_all_logs();
+  spdlog::info("Ende"sv);
+  mqtt_bridge::stop_all_logs();
   return 0;
 }
