@@ -87,8 +87,8 @@ MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics)
                    metric_id);
       spdlog::debug("  [line {}]."sv,
                     yaml_metric.Mark().line + 1);
-      auto type = yy_prometheus::decode_metric_type(yaml_get_optional_value(yaml_metric["type"sv], ""sv));
-      auto unit = yy_prometheus::decode_metric_unit(yaml_get_optional_value(yaml_metric["unit"sv], ""sv));
+      auto type = yy_prometheus::decode_metric_type_name(yaml_get_optional_value(yaml_metric["type"sv], ""sv));
+      auto unit = yy_prometheus::decode_metric_unit_name(yaml_get_optional_value(yaml_metric["unit"sv], ""sv));
 
       for(const auto & yaml_handler : yaml_handlers)
       {
