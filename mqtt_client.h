@@ -31,6 +31,8 @@
 #include <string>
 #include <string_view>
 
+#include <memory>
+
 #include "mosquittopp.h"
 
 #include "yy_mqtt/yy_mqtt_constants.h"
@@ -38,6 +40,13 @@
 #include "yy_prometheus/yy_prometheus_labels.h"
 
 #include "mqtt_topics.h"
+
+namespace yafiyogi::yy_prometheus {
+
+class MetricDataCache;
+using MetricDataCachePtr = std::shared_ptr<MetricDataCache>;
+
+} // namespace yafiyogi::yy_prometheus
 
 namespace yafiyogi::mqtt_bridge {
 
@@ -47,7 +56,8 @@ class mqtt_client final:
       public mosqpp::mosquittopp
 {
   public:
-    explicit mqtt_client(mqtt_config & config);
+    explicit mqtt_client(mqtt_config & config,
+                         yy_prometheus::MetricDataCachePtr p_metric_cache);
 
     mqtt_client() = delete;
     mqtt_client(const mqtt_client &) = delete;
@@ -78,10 +88,9 @@ class mqtt_client final:
     std::string m_host{};
     int m_port = yy_mqtt::mqtt_default_port;
     std::atomic<bool> m_is_connected = false;
-    std::string m_ts{};
     yy_mqtt::TopicLevels m_topic_path{};
     yy_prometheus::Labels m_labels{};
-    yy_prometheus::MetricDataVector m_metric_data{};
+    yy_prometheus::MetricDataCachePtr m_metric_cache{};
     static constexpr int default_keepalive_seconds = 60;
 };
 

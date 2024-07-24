@@ -34,6 +34,7 @@
 #include "yy_mqtt/yy_mqtt_util.h"
 
 #include "yy_prometheus/yy_prometheus_style.h"
+#include "yy_prometheus/yy_prometheus_cache.h"
 
 #include "configure_mqtt.h"
 #include "mqtt_handler.h"
@@ -44,13 +45,15 @@ namespace yafiyogi::mqtt_bridge {
 
 using namespace std::string_view_literals;
 
-mqtt_client::mqtt_client(mqtt_config & p_config):
+mqtt_client::mqtt_client(mqtt_config & p_config,
+                         yy_prometheus::MetricDataCachePtr p_metric_cache):
   mosqpp::mosquittopp(),
   m_topics(std::move(p_config.topics)),
   m_subscriptions(std::move(p_config.subscriptions)),
   m_id(std::move(p_config.id)),
   m_host(std::move(p_config.host)),
-  m_port(p_config.port)
+  m_port(p_config.port),
+  m_metric_cache(std::move(p_metric_cache))
 {
 }
 
@@ -73,7 +76,7 @@ void mqtt_client::on_connect(int rc)
   m_is_connected = true;
 
   spdlog::debug("{}[{}]"sv, "MQTT Connected status="sv, rc);
-  spdlog::info("{}"sv, "Subscribing to:"sv);
+  spdlog::info("{}"sv, " Subscribing to:"sv);
 
   yy_quad::simple_vector<char *> subs{};
   subs.reserve(m_subscriptions.size());
@@ -92,7 +95,7 @@ void mqtt_client::on_subscribe(int /* mid */,
                                int /* qos_count */,
                                const int * /* granted_qos */)
 {
-  spdlog::info("MQTT Subscribed."sv);
+  spdlog::info(" MQTT Subscribed."sv);
 }
 
 void mqtt_client::on_disconnect(int rc)
@@ -103,31 +106,35 @@ void mqtt_client::on_disconnect(int rc)
 
 void mqtt_client::on_message(const struct mosquitto_message * message)
 {
-  std::string_view topic{yy_mqtt::topic_trim(message->topic)};
-  if(auto payloads = m_topics.find(topic);
-     !payloads.empty())
+  if(m_metric_cache)
   {
-    auto & metric_style = yy_prometheus::get_metric_style();
-
-    int64_t ts = metric_style.timestamp(std::chrono::system_clock::now());
-    m_ts.clear();
-    fmt::format_to(std::back_inserter(m_ts), "{}"sv, ts);
-
-    m_labels.set_label(yy_prometheus::g_label_timestamp, m_ts);
-    m_labels.set_label(yy_prometheus::g_label_topic, topic);
-
-    spdlog::debug("Processing [{}] payloads=[{}]"sv, topic, payloads.size());
-    yy_mqtt::topic_tokenize(m_topic_path, topic);
-    m_labels.set_path(m_topic_path);
-
-    const std::string_view data{static_cast<std::string_view::value_type *>(message->payload),
-        static_cast<std::string_view::size_type>(message->payloadlen)};
-
-    for(const auto & handlers : payloads)
+    std::string_view topic{yy_mqtt::topic_trim(message->topic)};
+    if(auto payloads = m_topics.find(topic);
+       !payloads.empty())
     {
-      for(auto & handler : *handlers)
+      auto & metric_style = yy_prometheus::get_metric_style();
+
+      int64_t ts = metric_style.timestamp(std::chrono::system_clock::now());
+
+      m_labels.set_label(yy_prometheus::g_label_topic, topic);
+
+      spdlog::debug("Processing [{}] payloads=[{}]"sv, topic, payloads.size());
+      yy_mqtt::topic_tokenize(m_topic_path, topic);
+      m_labels.set_path(m_topic_path);
+
+      const std::string_view data{static_cast<std::string_view::value_type *>(message->payload),
+                                  static_cast<std::string_view::size_type>(message->payloadlen)};
+
+      for(const auto & handlers : payloads)
       {
-        m_metric_data = handler->Event(data, m_labels);
+        for(auto & handler : *handlers)
+        {
+          if(auto & metric_data = handler->Event(data, m_labels, ts);
+             !metric_data.empty())
+          {
+            m_metric_cache->Add(metric_data);
+          }
+        }
       }
     }
   }
