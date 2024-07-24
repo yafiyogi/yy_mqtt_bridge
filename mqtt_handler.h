@@ -26,6 +26,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include <string_view>
 
 #include "yy_mqtt/yy_mqtt_types.h"
@@ -65,8 +67,9 @@ class MqttHandler
       return m_type;
     }
 
-    virtual const yy_prometheus::MetricDataVector & Event(std::string_view p_data,
-                                                          const Labels & /* p_labels */) noexcept = 0;
+    virtual yy_prometheus::MetricDataVector & Event(std::string_view p_data,
+                                                    const Labels & /* p_labels */,
+                                                    const int64_t /* p_timestamp */) noexcept = 0;
   private:
     const std::string m_handler_id{};
     const type m_type = type::Text;

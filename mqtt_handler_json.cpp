@@ -74,13 +74,18 @@ class JsonVisitor:
       m_labels = p_labels;
     }
 
+    void timestamp(const int64_t p_timestamp) noexcept
+    {
+      m_timestamp = p_timestamp;
+    }
+
     void apply_str(const MetricsJsonPointer::scope_type & /* scope */,
                    MetricsJsonPointer::value_type & metrics,
                    std::string_view str) override
     {
       for(auto & metric : metrics)
       {
-        metric->Event(str, *m_labels, m_metric_data);
+        metric->Event(str, *m_labels, m_metric_data, m_timestamp);
       }
     }
 
@@ -91,7 +96,7 @@ class JsonVisitor:
     {
       for(auto & metric : metrics)
       {
-        metric->Event(raw, *m_labels, m_metric_data);
+        metric->Event(raw, *m_labels, m_metric_data, m_timestamp);
       }
     }
 
@@ -102,7 +107,7 @@ class JsonVisitor:
     {
       for(auto & metric : metrics)
       {
-        metric->Event(raw, *m_labels, m_metric_data);
+        metric->Event(raw, *m_labels, m_metric_data, m_timestamp);
       }
     }
 
@@ -113,7 +118,7 @@ class JsonVisitor:
     {
       for(auto & metric : metrics)
       {
-        metric->Event(raw, *m_labels, m_metric_data);
+        metric->Event(raw, *m_labels, m_metric_data, m_timestamp);
       }
     }
 
@@ -123,7 +128,7 @@ class JsonVisitor:
     {
       for(auto & metric : metrics)
       {
-        metric->Event(flag ? g_true_str : g_false_str, *m_labels, m_metric_data);
+        metric->Event(flag ? g_true_str : g_false_str, *m_labels, m_metric_data, m_timestamp);
       }
     }
 
@@ -132,7 +137,7 @@ class JsonVisitor:
       m_metric_data.clear(yy_data::ClearAction::Keep);
     }
 
-    constexpr const yy_prometheus::MetricDataVector & metric_data() const noexcept
+    constexpr yy_prometheus::MetricDataVector & metric_data() noexcept
     {
       return m_metric_data;
     }
@@ -142,6 +147,7 @@ class JsonVisitor:
     constexpr static std::string_view g_false_str{"false"};
 
     const yy_prometheus::Labels * m_labels = &g_empty_labels;
+    int64_t m_timestamp{};
     static const yy_prometheus::Labels g_empty_labels;
     yy_prometheus::MetricDataVector m_metric_data{};
 };
@@ -164,13 +170,15 @@ MqttJsonHandler::MqttJsonHandler(std::string_view p_handler_id,
   m_parser.handler().set_visitor(std::move(handler_visitor));
 }
 
-const yy_prometheus::MetricDataVector & MqttJsonHandler::Event(std::string_view p_data,
-                                                               const prometheus::Labels & p_labels) noexcept
+yy_prometheus::MetricDataVector & MqttJsonHandler::Event(std::string_view p_data,
+                                                         const prometheus::Labels & p_labels,
+                                                         const int64_t p_timestamp) noexcept
 {
   spdlog::debug("  handler [{}]"sv, Id());
 
   m_json_visitor->reset();
   m_json_visitor->labels(&p_labels);
+  m_json_visitor->timestamp(p_timestamp);
 
   m_parser.write_some(false, p_data.data(), p_data.size(), boost::json::error_code{});
 

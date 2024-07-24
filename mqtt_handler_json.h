@@ -27,6 +27,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 
 #include "boost/json/basic_parser_impl.hpp"
 
@@ -64,8 +65,9 @@ class MqttJsonHandler final:
     MqttJsonHandler & operator=(const MqttJsonHandler &) = delete;
     constexpr MqttJsonHandler & operator=(MqttJsonHandler &&) noexcept = default;
 
-    const yy_prometheus::MetricDataVector & Event(std::string_view p_data,
-                                                  const prometheus::Labels & p_labels) noexcept override;
+    yy_prometheus::MetricDataVector & Event(std::string_view p_data,
+                                            const prometheus::Labels & p_labels,
+                                            const int64_t p_timestamp) noexcept override;
 
   private:
     JsonParser m_parser;

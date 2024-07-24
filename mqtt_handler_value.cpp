@@ -42,13 +42,15 @@ MqttValueHandler::MqttValueHandler(std::string_view p_handler_id,
   m_metric_data.reserve(m_metrics.size());
 }
 
-const yy_prometheus::MetricDataVector & MqttValueHandler::Event(std::string_view p_data,
-                                                                const prometheus::Labels & p_labels) noexcept
+yy_prometheus::MetricDataVector & MqttValueHandler::Event(std::string_view p_data,
+                                                          const prometheus::Labels & p_labels,
+                                                          const int64_t p_timestamp) noexcept
 {
   m_metric_data.clear(yy_data::ClearAction::Keep);
+
   for(auto & metric : m_metrics)
   {
-    metric->Event(p_data, p_labels, m_metric_data);
+    metric->Event(p_data, p_labels, m_metric_data, p_timestamp);
   }
 
   return m_metric_data;

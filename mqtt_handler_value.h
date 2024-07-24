@@ -50,8 +50,9 @@ class MqttValueHandler:
     MqttValueHandler & operator=(const MqttValueHandler &) = delete;
     constexpr MqttValueHandler & operator=(MqttValueHandler &&) noexcept = default;
 
-    const yy_prometheus::MetricDataVector & Event(std::string_view p_data,
-                                                  const prometheus::Labels & p_labels) noexcept override;
+    yy_prometheus::MetricDataVector & Event(std::string_view p_data,
+                                            const prometheus::Labels & p_labels,
+                                            const int64_t p_timestamp) noexcept override;
   private:
     prometheus::Metrics m_metrics{};
     yy_prometheus::MetricDataVector m_metric_data{};
