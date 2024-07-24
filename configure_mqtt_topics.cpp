@@ -48,10 +48,10 @@ mqtt_topics configure_mqtt_topics(const YAML::Node & yaml_topics,
   yy_quad::simple_vector<std::string> subscriptions{};
   TopicsConfig topics_config{};
 
-  spdlog::info("Configuring topics."sv);
+  spdlog::info(" Configuring topics."sv);
   for(const auto & yaml_topic: yaml_topics)
   {
-    spdlog::debug("Configuring Topic [line {}]."sv, yaml_topic.Mark().line + 1);
+    spdlog::debug(" Configuring Topic [line {}]."sv, yaml_topic.Mark().line + 1);
     if(auto yaml_handlers = yaml_topic["handlers"sv];
        yaml_handlers)
     {
@@ -75,7 +75,7 @@ mqtt_topics configure_mqtt_topics(const YAML::Node & yaml_topics,
 
         for(const auto & yaml_subscription : yaml_subscriptions)
         {
-          spdlog::debug("Configuring Subscription [line {}]."sv, yaml_subscription.Mark().line + 1);
+          spdlog::debug("  Configuring Subscription [line {}]."sv, yaml_subscription.Mark().line + 1);
           if(auto topic = yy_mqtt::topic_trim(yaml_subscription.as<std::string_view>());
              yy_mqtt::topic_validate(topic, yy_mqtt::TopicType::Filter))
           {

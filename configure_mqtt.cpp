@@ -54,7 +54,7 @@ mqtt_config configure_mqtt(const YAML::Node & yaml_mqtt,
 
   int port = yaml_get_value(yaml_mqtt["port"sv], yy_mqtt::mqtt_default_port);
 
-  spdlog::info("host=[{}] port=[{}]\n"sv, host, port);
+  spdlog::info(" MQTT host=[{}] port=[{}]"sv, host, port);
 
   auto handlers = configure_mqtt_handlers(yaml_mqtt["handlers"sv], p_prometheus_config);
   auto [subscriptions, topics] = configure_mqtt_topics(yaml_mqtt["topics"sv], handlers);
