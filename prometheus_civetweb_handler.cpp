@@ -80,9 +80,9 @@ bool PrometheusWebHandler::handleGet(CivetServer * /* server */,
 
 
   std::optional<std::string_view> last_id{};
-  std::optional<std::string_view> last_help{};
-  std::optional<yy_prometheus::MetricType> last_type{};
-  std::optional<yy_prometheus::MetricUnit> last_unit{};
+  std::string_view last_help{};
+  yy_prometheus::MetricType last_type{yy_prometheus::MetricType::None};
+  yy_prometheus::MetricUnit last_unit{yy_prometheus::MetricUnit::None};
 
   auto do_serialize_metrics = [this, &last_id, &last_help, &last_type, &last_unit]
                               (const auto & metric) {
@@ -94,20 +94,21 @@ bool PrometheusWebHandler::handleGet(CivetServer * /* server */,
       last_id = metric.id;
     }
 
-    if(!last_type.has_value() || (last_type.value() != metric.type))
+    if(last_type != metric.type)
     {
       new_headers = true;
       last_type = metric.type;
     }
 
-    if(!last_unit.has_value() || (last_unit.value() != metric.unit))
+    if(last_unit != metric.unit)
     {
       new_headers = true;
       last_unit = metric.unit;
     }
 
     bool new_unit = false;
-    if(!last_help.has_value() || (last_help.value() != metric.help))
+
+    if(last_help != metric.help)
     {
       new_headers = true;
       new_unit = true;
