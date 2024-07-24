@@ -43,7 +43,7 @@ Metric::Metric(std::string_view p_id,
                std::string && p_property,
                LabelActions && p_actions):
   m_property(std::move(p_property)),
-  m_metric_data(std::string{p_id}, p_type, p_unit, Labels{}),
+  m_metric_data(std::string{p_id}, Labels{}, std::string{}, int64_t{}, std::string{}, p_type, p_unit),
   m_actions(std::move(p_actions))
 {
 }
@@ -66,7 +66,8 @@ const std::string & Metric::Property() const noexcept
 
 void Metric::Event(std::string_view p_data,
                    const prometheus::Labels & p_labels,
-                   MetricDataVector & p_metric_data)
+                   MetricDataVector & p_metric_data,
+                   const int64_t p_timestamp)
 {
   spdlog::debug("    [{}] property=[{}] [{}]"sv,
                 Id(),
@@ -75,6 +76,7 @@ void Metric::Event(std::string_view p_data,
 
   m_metric_data.value = p_data;
   m_metric_data.labels = p_labels;
+  m_metric_data.timestamp = p_timestamp;
 
   for(const auto & action : m_actions)
   {

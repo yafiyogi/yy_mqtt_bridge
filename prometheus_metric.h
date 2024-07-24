@@ -61,8 +61,8 @@ class Metric final
     constexpr Metric(Metric &&) noexcept = default;
     constexpr ~Metric() noexcept = default;
 
-    constexpr Metric & operator=(const Metric &) noexcept = default;
-    constexpr Metric & operator=(Metric &&) noexcept = default;
+    Metric & operator=(const Metric &) noexcept = default;
+    Metric & operator=(Metric &&) noexcept = default;
 
     [[nodiscard]]
     const std::string & Id() const noexcept;
@@ -75,7 +75,8 @@ class Metric final
 
     void Event(std::string_view p_data,
                const Labels & p_labels,
-               MetricDataVector & p_metric_data);
+               MetricDataVector & p_metric_data,
+               const int64_t p_timestamp);
 
   private:
     std::string m_property{};
