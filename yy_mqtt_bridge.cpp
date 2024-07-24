@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <csignal>
 
+#include <exception>
 #include <memory>
 
 #include "spdlog/spdlog.h"
@@ -34,6 +35,8 @@
 #include "mosquittopp.h"
 
 #include "yy_cpp/yy_locale.h"
+
+#include "yy_prometheus/yy_prometheus_cache.h"
 
 #include "yy_web/yy_web_server.h"
 
@@ -90,25 +93,40 @@ int main()
     return 1;
   }
 
-  auto mqtt_config{mqtt_bridge::configure_mqtt(yaml_mqtt,
-                                               prometheus_config)};
+  auto metric_cache = std::make_shared<yy_prometheus::MetricDataCache>();
 
   auto http_server{std::make_unique<yy_web::WebServer>(prometheus_config.options)};
-  http_server->AddHandler(prometheus_config.uri, std::make_unique<mqtt_bridge::prometheus::PrometheusWebHandler>());
+  http_server->AddHandler(prometheus_config.uri,
+                          std::make_unique<mqtt_bridge::prometheus::PrometheusWebHandler>(metric_cache));
 
   mosqpp::lib_init();
 
-  auto client = std::make_unique<mqtt_bridge::mqtt_client>(mqtt_config);
+  auto mqtt_config{mqtt_bridge::configure_mqtt(yaml_mqtt,
+                                               prometheus_config)};
+
+  auto client = std::make_unique<mqtt_bridge::mqtt_client>(mqtt_config,
+                                                           metric_cache);
 
   client->connect();
-  while(!exit_program)
+  try
   {
-    if(auto rc = client->loop();
-       rc)
+    while(!exit_program)
     {
-      spdlog::info("reconnect [{}]"sv, rc);
-      client->reconnect();
+      if(auto rc = client->loop();
+         rc)
+      {
+        spdlog::info("reconnect [{}]"sv, rc);
+        client->reconnect();
+      }
     }
+  }
+  catch(const std::exception & ex)
+  {
+    spdlog::critical("Exception caught [{}]", ex.what());
+  }
+  catch(...)
+  {
+    spdlog::critical("Exception caught!");
   }
 
   client->disconnect();
@@ -120,6 +138,7 @@ int main()
 
   mosqpp::lib_cleanup();
   http_server.reset();
+
 
   spdlog::info("Ende"sv);
   mqtt_bridge::stop_all_logs();
