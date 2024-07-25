@@ -45,6 +45,11 @@ find_package(fmt REQUIRED)
 find_package(re2 REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(yaml-cpp REQUIRED)
+find_package(yy_cpp REQUIRED)
+find_package(yy_json REQUIRED)
+find_package(yy_mqtt REQUIRED)
+find_package(yy_prometheus REQUIRED)
+find_package(yy_web REQUIRED)
 
 pkg_check_modules(Mosquitto_c IMPORTED_TARGET libmosquitto_static REQUIRED)
 pkg_check_modules(Mosquitto_cpp IMPORTED_TARGET libmosquittopp_static REQUIRED)
@@ -85,15 +90,14 @@ target_include_directories(yy_mqtt_bridge
 
 target_link_directories(yy_mqtt_bridge
   PUBLIC
-  "${CMAKE_INSTALL_PREFIX}/lib"
   /opt/local/lib )
 
 target_link_libraries(yy_mqtt_bridge
-  yy_web
-  yy_prometheus
-  yy_json
-  yy_mqtt
-  yy_cpp
+  yy_web::yy_web
+  yy_prometheus::yy_prometheus
+  yy_json::yy_json
+  yy_mqtt::yy_mqtt
+  yy_cpp::yy_cpp
   Boost::json
   Boost::locale
   civetweb::civetweb-cpp
