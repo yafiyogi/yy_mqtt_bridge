@@ -111,9 +111,6 @@ target_link_libraries(yy_mqtt_bridge
   PkgConfig::LibSSL
   PkgConfig::ZLib )
 
-install(TARGETS yy_mqtt_bridge )
+install(TARGETS yy_mqtt_bridge)
 
-get_target_property(YY_MQTT_SOURCES yy_mqtt_bridge SOURCES)
-
-add_custom_target(tidy-all
- COMMAND rm -f clang-tidy.log \; for f in "$$(" echo \"${YY_MQTT_SOURCES}\" | sed -n -e 's/;/ /pg' ")" \; do ${YY_CLANG_TIDY_CMD} ${YY_CLANG_TIDY_OPTIONS} "$$f" -- ${YY_TIDY_COMPILER_OPTIONS} >> clang-tidy.log \; done)
+add_yy_tidy_all(yy_mqtt_bridge)
