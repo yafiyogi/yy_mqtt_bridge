@@ -31,12 +31,13 @@
 
 #include "boost/json/basic_parser_impl.hpp"
 
+#include "yy_json/yy_json_pointer.h"
 #include "yy_mqtt/yy_mqtt_types.h"
 
 #include "yy_prometheus/yy_prometheus_metric_data.h"
 
+#include "prometheus_metric.h"
 #include "mqtt_handler.h"
-#include "prometheus_metrics_json_pointer.h"
 
 namespace yafiyogi::mqtt_bridge {
 namespace json_handler_detail {
