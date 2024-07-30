@@ -72,7 +72,7 @@ MqttHandlerPtr configure_json_handler(std::string_view p_id,
   auto yaml_properties = yaml_json_handler["properties"sv];
   if(yaml_properties && (0 != yaml_properties.size()))
   {
-    prometheus::MetricsJsonPointerBuilder json_pointer_builder{};
+    MqttJsonHandler::builder_type json_pointer_builder{};
     int metrics_count{};
     std::string json_pointer{};
     std::string_view property{};
@@ -137,7 +137,7 @@ MqttHandlerPtr configure_json_handler(std::string_view p_id,
 
     if(metrics_count > 0)
     {
-      MqttJsonHandler::JsonPointerConfig config{json_pointer_builder.create(g_json_options.max_depth)};
+      MqttJsonHandler::handler_config_type config{json_pointer_builder.create(g_json_options.max_depth)};
 
       mqtt_json_handler = std::make_unique<MqttJsonHandler>(p_id,
                                                             g_json_options,

@@ -39,22 +39,66 @@
 #include "prometheus_metrics_json_pointer.h"
 
 namespace yafiyogi::mqtt_bridge {
+namespace json_handler_detail {
 
-class JsonVisitor;
+class JsonVisitor
+{
+  public:
+    using size_type = yy_prometheus::MetricDataVector::size_type;
+    using Metrics = prometheus::Metrics;
+
+    JsonVisitor(size_type p_metric_count) noexcept;
+
+    constexpr JsonVisitor() noexcept = default;
+    constexpr JsonVisitor(const JsonVisitor &) noexcept = default;
+    constexpr JsonVisitor(JsonVisitor &&) noexcept = default;
+    constexpr ~JsonVisitor() noexcept = default;
+
+    constexpr JsonVisitor & operator=(const JsonVisitor &) noexcept = default;
+    constexpr JsonVisitor & operator=(JsonVisitor &&) noexcept = default;
+
+    void labels(const prometheus::Labels * p_labels) noexcept;
+    void timestamp(const int64_t p_timestamp) noexcept;
+    void apply_str(Metrics & metrics,
+                   std::string_view str);
+    void apply_int64(Metrics & metrics,
+                     std::string_view raw,
+                     std::int64_t /* num */);
+    void apply_uint64(Metrics & metrics,
+                      std::string_view raw,
+                      std::uint64_t /* num */);
+    void apply_double(Metrics & metrics,
+                      std::string_view raw,
+                      double /* num */);
+    void apply_bool(Metrics & metrics,
+                    bool flag);
+    void reset() noexcept;
+    void set_labels(const yy_prometheus::Labels & p_labels);
+    void set_timestamp(int64_t p_timestamp);
+    yy_prometheus::MetricDataVector & metric_data() noexcept;
+
+  private:
+    int64_t m_timestamp{};
+    const yy_prometheus::Labels * m_labels;
+    yy_prometheus::MetricDataVector m_metric_data{};
+};
+
+} // namespace json_handler_detail
 
 class MqttJsonHandler final:
       public MqttHandler
 {
   public:
     using size_type = std::size_t;
-    using MetricsJsonPointer = prometheus::MetricsJsonPointer;
-    using JsonPointerConfig = MetricsJsonPointer::pointers_config_type;
-    using JsonParser = boost::json::basic_parser<MetricsJsonPointer>;
-    using JsonParserOptions = boost::json::parse_options;
+    using builder_type = yy_json::json_pointer_builder<prometheus::Metrics, json_handler_detail::JsonVisitor>;
+    using handler_type = builder_type::handler_type;
+    using handler_config_type = handler_type::pointers_config_type;
+    using parser_type = boost::json::basic_parser<handler_type>;
+    using parser_options_type = boost::json::parse_options;
 
     explicit MqttJsonHandler(std::string_view p_handler_id,
-                             const JsonParserOptions & p_json_options,
-                             JsonPointerConfig && p_json_handler_config,
+                             const parser_options_type & p_json_options,
+                             handler_config_type && p_json_handler_config,
                              size_type metric_count) noexcept;
 
     MqttJsonHandler() = delete;
@@ -70,8 +114,7 @@ class MqttJsonHandler final:
                                             const int64_t p_timestamp) noexcept override;
 
   private:
-    JsonParser m_parser;
-    JsonVisitor * m_json_visitor = nullptr;
+    parser_type m_parser;
 };
 
 } // namespace yafiyogi::mqtt_bridge

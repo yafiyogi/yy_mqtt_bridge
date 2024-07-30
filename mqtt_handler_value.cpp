@@ -26,6 +26,8 @@
 
 #include <string_view>
 
+#include "spdlog/spdlog.h"
+
 #include "yy_prometheus/yy_prometheus_metric_data.h"
 
 #include "prometheus_metric.h"
@@ -33,6 +35,8 @@
 #include "mqtt_handler_value.h"
 
 namespace yafiyogi::mqtt_bridge {
+
+using namespace std::string_view_literals;
 
 MqttValueHandler::MqttValueHandler(std::string_view p_handler_id,
                                    prometheus::Metrics && p_metrics) noexcept:
@@ -46,6 +50,8 @@ yy_prometheus::MetricDataVector & MqttValueHandler::Event(std::string_view p_dat
                                                           const prometheus::Labels & p_labels,
                                                           const int64_t p_timestamp) noexcept
 {
+  spdlog::debug("  handler [{}]"sv, Id());
+
   m_metric_data.clear(yy_data::ClearAction::Keep);
 
   for(auto & metric : m_metrics)
