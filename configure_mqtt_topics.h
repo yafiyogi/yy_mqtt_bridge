@@ -36,8 +36,8 @@ namespace yafiyogi::mqtt_bridge {
 
 struct mqtt_topics final
 {
-    yy_quad::simple_vector<std::string> subscriptions;
-    Topics topics;
+    yy_quad::simple_vector<std::string> subscriptions{};
+    Topics topics{};
 };
 
 

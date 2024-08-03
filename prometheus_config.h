@@ -36,8 +36,8 @@ namespace yafiyogi::mqtt_bridge::prometheus {
 
 struct config final
 {
-    std::string uri;
-    yy_web::WebServer::Options options;
+    std::string uri{};
+    yy_web::WebServer::Options options{};
     MetricsMap metrics{};
 };
 

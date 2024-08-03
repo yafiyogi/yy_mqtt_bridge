@@ -57,8 +57,9 @@ class PrometheusWebHandler:
 
   private:
     using metric_buffer = yy_quad::simple_vector<char>;
+
     yy_prometheus::MetricDataCachePtr m_metric_cache{};
-    metric_buffer m_buffer;
+    metric_buffer m_buffer{};
 };
 
 using PrometheusWebHandlerPtr = std::unique_ptr<PrometheusWebHandler>;

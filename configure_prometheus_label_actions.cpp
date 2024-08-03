@@ -142,7 +142,9 @@ ReplacementTopics configure_label_action_replace_path(const YAML::Node & yaml_re
         configure_label_action_replace_format(replacement_format,
                                               [replacement_pattern, &topics_config](ReplaceFormat & format)
                                               {
-                                                auto [topic_formats, ignore] = yy_mqtt::faster_topics_add(topics_config, replacement_pattern, ReplaceFormats{});
+                                                auto [topic_formats, ignore] = yy_mqtt::faster_topics_add(topics_config,
+                                                                                                          replacement_pattern,
+                                                                                                          ReplaceFormats{});
 
                                                 topic_formats->emplace_back(format);
                                               });

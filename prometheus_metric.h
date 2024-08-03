@@ -80,7 +80,7 @@ class Metric final
 
   private:
     std::string m_property{};
-    MetricData m_metric_data;
+    MetricData m_metric_data{};
     LabelActions m_actions{};
 };
 

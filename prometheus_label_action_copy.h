@@ -59,8 +59,8 @@ class CopyLabelAction:
     }
 
   private:
-    std::string m_label_source;
-    std::string m_label_target;
+    std::string m_label_source{};
+    std::string m_label_target{};
 };
 
 } // namespace yafiyogi::mqtt_bridge::prometheus

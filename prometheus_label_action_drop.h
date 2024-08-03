@@ -58,7 +58,7 @@ class DropLabelAction:
     }
 
   private:
-    std::string m_label_name;
+    std::string m_label_name{};
 };
 
 } // namespace yafiyogi::mqtt_bridge::prometheus

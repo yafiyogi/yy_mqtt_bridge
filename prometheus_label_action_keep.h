@@ -58,7 +58,7 @@ class KeepLabelAction:
     }
 
   private:
-    std::string m_label;
+    std::string m_label{};
 };
 
 } // namespace yafiyogi::mqtt_bridge::prometheus

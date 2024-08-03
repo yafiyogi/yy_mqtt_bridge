@@ -39,6 +39,7 @@
 
 namespace yafiyogi::mqtt_bridge {
 
+using namespace std::string_literals;
 using namespace std::string_view_literals;
 
 mqtt_config configure_mqtt(const YAML::Node & yaml_mqtt,
@@ -59,7 +60,7 @@ mqtt_config configure_mqtt(const YAML::Node & yaml_mqtt,
   auto handlers = configure_mqtt_handlers(yaml_mqtt["handlers"sv], p_prometheus_config);
   auto [subscriptions, topics] = configure_mqtt_topics(yaml_mqtt["topics"sv], handlers);
 
-  return mqtt_config{"", std::move(host), port, std::move(handlers), std::move(subscriptions), std::move(topics)};
+  return mqtt_config{""s, std::move(host), port, std::move(handlers), std::move(subscriptions), std::move(topics)};
 }
 
 } // namespace yafiyogi::mqtt_bridge

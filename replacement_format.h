@@ -38,7 +38,7 @@ struct PathReplaceElement
     using size_type = uint32_t;
     static constexpr size_type no_param = std::numeric_limits<size_type>::max();
 
-    std::string prefix;
+    std::string prefix{};
     size_type idx = no_param;
 };
 

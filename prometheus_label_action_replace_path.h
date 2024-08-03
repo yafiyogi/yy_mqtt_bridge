@@ -65,9 +65,9 @@ class ReplacePathLabelAction:
     }
 
   private:
-    std::string m_label_name;
-    std::string m_label_value;
-    ReplacementTopics m_topics;
+    std::string m_label_name{};
+    std::string m_label_value{};
+    ReplacementTopics m_topics{};
 };
 
 } // namespace yafiyogi::mqtt_bridge::prometheus

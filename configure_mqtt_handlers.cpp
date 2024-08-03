@@ -154,8 +154,6 @@ MqttHandlerPtr configure_text_handler(std::string_view /* p_id */,
                                       prometheus::MetricsMap & /* prometheus_metrics */)
 {
   return MqttHandlerPtr{};
-  // return std::make_unique<MqttHandler>(p_id,
-  //                                      MqttHandler::type::Text);
 }
 
 MqttHandlerPtr configure_value_handler(std::string_view p_id,
