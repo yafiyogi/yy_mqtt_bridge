@@ -39,8 +39,9 @@ constexpr std::string_view g_std_err{"stderr"};
 constexpr std::string_view g_log_name{"mqtt_bridge_log"};
 constexpr std::string_view g_default_file_path{"./mqtt_bridge.log"};
 
+static const std::string g_std_err_str{g_std_err};
 static std::mutex g_logger_mtx{};
-static logger_ptr g_logger = spdlog::stderr_color_mt("stderr");
+static logger_ptr g_logger = spdlog::stderr_color_mt(g_std_err_str);
 
 void set_g_logger(logger_ptr log)
 {
@@ -66,9 +67,9 @@ void set_logger()
 
 void set_console_logger()
 {
-  if(!spdlog::get(std::string{g_std_err}))
+  if(!spdlog::get(g_std_err_str))
   {
-    set_g_logger(spdlog::stderr_color_mt("stderr"));
+    set_g_logger(spdlog::stderr_color_mt(g_std_err_str));
   }
 }
 
@@ -84,7 +85,7 @@ void stop_log()
   stop_log(g_log_name);
 
   std::unique_lock lck{g_logger_mtx};
-  g_logger = spdlog::stderr_color_mt("stderr");
+  g_logger = spdlog::stderr_color_mt(g_std_err_str);
   spdlog::set_default_logger(g_logger);
 }
 
