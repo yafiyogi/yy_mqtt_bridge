@@ -198,7 +198,7 @@ MqttHandlerStore configure_mqtt_handlers(const YAML::Node & yaml_handlers,
 {
   if(!yaml_handlers.IsSequence())
   {
-    spdlog::error("Configuration error: expecting a sequence of handlers!");
+    spdlog::error("Configuration error: expecting a sequence of handlers!"sv);
 
     return MqttHandlerStore{};
   }

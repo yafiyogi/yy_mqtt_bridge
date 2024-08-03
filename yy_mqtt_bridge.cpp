@@ -122,11 +122,11 @@ int main()
   }
   catch(const std::exception & ex)
   {
-    spdlog::critical("Exception caught [{}]", ex.what());
+    spdlog::critical("Exception caught [{}]"sv, ex.what());
   }
   catch(...)
   {
-    spdlog::critical("Exception caught!");
+    spdlog::critical("Exception caught!"sv);
   }
 
   client->disconnect();

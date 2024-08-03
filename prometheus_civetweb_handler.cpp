@@ -54,21 +54,21 @@ bool PrometheusWebHandler::handleGet(CivetServer * /* server */,
   {
     const struct mg_request_info *ri = mg_get_request_info(conn);
 
-    spdlog::debug("PrometheusWebHandler::handleGet()");
-    spdlog::debug("\trequest_method = {}", ri->request_method);
-    spdlog::debug("\trequest_uri = {}", ri->request_uri);
-    spdlog::debug("\tlocal_uri = {}", ri->local_uri);
-    spdlog::debug("\thttp_version = {}", ri->http_version);
-    //spdlog::debug("\tquery_string = {}", ri->query_string);
-    //spdlog::debug("\tremote_user = {}", ri->remote_user);
-    spdlog::debug("\tremote_addr = {}", ri->remote_addr);
-    spdlog::debug("\tremote_port = {}", ri->remote_port);
-    spdlog::debug("\tis_ssl = {}", ri->is_ssl);
-    spdlog::debug("\tnum_headers = {}", ri->num_headers);
+    spdlog::debug("PrometheusWebHandler::handleGet()"sv);
+    spdlog::debug("\trequest_method = {}"sv, ri->request_method);
+    spdlog::debug("\trequest_uri = {}"sv, ri->request_uri);
+    spdlog::debug("\tlocal_uri = {}"sv, ri->local_uri);
+    spdlog::debug("\thttp_version = {}"sv, ri->http_version);
+    //spdlog::debug("\tquery_string = {}"sv, ri->query_string);
+    //spdlog::debug("\tremote_user = {}"sv, ri->remote_user);
+    spdlog::debug("\tremote_addr = {}"sv, ri->remote_addr);
+    spdlog::debug("\tremote_port = {}"sv, ri->remote_port);
+    spdlog::debug("\tis_ssl = {}"sv, ri->is_ssl);
+    spdlog::debug("\tnum_headers = {}"sv, ri->num_headers);
     if (ri->num_headers > 0) {
       int i;
       for (i = 0; i < ri->num_headers; i++) {
-        spdlog::debug("\t\t{} = {}",
+        spdlog::debug("\t\t{} = {}sv",
                       ri->http_headers[i].name,
                       ri->http_headers[i].value);
       }

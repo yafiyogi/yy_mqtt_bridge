@@ -62,7 +62,7 @@ config configure_prometheus(const YAML::Node & yaml_prometheus)
   auto port{yaml_get_value(yaml_prometheus["exporter_port"sv],
                            yy_prometheus::prometheus_default_port)};
   options.Add(yy_web::WebServer::listening_ports, port);
-  spdlog::info(" Prometheus Port [{}]", port);
+  spdlog::info(" Prometheus Port [{}]"sv, port);
 
   options.Add(yy_web::WebServer::tcp_nodelay, "1"sv);
 
@@ -75,7 +75,7 @@ config configure_prometheus(const YAML::Node & yaml_prometheus)
 
   auto uri{ yaml_get_value(yaml_prometheus["exporter_uri"sv],
                            yy_prometheus::prometheus_default_uri_path)};
-  spdlog::info(" Prometheus URI  [{}]", uri);
+  spdlog::info(" Prometheus URI  [{}]"sv, uri);
 
   return config{std::string{uri}, std::move(options), std::move(metrics)};
 }
