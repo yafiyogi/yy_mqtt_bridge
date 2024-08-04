@@ -68,7 +68,7 @@ bool PrometheusWebHandler::handleGet(CivetServer * /* server */,
     if (ri->num_headers > 0) {
       int i;
       for (i = 0; i < ri->num_headers; i++) {
-        spdlog::debug("\t\t{} = {}sv",
+        spdlog::debug("\t\t{} = {}"sv,
                       ri->http_headers[i].name,
                       ri->http_headers[i].value);
       }
