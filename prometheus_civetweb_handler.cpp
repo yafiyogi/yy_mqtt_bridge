@@ -145,7 +145,7 @@ bool PrometheusWebHandler::handleGet(CivetServer * /* server */,
       }
       first = false;
       fmt::format_to(std::back_inserter(m_buffer),
-                     "{}={}"sv,
+                     "{}=\"{}\""sv,
                      label, value);
     });
 
