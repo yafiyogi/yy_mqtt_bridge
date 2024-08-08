@@ -32,14 +32,14 @@
 
 #include "yy_cpp/yy_vector.h"
 
-#include "yy_mqtt/yy_mqtt_faster_topics.h"
+#include "yy_mqtt/yy_mqtt_state_topics.h"
 
 #include "prometheus_label_action.h"
 #include "replacement_format.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
 
-using ReplacementTopicsConfig = yy_mqtt::faster_topics<ReplaceFormats>;
+using ReplacementTopicsConfig = yy_mqtt::state_topics<ReplaceFormats>;
 using ReplacementTopics = ReplacementTopicsConfig::automaton;
 
 class ReplacePathLabelAction:

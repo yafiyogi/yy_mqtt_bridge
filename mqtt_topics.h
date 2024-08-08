@@ -30,7 +30,7 @@
 
 #include "yy_cpp/yy_vector.h"
 
-#include "yy_mqtt/yy_mqtt_faster_topics.h"
+#include "yy_mqtt/yy_mqtt_state_topics.h"
 
 #include "mqtt_handler_fwd.h"
 
@@ -38,7 +38,7 @@ namespace yafiyogi::mqtt_bridge {
 
 using Subscriptions = yy_quad::simple_vector<std::string>;
 
-using TopicsConfig = yy_mqtt::faster_topics<MqttHandlerList>;
+using TopicsConfig = yy_mqtt::state_topics<MqttHandlerList>;
 using Topics = TopicsConfig::automaton;
 
 } // namespace yafiyogi::mqtt_bridge

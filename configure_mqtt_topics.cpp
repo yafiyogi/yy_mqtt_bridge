@@ -32,7 +32,6 @@
 #include "yy_cpp/yy_vector_util.h"
 
 #include "yy_mqtt/yy_mqtt_util.h"
-#include "yy_mqtt/yy_mqtt_faster_topics.h"
 
 #include "mqtt_handler.h"
 
@@ -102,7 +101,7 @@ mqtt_topics configure_mqtt_topics(const YAML::Node & yaml_topics,
             spdlog::info("     * [{}]"sv, handler->Id());
           }
 
-          yy_mqtt::faster_topics_add(topics_config, filter, MqttHandlerList{mqtt_handlers});
+          yy_mqtt::state_topics_add(topics_config, filter, MqttHandlerList{mqtt_handlers});
           if(auto [pos, found] = yy_util::find(subscriptions, filter);
              !found)
           {
