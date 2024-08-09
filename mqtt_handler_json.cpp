@@ -46,8 +46,6 @@ using namespace std::string_view_literals;
 
 namespace json_handler_detail {
 
-constexpr static const std::string_view g_true_str{"true"};
-constexpr static const std::string_view g_false_str{"false"};
 static const yy_prometheus::Labels g_empty_labels{};
 
 
@@ -70,51 +68,12 @@ void JsonVisitor::timestamp(const int64_t p_timestamp) noexcept
   m_timestamp = p_timestamp;
 }
 
-void JsonVisitor::apply_str(Metrics & metrics,
-                            std::string_view str)
+void JsonVisitor::apply(Metrics & metrics,
+                        std::string_view data)
 {
   for(auto & metric : metrics)
   {
-    metric->Event(str, *m_labels, m_metric_data, m_timestamp);
-  }
-}
-
-void JsonVisitor::apply_int64(Metrics & metrics,
-                              std::string_view raw,
-                              std::int64_t /* num */)
-{
-  for(auto & metric : metrics)
-  {
-    metric->Event(raw, *m_labels, m_metric_data, m_timestamp);
-  }
-}
-
-void JsonVisitor::apply_uint64(Metrics & metrics,
-                               std::string_view raw,
-                               std::uint64_t /* num */)
-{
-  for(auto & metric : metrics)
-  {
-    metric->Event(raw, *m_labels, m_metric_data, m_timestamp);
-  }
-}
-
-void JsonVisitor::apply_double(Metrics & metrics,
-                               std::string_view raw,
-                               double /* num */)
-{
-  for(auto & metric : metrics)
-  {
-    metric->Event(raw, *m_labels, m_metric_data, m_timestamp);
-  }
-}
-
-void JsonVisitor::apply_bool(Metrics & metrics,
-                             bool flag)
-{
-  for(auto & metric : metrics)
-  {
-    metric->Event(flag ? g_true_str : g_false_str, *m_labels, m_metric_data, m_timestamp);
+    metric->Event(data, *m_labels, m_metric_data, m_timestamp);
   }
 }
 

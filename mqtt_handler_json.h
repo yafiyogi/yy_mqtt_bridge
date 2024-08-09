@@ -61,24 +61,49 @@ class JsonVisitor
     void labels(const prometheus::Labels * p_labels) noexcept;
     void timestamp(const int64_t p_timestamp) noexcept;
     void apply_str(Metrics & metrics,
-                   std::string_view str);
+                   std::string_view str)
+    {
+      apply(metrics, str);
+    }
+
     void apply_int64(Metrics & metrics,
                      std::string_view raw,
-                     std::int64_t /* num */);
+                     std::int64_t /* num */)
+    {
+      apply(metrics, raw);
+    }
+
     void apply_uint64(Metrics & metrics,
                       std::string_view raw,
-                      std::uint64_t /* num */);
+                      std::uint64_t /* num */)
+    {
+      apply(metrics, raw);
+    }
+
     void apply_double(Metrics & metrics,
                       std::string_view raw,
-                      double /* num */);
+                      double /* num */)
+    {
+      apply(metrics, raw);
+    }
+
     void apply_bool(Metrics & metrics,
-                    bool flag);
+                    bool flag)
+    {
+      apply(metrics, flag ? g_true_str : g_false_str);
+    }
+
     void reset() noexcept;
     void set_labels(const yy_prometheus::Labels & p_labels);
     void set_timestamp(int64_t p_timestamp);
     yy_prometheus::MetricDataVector & metric_data() noexcept;
 
   private:
+    void apply(Metrics & metrics,
+               std::string_view data);
+
+    constexpr static const std::string_view g_true_str{"true"};
+    constexpr static const std::string_view g_false_str{"false"};
     int64_t m_timestamp{};
     const yy_prometheus::Labels * m_labels;
     yy_prometheus::MetricDataVector m_metric_data{};
