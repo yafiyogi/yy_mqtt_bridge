@@ -27,9 +27,9 @@
 #include "spdlog/spdlog.h"
 #include "yaml-cpp/yaml.h"
 
+#include "yy_cpp/yy_find_util.h"
 #include "yy_cpp/yy_flat_set.h"
 #include "yy_cpp/yy_string_util.h"
-#include "yy_cpp/yy_vector_util.h"
 
 #include "yy_mqtt/yy_mqtt_util.h"
 
@@ -102,10 +102,10 @@ mqtt_topics configure_mqtt_topics(const YAML::Node & yaml_topics,
           }
 
           yy_mqtt::state_topics_add(topics_config, filter, MqttHandlerList{mqtt_handlers});
-          if(auto [pos, found] = yy_util::find(subscriptions, filter);
+          if(auto [pos, found] = yy_data::do_find(subscriptions, filter);
              !found)
           {
-            subscriptions.emplace(pos, std::string{filter});
+            subscriptions.emplace(subscriptions.begin() + pos, std::string{filter});
           }
         }
       }

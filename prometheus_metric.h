@@ -73,7 +73,7 @@ class Metric final
     [[nodiscard]]
     const std::string & Property() const noexcept;
 
-    void Event(std::string_view p_data,
+    void Event(std::string_view p_value,
                const Labels & p_labels,
                MetricDataVector & p_metric_data,
                const int64_t p_timestamp);

@@ -29,6 +29,7 @@
 #include "spdlog/spdlog.h"
 
 #include "yy_prometheus/yy_prometheus_configure.h"
+#include "yy_prometheus/yy_prometheus_metric_format.h"
 #include "yy_prometheus/yy_prometheus_labels.h"
 #include "yy_prometheus/yy_prometheus_cache.h"
 
@@ -88,71 +89,38 @@ bool PrometheusWebHandler::handleGet(CivetServer * /* server */,
                               (const auto & metric) {
     bool new_headers = false;
 
-    if(!last_id.has_value() || (last_id.value() != metric.id))
+    if(!last_id.has_value() || (last_id.value() != metric.Id()))
     {
       new_headers = true;
-      last_id = metric.id;
+      last_id = metric.Id();
     }
 
-    if(last_type != metric.type)
+    if(last_type != metric.Type())
     {
       new_headers = true;
-      last_type = metric.type;
+      last_type = metric.Type();
     }
 
-    if(last_unit != metric.unit)
+    bool new_unit = last_unit != metric.Unit();
+    if(new_unit)
     {
       new_headers = true;
-      last_unit = metric.unit;
+      last_unit = metric.Unit();
     }
 
-    bool new_unit = false;
-
-    if(last_help != metric.help)
+    if(last_help != metric.Help())
     {
       new_headers = true;
       new_unit = true;
-      last_help = metric.help;
+      last_help = metric.Help();
     }
 
     if(new_headers)
     {
-      fmt::format_to(std::back_inserter(m_buffer),
-                     "# HELP {} {}\x0a"sv,
-                     metric.id,
-                     metric.help);
-      fmt::format_to(std::back_inserter(m_buffer),
-                     "# TYPE {} {}\x0a"sv,
-                     metric.id,
-                     yy_prometheus::decode_metric_type(metric.type));
-      if(new_unit)
-      {
-        fmt::format_to(std::back_inserter(m_buffer),
-                       "# UNIT {} {}\x0a"sv,
-                       metric.id,
-                       yy_prometheus::decode_metric_unit(metric.unit));
-      }
+      yy_prometheus::FormatHeaders(m_buffer, metric, new_unit);
     }
 
-    fmt::format_to(std::back_inserter(m_buffer), "{}{{"sv,
-                   metric.id);
-
-    bool first = true;
-    metric.labels.visit([&first, this](const auto & label, const auto & value) {
-      if(!first)
-      {
-        fmt::format_to(std::back_inserter(m_buffer), ","sv);
-      }
-      first = false;
-      fmt::format_to(std::back_inserter(m_buffer),
-                     "{}=\"{}\""sv,
-                     label, value);
-    });
-
-    fmt::format_to(std::back_inserter(m_buffer),
-                   "}} {} {}\x0a"sv,
-                   metric.value,
-                   metric.timestamp);
+    metric.Format(m_buffer);
   };
 
   if(m_metric_cache)

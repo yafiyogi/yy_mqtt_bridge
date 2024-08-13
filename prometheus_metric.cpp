@@ -43,20 +43,20 @@ Metric::Metric(std::string_view p_id,
                std::string && p_property,
                LabelActions && p_actions):
   m_property(std::move(p_property)),
-  m_metric_data(std::string{p_id}, Labels{}, std::string{}, int64_t{}, std::string{}, p_type, p_unit),
+  m_metric_data(p_id, Labels{}, ""sv, p_type, p_unit),
   m_actions(std::move(p_actions))
 {
 }
 
 const std::string & Metric::Id() const noexcept
 {
-  return m_metric_data.id;
+  return m_metric_data.Id();
 }
 
 
 Metric::MetricType Metric::Type() const noexcept
 {
-  return m_metric_data.type;
+  return m_metric_data.Type();
 }
 
 const std::string & Metric::Property() const noexcept
@@ -64,27 +64,27 @@ const std::string & Metric::Property() const noexcept
   return m_property;
 }
 
-void Metric::Event(std::string_view p_data,
-                   const prometheus::Labels & p_labels,
+void Metric::Event(std::string_view p_value,
+                   const Labels & p_labels,
                    MetricDataVector & p_metric_data,
                    const int64_t p_timestamp)
 {
   spdlog::debug("    [{}] property=[{}] [{}]"sv,
                 Id(),
                 m_property,
-                p_data);
+                p_value);
 
-  m_metric_data.value = p_data;
-  m_metric_data.labels = p_labels;
-  m_metric_data.timestamp = p_timestamp;
+  m_metric_data.Value(p_value);
+  m_metric_data.Labels(p_labels);
+  m_metric_data.Timestamp(p_timestamp);
 
   for(const auto & action : m_actions)
   {
-    action->Apply(p_labels, m_metric_data.labels);
+    action->Apply(p_labels, m_metric_data.Labels());
   }
 
-  m_metric_data.labels.visit([](const auto & label,
-                                const auto & value) {
+  m_metric_data.Labels().visit([](const auto & label,
+                                  const auto & value) {
     spdlog::debug("      - [{}]:[{}]"sv, label, value);
   });
 
