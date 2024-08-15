@@ -55,8 +55,8 @@ namespace {
 const re2::RE2 re_idx{R"(([^\\]*)(?:\\(?:(\d{1,2})|(.)))?)", RE2::Quiet};
 
 constexpr auto escapes =
-  yy_data::make_lookup<std::string_view, std::string_view>({{"n", "\n"},
-                                                            {"t", "\t"}});
+  yy_data::make_lookup<std::string_view, std::string_view>({{"n"sv, "\n"sv},
+                                                            {"t"sv, "\t"sv}});
 
 } // namespace
 
