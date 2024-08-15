@@ -32,34 +32,36 @@
 
 #include "yy_cpp/yy_vector.h"
 
-#include "prometheus_label_action.h"
+#include "label_action.h"
 
-namespace yafiyogi::mqtt_bridge::prometheus {
+namespace yafiyogi::mqtt_bridge {
 
-class DropLabelAction:
+class CopyLabelAction:
       public LabelAction
 {
   public:
-    explicit DropLabelAction(std::string && p_label_name) noexcept;
-    constexpr DropLabelAction() noexcept = default;
-    constexpr DropLabelAction(const DropLabelAction &) noexcept = default;
-    constexpr DropLabelAction(DropLabelAction &&) noexcept = default;
-    constexpr ~DropLabelAction() noexcept override = default;
+    explicit CopyLabelAction(std::string && p_label_source,
+                             std::string && p_label_target) noexcept;
+    constexpr CopyLabelAction() noexcept = default;
+    constexpr CopyLabelAction(const CopyLabelAction &) noexcept = default;
+    constexpr CopyLabelAction(CopyLabelAction &&) noexcept = default;
+    constexpr ~CopyLabelAction() noexcept override = default;
 
-    constexpr DropLabelAction & operator=(const DropLabelAction &) noexcept = default;
-    constexpr DropLabelAction & operator=(DropLabelAction &&) noexcept = default;
+    constexpr CopyLabelAction & operator=(const CopyLabelAction &) noexcept = default;
+    constexpr CopyLabelAction & operator=(CopyLabelAction &&) noexcept = default;
 
     void Apply(const yy_prometheus::Labels & /* labels */,
                yy_prometheus::Labels & /* metric_labels */) noexcept override;
 
-    static constexpr const std::string_view action_name{"drop"};
+    static constexpr const std::string_view action_name{"copy"};
     constexpr std::string_view Name() const noexcept override
     {
       return action_name;
     }
 
   private:
-    std::string m_label_name{};
+    std::string m_label_source{};
+    std::string m_label_target{};
 };
 
-} // namespace yafiyogi::mqtt_bridge::prometheus
+} // namespace yafiyogi::mqtt_bridge

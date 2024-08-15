@@ -30,13 +30,13 @@
 #include <memory>
 
 #include "yy_prometheus/yy_prometheus_labels.h"
-#include "prometheus_label_action.h"
+#include "label_action.h"
 
 #include "replacement_format.h"
 
-#include "prometheus_label_action_replace_path.h"
+#include "label_action_replace_path.h"
 
-namespace yafiyogi::mqtt_bridge::prometheus {
+namespace yafiyogi::mqtt_bridge {
 
 ReplacePathLabelAction::ReplacePathLabelAction(std::string && p_label_name,
                                                ReplacementTopics && p_topics) noexcept:
@@ -86,4 +86,4 @@ void ReplacePathLabelAction::Apply(const yy_prometheus::Labels & /* labels */,
 }
 
 
-} // namespace yafiyogi::mqtt_bridge::prometheus
+} // namespace yafiyogi::mqtt_bridge

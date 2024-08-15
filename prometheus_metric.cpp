@@ -31,7 +31,7 @@
 
 #include "yy_prometheus/yy_prometheus_labels.h"
 #include "prometheus_metric.h"
-#include "prometheus_label_action.h"
+#include "label_action.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
 

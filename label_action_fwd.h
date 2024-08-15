@@ -26,12 +26,14 @@
 
 #pragma once
 
-#include "yaml_fwd.h"
+#include <memory>
 
-#include "prometheus_label_action_replace_path.h"
+#include "yy_cpp/yy_vector.h"
 
-namespace yafiyogi::mqtt_bridge::prometheus {
+namespace yafiyogi::mqtt_bridge {
 
-ReplacementTopics configure_label_action_replace_path(const YAML::Node & yaml_replace);
+class LabelAction;
+using LabelActionPtr = std::unique_ptr<LabelAction>;
+using LabelActions = yy_quad::simple_vector<LabelActionPtr>;
 
-} // namespace yafiyogi::mqtt_bridge::prometheus
+} // namespace yafiyogi::mqtt_bridge

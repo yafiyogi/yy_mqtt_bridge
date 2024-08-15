@@ -24,28 +24,42 @@
 
 */
 
-#include <string>
+#pragma once
+
+#include <limits>
 #include <memory>
+#include <optional>
 
-#include "yy_prometheus/yy_prometheus_labels.h"
-#include "prometheus_label_action_keep.h"
+#include "yy_cpp/yy_vector.h"
 
-namespace yafiyogi::mqtt_bridge::prometheus {
+#include "label_action.h"
 
-KeepLabelAction::KeepLabelAction(std::string && p_label) noexcept:
-  m_label(std::move(p_label))
+namespace yafiyogi::mqtt_bridge {
+
+class DropLabelAction:
+      public LabelAction
 {
-}
+  public:
+    explicit DropLabelAction(std::string && p_label_name) noexcept;
+    constexpr DropLabelAction() noexcept = default;
+    constexpr DropLabelAction(const DropLabelAction &) noexcept = default;
+    constexpr DropLabelAction(DropLabelAction &&) noexcept = default;
+    constexpr ~DropLabelAction() noexcept override = default;
 
-void KeepLabelAction::Apply(const yy_prometheus::Labels & labels,
-                            yy_prometheus::Labels & metric_labels) noexcept
-{
-  auto do_keep_label = [this, &metric_labels](const std::string * label_value, auto) {
-    metric_labels.set_label(m_label, *label_value);
-  };
+    constexpr DropLabelAction & operator=(const DropLabelAction &) noexcept = default;
+    constexpr DropLabelAction & operator=(DropLabelAction &&) noexcept = default;
 
-  std::ignore = labels.get_label(m_label, do_keep_label);
-}
+    void Apply(const yy_prometheus::Labels & /* labels */,
+               yy_prometheus::Labels & /* metric_labels */) noexcept override;
 
+    static constexpr const std::string_view action_name{"drop"};
+    constexpr std::string_view Name() const noexcept override
+    {
+      return action_name;
+    }
 
-} // namespace yafiyogi::mqtt_bridge::prometheus
+  private:
+    std::string m_label_name{};
+};
+
+} // namespace yafiyogi::mqtt_bridge

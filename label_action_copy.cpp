@@ -24,28 +24,29 @@
 
 */
 
-#pragma once
+#include <memory>
 
-#include "yy_prometheus/yy_prometheus_labels_fwd.h"
+#include "yy_prometheus/yy_prometheus_labels.h"
+#include "label_action_copy.h"
 
-#include "prometheus_label_action_fwd.h"
+namespace yafiyogi::mqtt_bridge {
 
-namespace yafiyogi::mqtt_bridge::prometheus {
-
-class LabelAction
+CopyLabelAction::CopyLabelAction(std::string && p_label_source,
+                                 std::string && p_label_target) noexcept:
+  m_label_source(std::move(p_label_source)),
+  m_label_target(std::move(p_label_target))
 {
-  public:
-    constexpr LabelAction() noexcept = default;
-    constexpr LabelAction(const LabelAction &) noexcept = default;
-    constexpr LabelAction(LabelAction &&) noexcept = default;
-    constexpr virtual ~LabelAction() noexcept = default;
+}
 
-    constexpr LabelAction & operator=(const LabelAction &) noexcept = default;
-    constexpr LabelAction & operator=(LabelAction &&) noexcept = default;
+void CopyLabelAction::Apply(const yy_prometheus::Labels & labels,
+                            yy_prometheus::Labels & metric_labels) noexcept
+{
+  auto do_copy_label = [this, &metric_labels](const std::string * label_value, auto) {
+    metric_labels.set_label(m_label_target, *label_value);
+  };
 
-    virtual void Apply(const yy_prometheus::Labels & /* labels */,
-                       yy_prometheus::Labels & /* metric_labels */) noexcept = 0;
-    virtual std::string_view Name() const noexcept = 0;
-};
+  std::ignore = labels.get_label(m_label_source, do_copy_label);
+}
 
-} // namespace yafiyogi::mqtt_bridge::prometheus
+
+} // namespace yafiyogi::mqtt_bridge

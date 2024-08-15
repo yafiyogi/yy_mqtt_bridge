@@ -40,19 +40,19 @@
 
 #include "yy_prometheus/yy_prometheus_configure.h"
 
-#include "configure_prometheus_label_actions.h"
+#include "configure_label_actions.h"
 #include "configure_prometheus_metrics.h"
-#include "prometheus_label_action.h"
+#include "label_action.h"
+#include "label_action_replace_path.h"
 #include "mqtt_handler.h"
 #include "prometheus_config.h"
-#include "prometheus_label_action_replace_path.h"
 #include "prometheus_metric.h"
 #include "yaml_util.h"
 
-#include "prometheus_label_action_copy.h"
-#include "prometheus_label_action_drop.h"
-#include "prometheus_label_action_keep.h"
-#include "prometheus_label_action_replace_path.h"
+#include "label_action_copy.h"
+#include "label_action_drop.h"
+#include "label_action_keep.h"
+#include "label_action_replace_path.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
 

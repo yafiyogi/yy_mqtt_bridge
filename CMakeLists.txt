@@ -59,16 +59,16 @@ pkg_check_modules(LibSSL IMPORTED_TARGET libssl REQUIRED)
 pkg_check_modules(ZLib IMPORTED_TARGET zlib REQUIRED)
 
 add_executable(yy_mqtt_bridge
+  configure_label_actions.cpp
   configure_mqtt.cpp
   configure_mqtt_handlers.cpp
   configure_mqtt_topics.cpp
   configure_prometheus.cpp
-  configure_prometheus_label_actions.cpp
   configure_prometheus_metrics.cpp
-  prometheus_label_action_copy.cpp
-  prometheus_label_action_drop.cpp
-  prometheus_label_action_keep.cpp
-  prometheus_label_action_replace_path.cpp
+  label_action_copy.cpp
+  label_action_drop.cpp
+  label_action_keep.cpp
+  label_action_replace_path.cpp
   prometheus_civetweb_handler.cpp
   prometheus_metric.cpp
   logger.cpp
@@ -76,6 +76,7 @@ add_executable(yy_mqtt_bridge
   mqtt_handler.cpp
   mqtt_handler_json.cpp
   mqtt_handler_value.cpp
+  value_action_switch.cpp
   yy_mqtt_bridge.cpp )
 
 target_compile_options(yy_mqtt_bridge

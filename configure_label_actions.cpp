@@ -24,39 +24,136 @@
 
 */
 
-#include "re2/re2.h"
+#include <string>
 
-namespace yafiyogi::mqtt_bridge {
+#include "absl/strings/string_view.h"
+#include "re2/re2.h"
+#include "spdlog/spdlog.h"
+#include "yaml-cpp/yaml.h"
+
+#include "yy_cpp/yy_fast_atoi.h"
+#include "yy_cpp/yy_make_lookup.h"
+#include "yy_cpp/yy_string_util.h"
+
+#include "yy_mqtt/yy_mqtt_util.h"
+
+#include "configure_label_actions.h"
+#include "label_action.h"
+#include "replacement_format.h"
+#include "yaml_util.h"
+
+namespace yafiyogi::mqtt_bridge::prometheus {
+
+using namespace std::string_view_literals;
+
 namespace {
 
-re2::RE2 g_re_idx{R"(([^\\]*)(?:\\(?:(\d{2})|(.)))?)"};
 // '([^\\]*)' -> capture everything before '\'
-// '(?:\\(?:(\d{2})|(.)))?' -> capture optional index or optional escaped character.
-// '(\d+)' -> capture index min 1 digit, max 2 digits: '\1'
+// '(?:\\(?:(\d{1,2})|(.)))?' -> capture optional index or escaped character.
+// '(\d{1,2})' -> capture index: '\1'. Min one character, max two characters.
 // '(.)' -> capture escaped character: '\p'
+const re2::RE2 re_idx{R"(([^\\]*)(?:\\(?:(\d{1,2})|(.)))?)", RE2::Quiet};
 
-static constexpr std::string_view escapes{"nt"};
+constexpr auto escapes =
+  yy_data::make_lookup<std::string_view, std::string_view>({{"n"sv, "\n"sv},
+                                                            {"t"sv, "\t"sv}});
 
-} // anonymous namespace
+} // namespace
 
-void create_replace_formats(std::string_view source,
-                            std::string_view format,
-                            std::string_view regex)
+
+template<typename Visitor>
+void configure_label_action_replace_format(std::string_view replacement_format,
+                                           Visitor && visitor)
 {
-  if(label_path == source)
+  if(!replacement_format.empty())
   {
-  }
-  else
-  {
-    if(regex.empty())
+    ReplaceFormat format;
+    absl::string_view config_format{replacement_format.data(), replacement_format.size()};
+
+    format.clear();
+    std::string_view prefix;
+    std::string_view escape;
+    std::string_view idx;
+    std::string format_prefix;
+
+    while(RE2::Consume(&config_format, re_idx, &prefix, &idx, &escape))
     {
-      regex = R"((.*?))";
+      format_prefix.append(prefix);
+      if(!idx.empty())
+      {
+        if(auto [format_idx, state] = yy_util::fast_atoi<PathReplaceElement::size_type>(idx);
+           (yy_util::FastFloatRV::Ok == state) && (format_idx > 0))
+        {
+          format.emplace_back(PathReplaceElement{std::string{format_prefix}, format_idx - 1});
+          format_prefix.clear();
+        }
+        else
+        {
+          spdlog::warn("Format error: error with format [{}]."sv,
+                       replacement_format);
+        }
+      }
+      else if(!escape.empty())
+      {
+        format_prefix.append(escapes.lookup(escape, escape));
+      }
+
+      if(config_format.empty())
+      {
+        break;
+      }
     }
 
-    auto create_regex = [regex]() {
-      return re2::RE2(absl::string_view{regex.data(), regex.size()});
-    };
+    if(!format_prefix.empty())
+    {
+      format.emplace_back(PathReplaceElement{std::move(format_prefix), PathReplaceElement::no_param});
+    }
+
+    if(!format.empty())
+    {
+      visitor(format);
+    }
   }
 }
 
-} // namespace yafiyogi::mqtt_bridge
+ReplacementTopics configure_label_action_replace_path(const YAML::Node & yaml_replace)
+{
+  ReplacementTopicsConfig topics_config;
+
+  for(const auto & yaml_format : yaml_replace)
+  {
+    if(yaml_format)
+    {
+      std::string_view replacement_pattern{"#"};
+      std::string_view replacement_format{};
+
+      if(yaml_is_scalar(yaml_format))
+      {
+        replacement_format = yaml_get_value(yaml_format, "");
+      }
+      else
+      {
+        replacement_pattern = yy_util::trim(yaml_get_value(yaml_format["pattern"sv], "#"sv));
+        replacement_format = yy_util::trim(yaml_get_value(yaml_format["format"sv], ""sv));
+      }
+
+      if(yy_mqtt::topic_validate(replacement_pattern, yy_mqtt::TopicType::Filter))
+      {
+        configure_label_action_replace_format(replacement_format,
+                                              [replacement_pattern, &topics_config](ReplaceFormat & format)
+                                              {
+                                                auto [topic_formats, ignore] = yy_mqtt::state_topics_add(topics_config,
+                                                                                                          replacement_pattern,
+                                                                                                          ReplaceFormats{});
+
+                                                topic_formats->emplace_back(format);
+                                              });
+      }
+    }
+  }
+
+  return topics_config.create_automaton();
+}
+
+
+} // namespace yafiyogi::mqtt_bridge::prometheus

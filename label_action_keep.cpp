@@ -24,16 +24,28 @@
 
 */
 
-#pragma once
-
+#include <string>
 #include <memory>
 
-#include "yy_cpp/yy_vector.h"
+#include "yy_prometheus/yy_prometheus_labels.h"
+#include "label_action_keep.h"
 
-namespace yafiyogi::mqtt_bridge::prometheus {
+namespace yafiyogi::mqtt_bridge {
 
-class LabelAction;
-using LabelActionPtr = std::unique_ptr<LabelAction>;
-using LabelActions = yy_quad::simple_vector<LabelActionPtr>;
+KeepLabelAction::KeepLabelAction(std::string && p_label) noexcept:
+  m_label(std::move(p_label))
+{
+}
 
-} // namespace yafiyogi::mqtt_bridge::prometheus
+void KeepLabelAction::Apply(const yy_prometheus::Labels & labels,
+                            yy_prometheus::Labels & metric_labels) noexcept
+{
+  auto do_keep_label = [this, &metric_labels](const std::string * label_value, auto) {
+    metric_labels.set_label(m_label, *label_value);
+  };
+
+  std::ignore = labels.get_label(m_label, do_keep_label);
+}
+
+
+} // namespace yafiyogi::mqtt_bridge

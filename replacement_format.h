@@ -31,7 +31,7 @@
 
 #include "yy_cpp/yy_vector.h"
 
-namespace yafiyogi::mqtt_bridge::prometheus {
+namespace yafiyogi::mqtt_bridge {
 
 struct PathReplaceElement
 {
@@ -45,4 +45,4 @@ struct PathReplaceElement
 using ReplaceFormat = yy_quad::simple_vector<PathReplaceElement>;
 using ReplaceFormats = yy_quad::simple_vector<ReplaceFormat>;
 
-} // namespace yafiyogi::mqtt_bridge::prometheus
+} // namespace yafiyogi::mqtt_bridge

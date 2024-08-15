@@ -37,7 +37,7 @@
 
 #include "yy_prometheus/yy_prometheus_metric_data.h"
 
-#include "prometheus_label_action.h"
+#include "label_action.h"
 #include "value_action.h"
 #include "value_type.h"
 

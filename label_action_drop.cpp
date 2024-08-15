@@ -28,9 +28,9 @@
 #include <memory>
 
 #include "yy_prometheus/yy_prometheus_labels.h"
-#include "prometheus_label_action_drop.h"
+#include "label_action_drop.h"
 
-namespace yafiyogi::mqtt_bridge::prometheus {
+namespace yafiyogi::mqtt_bridge {
 
 DropLabelAction::DropLabelAction(std::string && p_label_name) noexcept:
   m_label_name(std::move(p_label_name))
@@ -44,4 +44,4 @@ void DropLabelAction::Apply(const yy_prometheus::Labels & /* labels */,
 }
 
 
-} // namespace yafiyogi::mqtt_bridge::prometheus
+} // namespace yafiyogi::mqtt_bridge

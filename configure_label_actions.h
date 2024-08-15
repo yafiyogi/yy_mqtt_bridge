@@ -26,42 +26,12 @@
 
 #pragma once
 
-#include <limits>
-#include <memory>
-#include <optional>
+#include "yaml_fwd.h"
 
-#include "yy_cpp/yy_vector.h"
-
-#include "prometheus_label_action.h"
+#include "label_action_replace_path.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
 
-class CopyLabelAction:
-      public LabelAction
-{
-  public:
-    explicit CopyLabelAction(std::string && p_label_source,
-                             std::string && p_label_target) noexcept;
-    constexpr CopyLabelAction() noexcept = default;
-    constexpr CopyLabelAction(const CopyLabelAction &) noexcept = default;
-    constexpr CopyLabelAction(CopyLabelAction &&) noexcept = default;
-    constexpr ~CopyLabelAction() noexcept override = default;
-
-    constexpr CopyLabelAction & operator=(const CopyLabelAction &) noexcept = default;
-    constexpr CopyLabelAction & operator=(CopyLabelAction &&) noexcept = default;
-
-    void Apply(const yy_prometheus::Labels & /* labels */,
-               yy_prometheus::Labels & /* metric_labels */) noexcept override;
-
-    static constexpr const std::string_view action_name{"copy"};
-    constexpr std::string_view Name() const noexcept override
-    {
-      return action_name;
-    }
-
-  private:
-    std::string m_label_source{};
-    std::string m_label_target{};
-};
+ReplacementTopics configure_label_action_replace_path(const YAML::Node & yaml_replace);
 
 } // namespace yafiyogi::mqtt_bridge::prometheus

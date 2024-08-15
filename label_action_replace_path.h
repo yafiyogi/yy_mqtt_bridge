@@ -32,34 +32,43 @@
 
 #include "yy_cpp/yy_vector.h"
 
-#include "prometheus_label_action.h"
+#include "yy_mqtt/yy_mqtt_state_topics.h"
 
-namespace yafiyogi::mqtt_bridge::prometheus {
+#include "label_action.h"
+#include "replacement_format.h"
 
-class KeepLabelAction:
+namespace yafiyogi::mqtt_bridge {
+
+using ReplacementTopicsConfig = yy_mqtt::state_topics<ReplaceFormats>;
+using ReplacementTopics = ReplacementTopicsConfig::automaton;
+
+class ReplacePathLabelAction:
       public LabelAction
 {
   public:
-    explicit KeepLabelAction(std::string && p_label) noexcept;
-    constexpr KeepLabelAction() noexcept = default;
-    constexpr KeepLabelAction(const KeepLabelAction &) noexcept = default;
-    constexpr KeepLabelAction(KeepLabelAction &&) noexcept = default;
-    constexpr ~KeepLabelAction() noexcept override = default;
+    explicit ReplacePathLabelAction(std::string && p_label_name,
+                                    ReplacementTopics && p_topics) noexcept;
+    constexpr ReplacePathLabelAction() noexcept = default;
+    constexpr ReplacePathLabelAction(const ReplacePathLabelAction &) noexcept = default;
+    constexpr ReplacePathLabelAction(ReplacePathLabelAction &&) noexcept = default;
+    constexpr ~ReplacePathLabelAction() noexcept override = default;
 
-    constexpr KeepLabelAction & operator=(const KeepLabelAction &) noexcept = default;
-    constexpr KeepLabelAction & operator=(KeepLabelAction &&) noexcept = default;
+    constexpr ReplacePathLabelAction & operator=(const ReplacePathLabelAction &) noexcept = default;
+    constexpr ReplacePathLabelAction & operator=(ReplacePathLabelAction &&) noexcept = default;
 
     void Apply(const yy_prometheus::Labels & /* labels */,
                yy_prometheus::Labels & /* metric_labels */) noexcept override;
 
-    static constexpr const std::string_view action_name{"keep"};
+    static constexpr const std::string_view action_name{"replace-path"};
     constexpr std::string_view Name() const noexcept override
     {
       return action_name;
     }
 
   private:
-    std::string m_label{};
+    std::string m_label_name{};
+    std::string m_label_value{};
+    ReplacementTopics m_topics{};
 };
 
-} // namespace yafiyogi::mqtt_bridge::prometheus
+} // namespace yafiyogi::mqtt_bridge
