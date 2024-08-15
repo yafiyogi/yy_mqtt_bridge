@@ -36,8 +36,6 @@
 #include "yy_prometheus/yy_prometheus_labels.h"
 #include "yy_prometheus/yy_prometheus_metric_data.h"
 
-#include "mqtt_handler.h"
-
 #include "mqtt_handler_json.h"
 
 namespace yafiyogi::mqtt_bridge {
@@ -54,7 +52,7 @@ JsonVisitor::JsonVisitor(size_type p_metric_count) noexcept
   m_metric_data.reserve(p_metric_count);
 }
 
-void JsonVisitor::labels(const prometheus::Labels * p_labels) noexcept
+void JsonVisitor::labels(const yy_prometheus::Labels * p_labels) noexcept
 {
   if(nullptr == p_labels)
   {
@@ -68,12 +66,13 @@ void JsonVisitor::timestamp(const int64_t p_timestamp) noexcept
   m_timestamp = p_timestamp;
 }
 
-void JsonVisitor::apply(Metrics & metrics,
-                        std::string_view data)
+void JsonVisitor::apply(Metrics & p_metrics,
+                        std::string_view p_value,
+                        ValueType p_value_type)
 {
-  for(auto & metric : metrics)
+  for(auto & metric : p_metrics)
   {
-    metric->Event(data, *m_labels, m_metric_data, m_timestamp);
+    metric->Event(p_value, *m_labels, m_metric_data, m_timestamp, p_value_type);
   }
 }
 
@@ -109,8 +108,8 @@ MqttJsonHandler::MqttJsonHandler(std::string_view p_handler_id,
 {
 }
 
-yy_prometheus::MetricDataVector & MqttJsonHandler::Event(std::string_view p_data,
-                                                         const prometheus::Labels & p_labels,
+yy_prometheus::MetricDataVector & MqttJsonHandler::Event(std::string_view p_value,
+                                                         const yy_prometheus::Labels & p_labels,
                                                          const int64_t p_timestamp) noexcept
 {
   spdlog::debug("  handler [{}]"sv, Id());
@@ -121,7 +120,7 @@ yy_prometheus::MetricDataVector & MqttJsonHandler::Event(std::string_view p_data
   visitor.set_labels(p_labels);
   visitor.set_timestamp(p_timestamp);
 
-  m_parser.write_some(false, p_data.data(), p_data.size(), boost::json::error_code{});
+  m_parser.write_some(false, p_value.data(), p_value.size(), boost::json::error_code{});
 
   return visitor.metric_data();
 }

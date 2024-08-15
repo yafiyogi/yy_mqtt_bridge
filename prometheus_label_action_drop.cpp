@@ -37,7 +37,8 @@ DropLabelAction::DropLabelAction(std::string && p_label_name) noexcept:
 {
 }
 
-void DropLabelAction::Apply(const Labels & /* labels */, Labels & metric_labels) noexcept
+void DropLabelAction::Apply(const yy_prometheus::Labels & /* labels */,
+                            yy_prometheus::Labels & metric_labels) noexcept
 {
   metric_labels.erase(m_label_name);
 }

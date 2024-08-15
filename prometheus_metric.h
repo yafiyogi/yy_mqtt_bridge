@@ -38,13 +38,14 @@
 #include "yy_prometheus/yy_prometheus_metric_data.h"
 
 #include "prometheus_label_action.h"
+#include "value_action.h"
+#include "value_type.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
 
 class Metric final
 {
   public:
-    using Labels = yy_prometheus::Labels;
     using MetricType = yy_prometheus::MetricType;
     using MetricUnit = yy_prometheus::MetricUnit;
     using MetricData = yy_prometheus::MetricData;
@@ -74,14 +75,16 @@ class Metric final
     const std::string & Property() const noexcept;
 
     void Event(std::string_view p_value,
-               const Labels & p_labels,
+               const yy_prometheus::Labels & p_labels,
                MetricDataVector & p_metric_data,
-               const int64_t p_timestamp);
+               const int64_t p_timestamp,
+               ValueType p_value_type);
 
   private:
     std::string m_property{};
     MetricData m_metric_data{};
-    LabelActions m_actions{};
+    LabelActions m_label_actions{};
+    ValueActions m_value_actions{};
 };
 
 using MetricPtr = std::shared_ptr<Metric>;

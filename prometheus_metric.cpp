@@ -41,10 +41,10 @@ Metric::Metric(std::string_view p_id,
                const MetricType p_type,
                const MetricUnit p_unit,
                std::string && p_property,
-               LabelActions && p_actions):
+               LabelActions && p_label_actions):
   m_property(std::move(p_property)),
-  m_metric_data(p_id, Labels{}, ""sv, p_type, p_unit),
-  m_actions(std::move(p_actions))
+  m_metric_data(p_id, yy_prometheus::Labels{}, ""sv, p_type, p_unit),
+  m_label_actions(std::move(p_label_actions))
 {
 }
 
@@ -65,9 +65,10 @@ const std::string & Metric::Property() const noexcept
 }
 
 void Metric::Event(std::string_view p_value,
-                   const Labels & p_labels,
+                   const yy_prometheus::Labels & p_labels,
                    MetricDataVector & p_metric_data,
-                   const int64_t p_timestamp)
+                   const int64_t p_timestamp,
+                   ValueType p_value_type)
 {
   spdlog::debug("    [{}] property=[{}] [{}]"sv,
                 Id(),
@@ -78,15 +79,23 @@ void Metric::Event(std::string_view p_value,
   m_metric_data.Labels(p_labels);
   m_metric_data.Timestamp(p_timestamp);
 
-  for(const auto & action : m_actions)
+  for(const auto & action : m_label_actions)
   {
     action->Apply(p_labels, m_metric_data.Labels());
   }
 
-  m_metric_data.Labels().visit([](const auto & label,
-                                  const auto & value) {
-    spdlog::debug("      - [{}]:[{}]"sv, label, value);
-  });
+  for(const auto & action : m_value_actions)
+  {
+    action->Apply(m_metric_data, p_value_type);
+  }
+
+  if(spdlog::level::debug == spdlog::get_level())
+  {
+    m_metric_data.Labels().visit([](const auto & label,
+                                    const auto & value) {
+      spdlog::debug("      - [{}]:[{}]"sv, label, value);
+    });
+  }
 
   p_metric_data.emplace_back(m_metric_data);
 }

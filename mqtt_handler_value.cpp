@@ -46,8 +46,8 @@ MqttValueHandler::MqttValueHandler(std::string_view p_handler_id,
   m_metric_data.reserve(m_metrics.size());
 }
 
-yy_prometheus::MetricDataVector & MqttValueHandler::Event(std::string_view p_data,
-                                                          const prometheus::Labels & p_labels,
+yy_prometheus::MetricDataVector & MqttValueHandler::Event(std::string_view p_value,
+                                                          const yy_prometheus::Labels & p_labels,
                                                           const int64_t p_timestamp) noexcept
 {
   spdlog::debug("  handler [{}]"sv, Id());
@@ -56,7 +56,7 @@ yy_prometheus::MetricDataVector & MqttValueHandler::Event(std::string_view p_dat
 
   for(auto & metric : m_metrics)
   {
-    metric->Event(p_data, p_labels, m_metric_data, p_timestamp);
+    metric->Event(p_value, p_labels, m_metric_data, p_timestamp, ValueType::Unknown);
   }
 
   return m_metric_data;

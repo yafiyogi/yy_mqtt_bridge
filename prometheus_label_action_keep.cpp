@@ -37,7 +37,8 @@ KeepLabelAction::KeepLabelAction(std::string && p_label) noexcept:
 {
 }
 
-void KeepLabelAction::Apply(const Labels & labels, Labels & metric_labels) noexcept
+void KeepLabelAction::Apply(const yy_prometheus::Labels & labels,
+                            yy_prometheus::Labels & metric_labels) noexcept
 {
   auto do_keep_label = [this, &metric_labels](const std::string * label_value, auto) {
     metric_labels.set_label(m_label, *label_value);

@@ -30,9 +30,9 @@
 
 #include "yy_prometheus/yy_prometheus_metric_data.h"
 
-#include "prometheus_metric.h"
-
 #include "mqtt_handler.h"
+#include "prometheus_metric.h"
+#include "value_type.h"
 
 namespace yafiyogi::mqtt_bridge {
 
@@ -50,8 +50,8 @@ class MqttValueHandler:
     MqttValueHandler & operator=(const MqttValueHandler &) = delete;
     constexpr MqttValueHandler & operator=(MqttValueHandler &&) noexcept = default;
 
-    yy_prometheus::MetricDataVector & Event(std::string_view p_data,
-                                            const prometheus::Labels & p_labels,
+    yy_prometheus::MetricDataVector & Event(std::string_view p_value,
+                                            const yy_prometheus::Labels & p_labels,
                                             const int64_t p_timestamp) noexcept override;
   private:
     prometheus::Metrics m_metrics{};

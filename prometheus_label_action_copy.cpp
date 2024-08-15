@@ -38,7 +38,8 @@ CopyLabelAction::CopyLabelAction(std::string && p_label_source,
 {
 }
 
-void CopyLabelAction::Apply(const Labels & labels, Labels & metric_labels) noexcept
+void CopyLabelAction::Apply(const yy_prometheus::Labels & labels,
+                            yy_prometheus::Labels & metric_labels) noexcept
 {
   auto do_copy_label = [this, &metric_labels](const std::string * label_value, auto) {
     metric_labels.set_label(m_label_target, *label_value);

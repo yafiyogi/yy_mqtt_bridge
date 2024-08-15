@@ -56,7 +56,8 @@ class ReplacePathLabelAction:
     constexpr ReplacePathLabelAction & operator=(const ReplacePathLabelAction &) noexcept = default;
     constexpr ReplacePathLabelAction & operator=(ReplacePathLabelAction &&) noexcept = default;
 
-    void Apply(const Labels & /* labels */, Labels & /* metric_labels */) noexcept override;
+    void Apply(const yy_prometheus::Labels & /* labels */,
+               yy_prometheus::Labels & /* metric_labels */) noexcept override;
 
     static constexpr const std::string_view action_name{"replace-path"};
     constexpr std::string_view Name() const noexcept override

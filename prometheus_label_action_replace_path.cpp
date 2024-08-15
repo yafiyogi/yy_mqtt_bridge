@@ -46,13 +46,14 @@ ReplacePathLabelAction::ReplacePathLabelAction(std::string && p_label_name,
 {
 }
 
-void ReplacePathLabelAction::Apply(const Labels & /* labels */, Labels & metric_labels) noexcept
+void ReplacePathLabelAction::Apply(const yy_prometheus::Labels & /* labels */,
+                                   yy_prometheus::Labels & metric_labels) noexcept
 {
   if(auto payloads = m_topics.find(metric_labels.get_label(yy_prometheus::g_label_topic));
      !payloads.empty())
   {
     const auto & levels = metric_labels.get_path();
-    const Labels::size_type max_levels = levels.size();
+    const yy_prometheus::Labels::size_type max_levels = levels.size();
 
     for(const auto * replacements : payloads)
     {

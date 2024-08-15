@@ -36,8 +36,9 @@
 
 #include "yy_prometheus/yy_prometheus_metric_data.h"
 
-#include "prometheus_metric.h"
 #include "mqtt_handler.h"
+#include "prometheus_metric.h"
+#include "value_type.h"
 
 namespace yafiyogi::mqtt_bridge {
 namespace json_handler_detail {
@@ -58,39 +59,39 @@ class JsonVisitor
     constexpr JsonVisitor & operator=(const JsonVisitor &) noexcept = default;
     constexpr JsonVisitor & operator=(JsonVisitor &&) noexcept = default;
 
-    void labels(const prometheus::Labels * p_labels) noexcept;
+    void labels(const yy_prometheus::Labels * p_labels) noexcept;
     void timestamp(const int64_t p_timestamp) noexcept;
     void apply_str(Metrics & metrics,
                    std::string_view str)
     {
-      apply(metrics, str);
+      apply(metrics, str, ValueType::String);
     }
 
     void apply_int64(Metrics & metrics,
                      std::string_view raw,
                      std::int64_t /* num */)
     {
-      apply(metrics, raw);
+      apply(metrics, raw, ValueType::Int);
     }
 
     void apply_uint64(Metrics & metrics,
                       std::string_view raw,
                       std::uint64_t /* num */)
     {
-      apply(metrics, raw);
+      apply(metrics, raw, ValueType::UInt);
     }
 
     void apply_double(Metrics & metrics,
                       std::string_view raw,
                       double /* num */)
     {
-      apply(metrics, raw);
+      apply(metrics, raw, ValueType::Float);
     }
 
     void apply_bool(Metrics & metrics,
                     bool flag)
     {
-      apply(metrics, flag ? g_true_str : g_false_str);
+      apply(metrics, flag ? g_true_str : g_false_str, ValueType::Bool);
     }
 
     void reset() noexcept;
@@ -99,8 +100,9 @@ class JsonVisitor
     yy_prometheus::MetricDataVector & metric_data() noexcept;
 
   private:
-    void apply(Metrics & metrics,
-               std::string_view data);
+    void apply(Metrics & p_metrics,
+               std::string_view p_data,
+               ValueType p_value_type);
 
     constexpr static const std::string_view g_true_str{"true"};
     constexpr static const std::string_view g_false_str{"false"};
@@ -135,8 +137,8 @@ class MqttJsonHandler final:
     MqttJsonHandler & operator=(const MqttJsonHandler &) = delete;
     constexpr MqttJsonHandler & operator=(MqttJsonHandler &&) noexcept = default;
 
-    yy_prometheus::MetricDataVector & Event(std::string_view p_data,
-                                            const prometheus::Labels & p_labels,
+    yy_prometheus::MetricDataVector & Event(std::string_view p_value,
+                                            const yy_prometheus::Labels & p_labels,
                                             const int64_t p_timestamp) noexcept override;
 
   private:
