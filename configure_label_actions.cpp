@@ -42,7 +42,7 @@
 #include "replacement_format.h"
 #include "yaml_util.h"
 
-namespace yafiyogi::mqtt_bridge::prometheus {
+namespace yafiyogi::mqtt_bridge {
 
 using namespace std::string_view_literals;
 
@@ -81,10 +81,10 @@ void configure_label_action_replace_format(std::string_view replacement_format,
       format_prefix.append(prefix);
       if(!idx.empty())
       {
-        if(auto [format_idx, state] = yy_util::fast_atoi<PathReplaceElement::size_type>(idx);
+        if(auto [format_idx, state] = yy_util::fast_atoi<FormatLevel::size_type>(idx);
            (yy_util::FastFloatRV::Ok == state) && (format_idx > 0))
         {
-          format.emplace_back(PathReplaceElement{std::string{format_prefix}, format_idx - 1});
+          format.emplace_back(PathReplaceElement{FormatLevel{format_prefix, format_idx - 1}});
           format_prefix.clear();
         }
         else
@@ -106,7 +106,7 @@ void configure_label_action_replace_format(std::string_view replacement_format,
 
     if(!format_prefix.empty())
     {
-      format.emplace_back(PathReplaceElement{std::move(format_prefix), PathReplaceElement::no_param});
+      format.emplace_back(PathReplaceElement{FormatPrefix{format_prefix}});
     }
 
     if(!format.empty())
@@ -155,5 +155,4 @@ ReplacementTopics configure_label_action_replace_path(const YAML::Node & yaml_re
   return topics_config.create_automaton();
 }
 
-
-} // namespace yafiyogi::mqtt_bridge::prometheus
+} // namespace yafiyogi::mqtt_bridge

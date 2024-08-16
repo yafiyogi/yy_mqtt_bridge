@@ -24,14 +24,29 @@
 
 */
 
-#pragma once
+#include "fmt/core.h"
 
-#include "yaml_fwd.h"
-
-#include "label_action_replace_path.h"
+#include "replacement_format.h"
 
 namespace yafiyogi::mqtt_bridge {
 
-ReplacementTopics configure_label_action_replace_path(const YAML::Node & yaml_replace);
+void FormatLevel::operator()(const yy_mqtt::TopicLevels & p_path,
+                             std::string & p_label_value) const noexcept
+{
+  if(m_idx < p_path.size())
+  {
+    const auto & level = p_path[m_idx];
+
+    p_label_value.reserve(p_label_value.size() + m_prefix.size() + level.size());
+    fmt::format_to(std::back_inserter(p_label_value), "{}{}", m_prefix, level);
+  }
+}
+
+void FormatPrefix::operator()(const yy_mqtt::TopicLevels & /* p_path */,
+                             std::string & p_label_value) const noexcept
+{
+  p_label_value.reserve(p_label_value.size() + m_prefix.size());
+  p_label_value.append(m_prefix);
+}
 
 } // namespace yafiyogi::mqtt_bridge

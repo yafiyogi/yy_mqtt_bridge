@@ -69,13 +69,14 @@ add_executable(yy_mqtt_bridge
   label_action_drop.cpp
   label_action_keep.cpp
   label_action_replace_path.cpp
-  prometheus_civetweb_handler.cpp
-  prometheus_metric.cpp
   logger.cpp
   mqtt_client.cpp
   mqtt_handler.cpp
   mqtt_handler_json.cpp
   mqtt_handler_value.cpp
+  prometheus_civetweb_handler.cpp
+  prometheus_metric.cpp
+  replacement_format.cpp
   value_action_switch.cpp
   yy_mqtt_bridge.cpp )
 

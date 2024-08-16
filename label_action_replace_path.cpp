@@ -29,6 +29,7 @@
 #include <string>
 #include <memory>
 
+#include "yy_cpp/yy_variant_util.h"
 #include "yy_prometheus/yy_prometheus_labels.h"
 #include "label_action.h"
 
@@ -53,7 +54,6 @@ void ReplacePathLabelAction::Apply(const yy_prometheus::Labels & /* labels */,
      !payloads.empty())
   {
     const auto & levels = metric_labels.get_path();
-    const yy_prometheus::Labels::size_type max_levels = levels.size();
 
     for(const auto * replacements : payloads)
     {
@@ -61,22 +61,10 @@ void ReplacePathLabelAction::Apply(const yy_prometheus::Labels & /* labels */,
       {
         m_label_value.clear();
 
-        for(const auto & [prefix, idx] : format)
+        for(const auto & fmt_elem : format)
         {
-          std::size_t part_size = prefix.size();
-          bool level_valid = (idx != PathReplaceElement::no_param) && (idx < max_levels);
-          if(level_valid)
-          {
-            part_size += levels[idx].size();
-          }
-
-          m_label_value.reserve(part_size);
-          m_label_value.append(prefix);
-
-          if(level_valid)
-          {
-            m_label_value.append(levels[idx]);
-          }
+          std::visit([&levels, this](const auto & formatter) { formatter(levels, m_label_value); },
+                     fmt_elem);
         }
 
         metric_labels.set_label(m_label_name, m_label_value);
