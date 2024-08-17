@@ -84,7 +84,7 @@ void configure_label_action_replace_format(std::string_view replacement_format,
         if(auto [format_idx, state] = yy_util::fast_atoi<FormatLevel::size_type>(idx);
            (yy_util::FastFloatRV::Ok == state) && (format_idx > 0))
         {
-          format.emplace_back(PathReplaceElement{FormatLevel{format_prefix, format_idx - 1}});
+          format.emplace_back(std::in_place_type<FormatLevel>, format_prefix, format_idx - 1);
           format_prefix.clear();
         }
         else
@@ -106,7 +106,7 @@ void configure_label_action_replace_format(std::string_view replacement_format,
 
     if(!format_prefix.empty())
     {
-      format.emplace_back(PathReplaceElement{FormatPrefix{format_prefix}});
+      format.emplace_back(std::in_place_type<FormatPrefix>, format_prefix);
     }
 
     if(!format.empty())
