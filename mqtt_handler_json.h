@@ -54,7 +54,6 @@ class JsonVisitor
     constexpr JsonVisitor() noexcept = default;
     constexpr JsonVisitor(const JsonVisitor &) noexcept = default;
     constexpr JsonVisitor(JsonVisitor &&) noexcept = default;
-    constexpr ~JsonVisitor() noexcept = default;
 
     constexpr JsonVisitor & operator=(const JsonVisitor &) noexcept = default;
     constexpr JsonVisitor & operator=(JsonVisitor &&) noexcept = default;
@@ -132,7 +131,6 @@ class MqttJsonHandler final:
     MqttJsonHandler() = delete;
     MqttJsonHandler(const MqttJsonHandler &) = delete;
     constexpr MqttJsonHandler(MqttJsonHandler &&) noexcept = default;
-    ~MqttJsonHandler() noexcept override = default;
 
     MqttJsonHandler & operator=(const MqttJsonHandler &) = delete;
     constexpr MqttJsonHandler & operator=(MqttJsonHandler &&) noexcept = default;

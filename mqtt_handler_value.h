@@ -45,7 +45,6 @@ class MqttValueHandler:
     constexpr MqttValueHandler() noexcept = default;
     MqttValueHandler(const MqttValueHandler &) = delete;
     constexpr MqttValueHandler(MqttValueHandler &&) noexcept = default;
-    constexpr ~MqttValueHandler() noexcept override = default;
 
     MqttValueHandler & operator=(const MqttValueHandler &) = delete;
     constexpr MqttValueHandler & operator=(MqttValueHandler &&) noexcept = default;

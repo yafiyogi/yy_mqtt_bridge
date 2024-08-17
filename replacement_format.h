@@ -54,7 +54,6 @@ class FormatPrefix
     FormatPrefix() noexcept = default;
     FormatPrefix(const FormatPrefix &) noexcept = default;
     FormatPrefix(FormatPrefix &&) noexcept = default;
-    ~FormatPrefix() noexcept = default;
 
     FormatPrefix & operator=(const FormatPrefix &) noexcept = default;
     FormatPrefix & operator=(FormatPrefix &&) noexcept = default;
@@ -80,7 +79,6 @@ class FormatLevel
     FormatLevel() noexcept = default;
     FormatLevel(const FormatLevel &) noexcept = default;
     FormatLevel(FormatLevel &&) noexcept = default;
-    ~FormatLevel() noexcept = default;
 
     FormatLevel & operator=(const FormatLevel &) noexcept = default;
     FormatLevel & operator=(FormatLevel &&) noexcept = default;

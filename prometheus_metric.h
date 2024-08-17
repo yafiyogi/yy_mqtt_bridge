@@ -60,7 +60,6 @@ class Metric final
     constexpr Metric() noexcept = default;
     constexpr Metric(const Metric &) noexcept = default;
     constexpr Metric(Metric &&) noexcept = default;
-    constexpr ~Metric() noexcept = default;
 
     Metric & operator=(const Metric &) noexcept = default;
     Metric & operator=(Metric &&) noexcept = default;

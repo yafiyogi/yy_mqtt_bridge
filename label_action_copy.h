@@ -45,7 +45,6 @@ class CopyLabelAction:
     constexpr CopyLabelAction() noexcept = default;
     constexpr CopyLabelAction(const CopyLabelAction &) noexcept = default;
     constexpr CopyLabelAction(CopyLabelAction &&) noexcept = default;
-    constexpr ~CopyLabelAction() noexcept override = default;
 
     constexpr CopyLabelAction & operator=(const CopyLabelAction &) noexcept = default;
     constexpr CopyLabelAction & operator=(CopyLabelAction &&) noexcept = default;

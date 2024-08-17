@@ -62,7 +62,6 @@ class mqtt_client final:
     mqtt_client() = delete;
     mqtt_client(const mqtt_client &) = delete;
     constexpr mqtt_client(mqtt_client &&) noexcept = default;
-    ~mqtt_client() noexcept override = default;
 
     mqtt_client & operator=(const mqtt_client &) = delete;
     constexpr mqtt_client & operator=(mqtt_client &&) noexcept = default;

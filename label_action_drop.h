@@ -44,7 +44,6 @@ class DropLabelAction:
     constexpr DropLabelAction() noexcept = default;
     constexpr DropLabelAction(const DropLabelAction &) noexcept = default;
     constexpr DropLabelAction(DropLabelAction &&) noexcept = default;
-    constexpr ~DropLabelAction() noexcept override = default;
 
     constexpr DropLabelAction & operator=(const DropLabelAction &) noexcept = default;
     constexpr DropLabelAction & operator=(DropLabelAction &&) noexcept = default;

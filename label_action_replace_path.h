@@ -51,7 +51,6 @@ class ReplacePathLabelAction:
     constexpr ReplacePathLabelAction() noexcept = default;
     constexpr ReplacePathLabelAction(const ReplacePathLabelAction &) noexcept = default;
     constexpr ReplacePathLabelAction(ReplacePathLabelAction &&) noexcept = default;
-    constexpr ~ReplacePathLabelAction() noexcept override = default;
 
     constexpr ReplacePathLabelAction & operator=(const ReplacePathLabelAction &) noexcept = default;
     constexpr ReplacePathLabelAction & operator=(ReplacePathLabelAction &&) noexcept = default;

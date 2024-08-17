@@ -48,7 +48,6 @@ class PrometheusWebHandler:
     PrometheusWebHandler() noexcept = default;
     PrometheusWebHandler(const PrometheusWebHandler &) noexcept = default;
     PrometheusWebHandler(PrometheusWebHandler &&) noexcept = default;
-    ~PrometheusWebHandler() noexcept override = default;
 
     PrometheusWebHandler & operator=(const PrometheusWebHandler &) noexcept = default;
     PrometheusWebHandler & operator=(PrometheusWebHandler &&) noexcept = default;

@@ -44,7 +44,6 @@ class KeepLabelAction:
     constexpr KeepLabelAction() noexcept = default;
     constexpr KeepLabelAction(const KeepLabelAction &) noexcept = default;
     constexpr KeepLabelAction(KeepLabelAction &&) noexcept = default;
-    constexpr ~KeepLabelAction() noexcept override = default;
 
     constexpr KeepLabelAction & operator=(const KeepLabelAction &) noexcept = default;
     constexpr KeepLabelAction & operator=(KeepLabelAction &&) noexcept = default;
