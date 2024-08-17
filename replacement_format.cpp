@@ -25,11 +25,13 @@
 */
 
 #include "fmt/core.h"
+#include "fmt/compile.h"
 
 #include "replacement_format.h"
 
 namespace yafiyogi::mqtt_bridge {
 
+static constexpr auto level_format{FMT_COMPILE("{}{}")};
 void FormatLevel::operator()(const yy_mqtt::TopicLevels & p_path,
                              std::string & p_label_value) const noexcept
 {
@@ -38,7 +40,7 @@ void FormatLevel::operator()(const yy_mqtt::TopicLevels & p_path,
     const auto & level = p_path[m_idx];
 
     p_label_value.reserve(p_label_value.size() + m_prefix.size() + level.size());
-    fmt::format_to(std::back_inserter(p_label_value), "{}{}", m_prefix, level);
+    fmt::format_to(std::back_inserter(p_label_value), level_format, m_prefix, level);
   }
 }
 
