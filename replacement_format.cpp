@@ -31,7 +31,9 @@
 
 namespace yafiyogi::mqtt_bridge {
 
-static constexpr auto level_format{FMT_COMPILE("{}{}")};
+using namespace fmt::literals;
+
+static constexpr auto level_format{"{}{}"_cf};
 void FormatLevel::operator()(const yy_mqtt::TopicLevels & p_path,
                              std::string & p_label_value) const noexcept
 {
