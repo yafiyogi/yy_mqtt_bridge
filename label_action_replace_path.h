@@ -40,7 +40,7 @@
 namespace yafiyogi::mqtt_bridge {
 
 using ReplacementTopicsConfig = yy_mqtt::state_topics<ReplaceFormats>;
-using ReplacementTopics = ReplacementTopicsConfig::automaton;
+using ReplacementTopics = ReplacementTopicsConfig::automaton_type;
 
 class ReplacePathLabelAction:
       public LabelAction

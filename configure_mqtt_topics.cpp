@@ -101,7 +101,7 @@ mqtt_topics configure_mqtt_topics(const YAML::Node & yaml_topics,
             spdlog::info("     * [{}]"sv, handler->Id());
           }
 
-          yy_mqtt::state_topics_add(topics_config, filter, MqttHandlerList{mqtt_handlers});
+          topics_config.add(filter, MqttHandlerList{mqtt_handlers});
           if(auto [pos, found] = yy_data::do_find(subscriptions, filter);
              !found)
           {

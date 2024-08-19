@@ -39,6 +39,6 @@ namespace yafiyogi::mqtt_bridge {
 using Subscriptions = yy_quad::simple_vector<std::string>;
 
 using TopicsConfig = yy_mqtt::state_topics<MqttHandlerList>;
-using Topics = TopicsConfig::automaton;
+using Topics = TopicsConfig::automaton_type;
 
 } // namespace yafiyogi::mqtt_bridge
