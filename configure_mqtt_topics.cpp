@@ -44,7 +44,7 @@ using namespace std::string_view_literals;
 mqtt_topics configure_mqtt_topics(const YAML::Node & yaml_topics,
                                   const MqttHandlerStore & handlers_store)
 {
-  yy_quad::simple_vector<std::string> subscriptions{};
+  Subscriptions subscriptions{};
   TopicsConfig topics_config{};
 
   spdlog::info(" Configuring topics."sv);
@@ -105,7 +105,7 @@ mqtt_topics configure_mqtt_topics(const YAML::Node & yaml_topics,
           if(auto [pos, found] = yy_data::do_find(subscriptions, filter);
              !found)
           {
-            subscriptions.emplace(subscriptions.begin() + pos, std::string{filter});
+            subscriptions.emplace(subscriptions.begin() + static_cast<Subscriptions::ssize_type>(pos), std::string{filter});
           }
         }
       }
