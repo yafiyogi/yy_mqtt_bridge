@@ -30,9 +30,11 @@
 #include <exception>
 #include <memory>
 
+#include "boost/program_options.hpp"
+#include "fmt/ostream.h"
+#include "mosquittopp.h"
 #include "spdlog/spdlog.h"
 #include "yaml-cpp/yaml.h"
-#include "mosquittopp.h"
 
 #include "yy_cpp/yy_locale.h"
 
@@ -60,11 +62,12 @@ void signal_handler(int /* signal */)
 
 }
 
-int main()
+namespace bpo = boost::program_options;
+
+int main(int argc, char* argv[])
 {
   using namespace yafiyogi;
   using namespace std::string_view_literals;
-
 
   std::signal(SIGINT, signal_handler);
   std::signal(SIGTERM, signal_handler);
@@ -73,7 +76,30 @@ int main()
   spdlog::set_level(spdlog::level::debug);
   yy_locale::set_locale();
 
-  const YAML::Node yaml_config = YAML::LoadFile("mqtt_bridge.yaml");
+  std::string config_file{"mqtt_bridge.yaml"};
+  bool no_run = false;
+
+  bpo::options_description desc("Usage");
+
+  desc.add_options()
+    ("help,h", "print usage")
+    ("conf,f", bpo::value(&config_file), "config file")
+    ("no-run,n", bpo::bool_switch(&no_run), "confgure only, don't run");
+
+  bpo::variables_map vm;
+  bpo::store(bpo::command_line_parser(argc, argv).options(desc).run(), vm);
+  bpo::notify(vm);
+
+  if (vm.count("help"))
+  {
+    spdlog::info("{}", fmt::streamed(desc));
+
+    mqtt_bridge::stop_all_logs();
+
+    return 0;
+  }
+
+  const YAML::Node yaml_config = YAML::LoadFile(config_file);
 
   const auto yaml_prometheus = yaml_config["prometheus"sv];
   if(!yaml_prometheus)
@@ -93,54 +119,57 @@ int main()
     return 1;
   }
 
-  auto metric_cache = std::make_shared<yy_prometheus::MetricDataCache>();
-
-  auto http_server{std::make_unique<yy_web::WebServer>(prometheus_config.options)};
-  http_server->AddHandler(prometheus_config.uri,
-                          std::make_unique<mqtt_bridge::prometheus::PrometheusWebHandler>(metric_cache));
-
-  mosqpp::lib_init();
-
   auto mqtt_config{mqtt_bridge::configure_mqtt(yaml_mqtt,
                                                prometheus_config)};
 
-  auto client = std::make_unique<mqtt_bridge::mqtt_client>(mqtt_config,
-                                                           metric_cache);
-
-  client->connect();
-  try
+  if(!no_run)
   {
-    while(!exit_program)
+    auto metric_cache = std::make_shared<yy_prometheus::MetricDataCache>();
+
+    auto http_server{std::make_unique<yy_web::WebServer>(prometheus_config.options)};
+    http_server->AddHandler(prometheus_config.uri,
+                            std::make_unique<mqtt_bridge::prometheus::PrometheusWebHandler>(metric_cache));
+
+    mosqpp::lib_init();
+
+    auto client = std::make_unique<mqtt_bridge::mqtt_client>(mqtt_config,
+                                                             metric_cache);
+
+    client->connect();
+    try
     {
-      if(auto rc = client->loop();
-         rc)
+      while(!exit_program)
       {
-        spdlog::info("reconnect [{}]"sv, rc);
-        client->reconnect();
+        if(auto rc = client->loop();
+           rc)
+        {
+          spdlog::info("reconnect [{}]"sv, rc);
+          client->reconnect();
+        }
       }
     }
-  }
-  catch(const std::exception & ex)
-  {
-    spdlog::critical("Exception caught [{}]"sv, ex.what());
-  }
-  catch(...)
-  {
-    spdlog::critical("Exception caught!"sv);
-  }
+    catch(const std::exception & ex)
+    {
+      spdlog::critical("Exception caught [{}]"sv, ex.what());
+    }
+    catch(...)
+    {
+      spdlog::critical("Exception caught!"sv);
+    }
 
-  client->disconnect();
+    client->disconnect();
 
-  while(client->is_connected())
-  {
-    sleep(1);
+    while(client->is_connected())
+    {
+      sleep(1);
+    }
+
+    mosqpp::lib_cleanup();
+    http_server.reset();
   }
-
-  mosqpp::lib_cleanup();
-  http_server.reset();
-
 
   spdlog::info("Ende"sv);
   mqtt_bridge::stop_all_logs();
+
   return 0;
 }

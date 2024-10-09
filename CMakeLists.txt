@@ -39,7 +39,7 @@ include(${YY_CMAKE}/cmake_common.txt)
 include(${YY_CMAKE}/cmake_boost-1.84.0.txt)
 include(${YY_CMAKE}/cmake_clang_tidy.txt)
 
-find_package(Boost 1.84.0 REQUIRED COMPONENTS json locale)
+find_package(Boost 1.84.0 REQUIRED COMPONENTS json locale program_options)
 find_package(civetweb REQUIRED)
 find_package(fmt REQUIRED)
 find_package(re2 REQUIRED)
@@ -102,6 +102,7 @@ target_link_libraries(yy_mqtt_bridge
   yy_cpp::yy_cpp
   Boost::json
   Boost::locale
+  Boost::program_options
   civetweb::civetweb-cpp
   fmt::fmt
   re2::re2
