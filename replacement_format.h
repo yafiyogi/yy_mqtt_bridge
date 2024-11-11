@@ -88,7 +88,7 @@ class FormatLevel
 
   private:
     std::string m_prefix{};
-    size_type m_idx{};
+    size_type m_idx = 0;
 };
 
 using PathReplaceElement = std::variant<FormatPrefix, FormatLevel>;

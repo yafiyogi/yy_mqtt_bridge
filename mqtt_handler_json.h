@@ -105,8 +105,8 @@ class JsonVisitor
 
     constexpr static const std::string_view g_true_str{"true"};
     constexpr static const std::string_view g_false_str{"false"};
-    int64_t m_timestamp{};
-    const yy_prometheus::Labels * m_labels;
+    int64_t m_timestamp = 0;
+    const yy_prometheus::Labels * m_labels = nullptr;
     yy_prometheus::MetricDataVector m_metric_data{};
 };
 

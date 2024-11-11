@@ -27,6 +27,8 @@
 #include <memory>
 #include <string_view>
 
+#include "fmt/core.h"
+#include "fmt/compile.h"
 #include "spdlog/spdlog.h"
 #include "yaml-cpp/yaml.h"
 
@@ -46,6 +48,7 @@
 namespace yafiyogi::mqtt_bridge {
 
 using namespace std::string_view_literals;
+using namespace fmt::literals;
 
 namespace {
 
@@ -73,7 +76,7 @@ MqttHandlerPtr configure_json_handler(std::string_view p_id,
   if(yaml_properties && (0 != yaml_properties.size()))
   {
     MqttJsonHandler::builder_type json_pointer_builder{};
-    int metrics_count{};
+    int metrics_count = 0;
     std::string json_pointer{};
     std::string_view property{};
 
@@ -106,7 +109,7 @@ MqttHandlerPtr configure_json_handler(std::string_view p_id,
       if(yaml_property.IsScalar())
       {
         property = yy_util::trim(yaml_property.as<std::string_view>());
-        json_pointer = fmt::format("/{}"sv, property);
+        json_pointer = fmt::format("/{}"_cf, property);
       }
       else
       {
