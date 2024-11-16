@@ -139,7 +139,7 @@ ReplacementTopics configure_label_action_replace_path(const YAML::Node & yaml_re
         replacement_format = yy_util::trim(yaml_get_value(yaml_format["format"sv], ""sv));
       }
 
-      if(yy_mqtt::topic_validate(replacement_pattern, yy_mqtt::TopicType::Filter))
+      if(yy_mqtt::TopicValidStatus::Valid == yy_mqtt::topic_validate(replacement_pattern, yy_mqtt::TopicType::Filter))
       {
         configure_label_action_replace_format(replacement_format,
                                               [replacement_pattern, &topics_config](ReplaceFormat & format)
