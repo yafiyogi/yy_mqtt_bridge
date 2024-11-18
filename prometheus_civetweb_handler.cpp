@@ -39,7 +39,7 @@ namespace yafiyogi::mqtt_bridge::prometheus {
 
 using namespace std::string_view_literals;
 
-static constexpr const std::string_view g_http_response{"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n"};
+static constexpr const std::string_view g_http_response{"HTTP/1.1 200 OK\r\nContent-Type: text/plain; version=0.0.4\r\nConnection: close\r\n\r\n"};
 
 PrometheusWebHandler::PrometheusWebHandler(yy_prometheus::MetricDataCachePtr p_metric_cache) noexcept:
   CivetHandler(),
