@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
   bpo::store(bpo::command_line_parser(argc, argv).options(desc).run(), vm);
   bpo::notify(vm);
 
-  if (vm.count("help"))
+  if(vm.count("help"))
   {
     spdlog::info("{}"sv, fmt::streamed(desc));
 
