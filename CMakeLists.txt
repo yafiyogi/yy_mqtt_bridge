@@ -39,6 +39,13 @@ include(${YY_CMAKE}/cmake_common.txt)
 include(${YY_CMAKE}/cmake_boost-1.84.0.txt)
 include(${YY_CMAKE}/cmake_clang_tidy.txt)
 
+set(YY_PKG_CONFIG_PATH
+  "${YY_PKG_CONFIG_PATH}"
+  "${YY_THIRD_PARTY_LIBRARY}/libressl/lib/pkgconfig")
+set(ENV{PKG_CONFIG_PATH} "${YY_PKG_CONFIG_PATH}")
+
+message("- PKG_CONFIG_PATH is   : [$ENV{PKG_CONFIG_PATH}]")
+
 find_package(Boost 1.84.0 REQUIRED COMPONENTS json locale program_options)
 find_package(civetweb REQUIRED)
 find_package(fmt REQUIRED)
@@ -54,7 +61,6 @@ find_package(yy_web REQUIRED)
 pkg_check_modules(Mosquitto_c IMPORTED_TARGET libmosquitto_static REQUIRED)
 pkg_check_modules(Mosquitto_cpp IMPORTED_TARGET libmosquittopp_static REQUIRED)
 pkg_check_modules(LibCrypto IMPORTED_TARGET libcrypto REQUIRED)
-pkg_check_modules(OpenSSL IMPORTED_TARGET libssl REQUIRED)
 pkg_check_modules(LibSSL IMPORTED_TARGET libssl REQUIRED)
 pkg_check_modules(ZLib IMPORTED_TARGET zlib REQUIRED)
 
@@ -95,24 +101,24 @@ target_link_directories(yy_mqtt_bridge
   /opt/local/lib )
 
 target_link_libraries(yy_mqtt_bridge
-  yy_web::yy_web
-  yy_prometheus::yy_prometheus
-  yy_json::yy_json
-  yy_mqtt::yy_mqtt
-  yy_cpp::yy_cpp
-  Boost::json
-  Boost::locale
-  Boost::program_options
-  civetweb::civetweb-cpp
-  fmt::fmt
-  re2::re2
-  spdlog::spdlog
-  yaml-cpp::yaml-cpp
-  PkgConfig::Mosquitto_cpp
-  PkgConfig::Mosquitto_c
-  PkgConfig::LibCrypto
-  PkgConfig::LibSSL
-  PkgConfig::ZLib )
+    yy_web::yy_web
+    yy_prometheus::yy_prometheus
+    yy_json::yy_json
+    yy_mqtt::yy_mqtt
+    yy_cpp::yy_cpp
+    Boost::json
+    Boost::locale
+    Boost::program_options
+    civetweb::civetweb-cpp
+    fmt::fmt
+    re2::re2
+    spdlog::spdlog
+    yaml-cpp::yaml-cpp
+    PkgConfig::Mosquitto_cpp
+    PkgConfig::Mosquitto_c
+    PkgConfig::LibCrypto
+    PkgConfig::LibSSL
+    PkgConfig::ZLib )
 
 install(TARGETS yy_mqtt_bridge)
 
