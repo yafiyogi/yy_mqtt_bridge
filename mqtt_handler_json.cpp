@@ -114,6 +114,7 @@ yy_prometheus::MetricDataVector & MqttJsonHandler::Event(std::string_view p_valu
 {
   spdlog::debug("  handler [{}]"sv, Id());
 
+  m_parser.reset();
   auto & handler = m_parser.handler();
   handler.reset();
   auto & visitor = handler.visitor();
