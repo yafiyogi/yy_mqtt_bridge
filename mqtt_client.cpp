@@ -65,8 +65,8 @@ void mqtt_client::connect()
   int nodelay_flag = 1;
   mosqpp::mosquittopp::opts_set(MOSQ_OPT_TCP_NODELAY, &nodelay_flag);
 
-  int quickack_flag = 1;
-  mosqpp::mosquittopp::opts_set(MOSQ_OPT_TCP_QUICKACK, &quickack_flag);
+  // int quickack_flag = 1;
+  // mosqpp::mosquittopp::opts_set(MOSQ_OPT_TCP_QUICKACK, &quickack_flag);
 
   mosqpp::mosquittopp::connect(m_host.c_str(), m_port, default_keepalive_seconds);
 }
