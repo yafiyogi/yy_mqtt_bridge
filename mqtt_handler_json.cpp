@@ -122,7 +122,6 @@ yy_prometheus::MetricDataVector & MqttJsonHandler::Event(std::string_view p_valu
   visitor.set_labels(p_labels);
   visitor.set_timestamp(p_timestamp);
 
-  fmt::print("json=[{}]\n", p_value);
   m_parser.write_some(false, p_value.data(), p_value.size(), boost::json::error_code{});
 
   return visitor.metric_data();
