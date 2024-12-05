@@ -42,6 +42,31 @@ inline bool yaml_is_scalar(const YAML::Node & node)
 }
 
 template<typename T,
+         std::enable_if_t<!yy_traits::is_c_string_v<T>,
+                          bool> = true>
+inline auto yaml_get_value(const YAML::Node & node)
+{
+  using return_type = yy_traits::remove_cvr_t<T>;
+
+  return_type return_value{};
+
+  if(yaml_is_scalar(node))
+  {
+    return_value = node.as<return_type>();
+  }
+
+  return return_value;
+}
+
+template<typename T,
+         std::enable_if_t<yy_traits::is_c_string_v<T>,
+                          bool> = true>
+inline auto yaml_get_value(const YAML::Node & node)
+{
+  return yaml_get_value<std::string_view>(node);
+}
+
+template<typename T,
          std::enable_if_t<!yy_traits::is_std_string_v<T>
                           && !yy_traits::is_c_string_v<T>,
                           bool> = true>
@@ -69,14 +94,13 @@ inline auto yaml_get_value(const YAML::Node & node, T && value)
 }
 
 template<typename T,
-         std::enable_if_t<!yy_traits::is_std_string_v<T>
-                          && !yy_traits::is_c_string_v<T>,
+         std::enable_if_t<!yy_traits::is_c_string_v<T>,
                           bool> = true>
-inline std::optional<yy_traits::remove_cvr_t<T>> yaml_get_optional_value(const YAML::Node & node, T && value)
+inline std::optional<yy_traits::remove_cvr_t<T>> yaml_get_optional_value(const YAML::Node & node)
 {
   using return_type = yy_traits::remove_cvr_t<T>;
 
-  std::optional<return_type> return_value{std::forward<T>(value)};
+  std::optional<return_type> return_value{std::nullopt};
   if(yaml_is_scalar(node))
   {
     return_value = node.as<return_type>();
@@ -86,12 +110,11 @@ inline std::optional<yy_traits::remove_cvr_t<T>> yaml_get_optional_value(const Y
 }
 
 template<typename T,
-         std::enable_if_t<yy_traits::is_std_string_v<T>
-                          || yy_traits::is_c_string_v<T>,
+         std::enable_if_t<yy_traits::is_c_string_v<T>,
                           bool> = true>
-inline std::optional<std::string_view> yaml_get_optional_value(const YAML::Node & node, T && value)
+inline std::optional<std::string_view> yaml_get_optional_value(const YAML::Node & node)
 {
-  return yaml_get_optional_value(node, std::string_view{value});
+  return yaml_get_optional_value<std::string_view>(node);
 }
 
 } // namespace yafiyogi::mqtt_bridge

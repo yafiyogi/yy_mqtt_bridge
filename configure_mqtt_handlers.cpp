@@ -62,7 +62,7 @@ constexpr auto handler_types =
 MqttHandler::type decode_type(const YAML::Node & yaml_type)
 {
 
-  std::string type_name = yy_util::to_lower(yy_util::trim(yaml_get_value(yaml_type, ""sv)));
+  std::string type_name = yy_util::to_lower(yy_util::trim(yaml_get_value<std::string_view>(yaml_type)));
 
   return handler_types.lookup(type_name, MqttHandler::type::Json);
 }

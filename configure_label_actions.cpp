@@ -131,12 +131,12 @@ ReplacementTopics configure_label_action_replace_path(const YAML::Node & yaml_re
 
       if(yaml_is_scalar(yaml_format))
       {
-        replacement_format = yaml_get_value(yaml_format, "");
+        replacement_format = yaml_get_value<std::string_view>(yaml_format);
       }
       else
       {
         replacement_pattern = yy_util::trim(yaml_get_value(yaml_format["pattern"sv], "#"sv));
-        replacement_format = yy_util::trim(yaml_get_value(yaml_format["format"sv], ""sv));
+        replacement_format = yy_util::trim(yaml_get_value<std::string_view>(yaml_format["format"sv]));
       }
 
       if(yy_mqtt::TopicValidStatus::Valid == yy_mqtt::topic_validate(replacement_pattern, yy_mqtt::TopicType::Filter))
