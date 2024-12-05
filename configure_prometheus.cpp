@@ -73,7 +73,7 @@ config configure_prometheus(const YAML::Node & yaml_prometheus)
 
   auto metrics = configure_prometheus_metrics(yaml_prometheus["metrics"sv]);
 
-  auto uri{ yaml_get_value(yaml_prometheus["exporter_uri"sv],
+  auto uri{yaml_get_value(yaml_prometheus["exporter_uri"sv],
                            yy_prometheus::prometheus_default_uri_path)};
   spdlog::info(" Prometheus URI  [{}]"sv, uri);
 
