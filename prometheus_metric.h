@@ -55,7 +55,8 @@ class Metric final
                     const Metric::MetricType p_type,
                     const MetricUnit p_unit,
                     std::string && p_property,
-                    LabelActions && p_actions);
+                    LabelActions && p_label_actions,
+                    ValueActions && p_value_actions);
 
     constexpr Metric() noexcept = default;
     constexpr Metric(const Metric &) noexcept = default;
