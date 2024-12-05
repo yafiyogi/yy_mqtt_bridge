@@ -38,7 +38,9 @@ class SwitchValueAction:
   public:
     using Switch = yy_data::flat_map<std::string, std::string>;
 
-    constexpr SwitchValueAction(Switch && p_switch) noexcept:
+    constexpr SwitchValueAction(std::string && p_default_value,
+                                Switch && p_switch) noexcept:
+      m_default_value(std::move(p_default_value)),
       m_switch(std::move(p_switch))
     {
     }
@@ -60,7 +62,7 @@ class SwitchValueAction:
     }
 
   private:
-
+    std::string m_default_value;
     Switch m_switch;
 };
 

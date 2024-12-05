@@ -24,6 +24,8 @@
 
 */
 
+#include "spdlog/spdlog.h"
+
 #include "yy_prometheus/yy_prometheus_metric_data.h"
 
 #include "value_action_switch.h"
@@ -37,7 +39,10 @@ void SwitchValueAction::Apply(yy_prometheus::MetricData & p_metric_data,
     p_metric_data.Value(*value);
   };
 
-  std::ignore = m_switch.find_value(do_switch, p_metric_data.Value());
+  if(!m_switch.find_value(do_switch, p_metric_data.Value()).found)
+  {
+    p_metric_data.Value(m_default_value);
+  }
 }
 
 } // namespace yafiyogi::mqtt_bridge
