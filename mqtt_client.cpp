@@ -55,10 +55,6 @@ mqtt_client::mqtt_client(mqtt_config & p_config,
   m_port(p_config.port),
   m_metric_cache(std::move(p_metric_cache))
 {
-}
-
-void mqtt_client::connect()
-{
   int mqtt_version = MQTT_PROTOCOL_V5;
   mosqpp::mosquittopp::opts_set(MOSQ_OPT_PROTOCOL_VERSION, &mqtt_version);
 
@@ -67,7 +63,10 @@ void mqtt_client::connect()
 
   // int quickack_flag = 1;
   // mosqpp::mosquittopp::opts_set(MOSQ_OPT_TCP_QUICKACK, &quickack_flag);
+}
 
+void mqtt_client::connect()
+{
   mosqpp::mosquittopp::connect(m_host.c_str(), m_port, default_keepalive_seconds);
 }
 
@@ -88,7 +87,7 @@ void mqtt_client::on_connect(int rc)
     subs.emplace_back(sub.data());
   }
 
-  subscribe_multiple(NULL, static_cast<int>(subs.size()), subs.data(), 0, 0);
+  mosqpp::mosquittopp::subscribe_multiple(nullptr, static_cast<int>(subs.size()), subs.data(), 0, 0, nullptr);
 }
 
 void mqtt_client::on_subscribe(int /* mid */,
