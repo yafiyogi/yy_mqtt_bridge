@@ -71,7 +71,8 @@ config configure_prometheus(const YAML::Node & yaml_prometheus)
 
   yy_prometheus::set_metric_style(metric_style);
 
-  auto metrics = configure_prometheus_metrics(yaml_prometheus["metrics"sv]);
+  auto default_timestamp{decode_metric_timestamp(yaml_get_value(yaml_prometheus["timestamps"sv], ""sv))};
+  auto metrics = configure_prometheus_metrics(yaml_prometheus["metrics"sv], default_timestamp);
 
   auto uri{yaml_get_value(yaml_prometheus["exporter_uri"sv],
                            yy_prometheus::prometheus_default_uri_path)};

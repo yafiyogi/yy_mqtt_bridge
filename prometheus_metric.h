@@ -49,11 +49,13 @@ class Metric final
     using MetricType = yy_prometheus::MetricType;
     using MetricUnit = yy_prometheus::MetricUnit;
     using MetricData = yy_prometheus::MetricData;
+    using MetricTimestamp = yy_prometheus::MetricTimestamp;
     using MetricDataVector = yy_prometheus::MetricDataVector;
 
     explicit Metric(std::string_view p_id,
                     const Metric::MetricType p_type,
                     const MetricUnit p_unit,
+                    const MetricTimestamp p_timestamp,
                     std::string && p_property,
                     LabelActions && p_label_actions,
                     ValueActions && p_value_actions);

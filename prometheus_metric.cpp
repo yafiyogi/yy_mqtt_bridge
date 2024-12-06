@@ -40,11 +40,12 @@ using namespace std::string_view_literals;
 Metric::Metric(std::string_view p_id,
                const MetricType p_type,
                const MetricUnit p_unit,
+               const MetricTimestamp p_timestamp,
                std::string && p_property,
                LabelActions && p_label_actions,
                ValueActions && p_value_actions):
   m_property(std::move(p_property)),
-  m_metric_data(p_id, yy_prometheus::Labels{}, ""sv, p_type, p_unit),
+  m_metric_data(p_id, yy_prometheus::Labels{}, ""sv, p_type, p_unit, p_timestamp),
   m_label_actions(std::move(p_label_actions)),
   m_value_actions(std::move(p_value_actions))
 {

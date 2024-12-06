@@ -67,7 +67,8 @@ namespace {
 enum class LabelActionType {Copy, Drop, Keep, ReplacePath};
 
 constexpr const auto g_label_action_types =
-  yy_data::make_lookup<std::string_view, LabelActionType>({{CopyLabelAction::action_name, LabelActionType::Copy},
+  yy_data::make_lookup<std::string_view, LabelActionType>(LabelActionType::Keep,
+                                                          {{CopyLabelAction::action_name, LabelActionType::Copy},
                                                            {DropLabelAction::action_name, LabelActionType::Drop},
                                                            {KeepLabelAction::action_name, LabelActionType::Keep},
                                                            {ReplacePathLabelAction::action_name, LabelActionType::ReplacePath}});
@@ -90,7 +91,7 @@ LabelActions configure_metric_label_actions(const YAML::Node & yaml_label_action
 
     spdlog::info("       - action [{}]."sv, action_name);
     spdlog::debug("          [line {}]."sv, yaml_label_action.Mark().line + 1);
-    switch(g_label_action_types.lookup(action_name, LabelActionType::Keep))
+    switch(g_label_action_types.lookup(action_name))
     {
       case LabelActionType::Copy:
       {
@@ -252,9 +253,25 @@ ValueActions configure_metric_value_actions(const YAML::Node & yaml_value_action
   return value_actions;
 }
 
+
+constexpr const auto g_timestamp_types =
+  yy_data::make_lookup<std::string_view,
+                       yy_prometheus::MetricTimestamp>(yy_prometheus::MetricTimestamp::On,
+                                                       {{"on"sv, yy_prometheus::MetricTimestamp::On},
+                                                        {"off"sv, yy_prometheus::MetricTimestamp::Off}});
+
 } // anonymous namespace
 
-MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics)
+yy_prometheus::MetricTimestamp decode_metric_timestamp(std::string_view p_timestamp,
+                                                       yy_prometheus::MetricTimestamp p_default_timestamp)
+{
+  return g_timestamp_types.lookup(yy_util::to_lower(yy_util::trim(p_timestamp)),
+                                  p_default_timestamp);
+
+}
+
+MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics,
+                                        yy_prometheus::MetricTimestamp p_default_timestamp)
 {
   MetricsMap metrics{};
 
@@ -280,10 +297,15 @@ MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics)
         spdlog::info("   handler [{}]:"sv, handler_id);
         spdlog::debug("    [line {}]."sv, yaml_handler.Mark().line + 1);
 
+        spdlog::debug("timestamp 1 =[{}]", yaml_get_value<std::string_view>(yaml_handler["timestamp"sv], ""sv));
+        auto timestamp{decode_metric_timestamp(yaml_get_value<std::string_view>(yaml_handler["timestamp"sv], ""sv),
+                                               p_default_timestamp)};
+        spdlog::debug("timestamp 2 =[{}]", static_cast<int>(timestamp));
+        const auto & yaml_property = yaml_handler["property"sv];
+
         if(auto [ignore, emplaced] = handlers.emplace(handler_id);
            emplaced)
         {
-          const auto & yaml_property = yaml_handler["property"sv];
           auto property_name{yaml_get_optional_value<std::string_view>(yaml_property)};
 
           if(property_name.has_value()
@@ -292,15 +314,13 @@ MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics)
             spdlog::info("     - value [{}]."sv, property_name.value());
             spdlog::debug("        [line {}]."sv, yaml_property.Mark().line + 1);
 
-            spdlog::debug("label actions");
             LabelActions label_actions{configure_metric_label_actions(yaml_handler["label_actions"sv])};
-            spdlog::debug("value actions");
             ValueActions value_actions{configure_metric_value_actions(yaml_handler["value_actions"sv])};
-            spdlog::debug("metric");
 
             auto metric{std::make_shared<Metric>(metric_id,
                                                  type,
                                                  unit,
+                                                 timestamp,
                                                  std::string{property_name.value()},
                                                  std::move(label_actions),
                                                  std::move(value_actions))};
