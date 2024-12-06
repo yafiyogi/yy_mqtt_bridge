@@ -55,7 +55,8 @@ namespace {
 const boost::json::parse_options g_json_options{ .numbers = boost::json::number_precision::none};
 
 constexpr auto handler_types =
-  yy_data::make_lookup<std::string_view, MqttHandler::type>({{"json"sv, MqttHandler::type::Json},
+  yy_data::make_lookup<std::string_view, MqttHandler::type>(MqttHandler::type::Json,
+                                                            {{"json"sv, MqttHandler::type::Json},
                                                              {"text"sv, MqttHandler::type::Text},
                                                              {"value"sv, MqttHandler::type::Value}});
 
@@ -64,7 +65,7 @@ MqttHandler::type decode_type(const YAML::Node & yaml_type)
 
   std::string type_name = yy_util::to_lower(yy_util::trim(yaml_get_value<std::string_view>(yaml_type)));
 
-  return handler_types.lookup(type_name, MqttHandler::type::Json);
+  return handler_types.lookup(type_name);
 }
 
 MqttHandlerPtr configure_json_handler(std::string_view p_id,
