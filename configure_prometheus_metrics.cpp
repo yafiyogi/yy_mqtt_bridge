@@ -297,10 +297,8 @@ MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics,
         spdlog::info("   handler [{}]:"sv, handler_id);
         spdlog::debug("    [line {}]."sv, yaml_handler.Mark().line + 1);
 
-        spdlog::debug("timestamp 1 =[{}]", yaml_get_value<std::string_view>(yaml_handler["timestamp"sv], ""sv));
         auto timestamp{decode_metric_timestamp(yaml_get_value<std::string_view>(yaml_handler["timestamp"sv], ""sv),
                                                p_default_timestamp)};
-        spdlog::debug("timestamp 2 =[{}]", static_cast<int>(timestamp));
         const auto & yaml_property = yaml_handler["property"sv];
 
         if(auto [ignore, emplaced] = handlers.emplace(handler_id);
