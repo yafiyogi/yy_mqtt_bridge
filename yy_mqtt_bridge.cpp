@@ -143,6 +143,7 @@ int main(int argc, char* argv[])
         if(auto rc = client->loop();
            rc)
         {
+          std::this_thread::sleep_for(std::chrono::seconds{15});
           spdlog::info("reconnect [{}]"sv, rc);
           client->reconnect();
         }
