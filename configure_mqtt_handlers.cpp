@@ -120,7 +120,7 @@ MqttHandlerPtr configure_json_handler(std::string_view p_id,
       spdlog::info("     - property [{}] path=[{}]:"sv,
                    property,
                    json_pointer);
-      spdlog::debug("        [line {}]."sv,
+      spdlog::trace("        [line {}]."sv,
                     yaml_property.Mark().line + 1);
 
       if(!json_pointer.empty()
@@ -214,7 +214,7 @@ MqttHandlerStore configure_mqtt_handlers(const YAML::Node & yaml_handlers,
     const MqttHandler::type type = decode_type(yaml_handler["type"sv]);
 
     spdlog::info(" Configuring MQTT Handler id [{}]:"sv, l_id);
-    spdlog::debug("  [line {}]."sv, yaml_handler.Mark().line + 1);
+    spdlog::trace("  [line {}]."sv, yaml_handler.Mark().line + 1);
     MqttHandlerPtr handler;
 
     spdlog::info("   - type [{}]"sv, yaml_handler["type"sv].as<std::string_view>());
@@ -244,7 +244,9 @@ MqttHandlerStore configure_mqtt_handlers(const YAML::Node & yaml_handlers,
           if(auto [key, added] = handler_store[handler_pos];
              !added)
           {
-            spdlog::warn("Handler id [{}] already created. Ignoring [line {}]"sv, key, yaml_handler.Mark().line + 1);
+            spdlog::trace("Handler id [{}] already created. Ignoring [line {}]"sv,
+                          key,
+                          yaml_handler.Mark().line + 1);
           }
         }
       }

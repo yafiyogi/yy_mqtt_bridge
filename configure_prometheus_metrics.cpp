@@ -90,7 +90,7 @@ LabelActions configure_metric_label_actions(const YAML::Node & yaml_label_action
     LabelActionPtr action;
 
     spdlog::info("       - action [{}]."sv, action_name);
-    spdlog::debug("          [line {}]."sv, yaml_label_action.Mark().line + 1);
+    spdlog::trace("          [line {}]."sv, yaml_label_action.Mark().line + 1);
     switch(g_label_action_types.lookup(action_name))
     {
       case LabelActionType::Copy:
@@ -141,7 +141,7 @@ LabelActions configure_metric_label_actions(const YAML::Node & yaml_label_action
 
       default:
         spdlog::warn("Unrecognized action [{}]"sv, action_name);
-        spdlog::debug("  [line {}]."sv, yaml_label_action.Mark().line + 1);
+        spdlog::trace("  [line {}]."sv, yaml_label_action.Mark().line + 1);
         break;
     }
 
@@ -170,7 +170,7 @@ ValueActions configure_metric_value_actions(const YAML::Node & yaml_value_action
     ValueActionPtr action;
 
     spdlog::info("       - action [{}]."sv, action_name);
-    spdlog::debug("          [line {}]."sv, yaml_value_action.Mark().line + 1);
+    spdlog::trace("          [line {}]."sv, yaml_value_action.Mark().line + 1);
     switch(g_value_action_types.lookup(action_name, ValueActionType::Keep))
     {
       case ValueActionType::Keep:
@@ -240,7 +240,7 @@ ValueActions configure_metric_value_actions(const YAML::Node & yaml_value_action
       default:
           spdlog::debug("configure_metric_value_actions(): 4c");
         spdlog::warn("Unrecognized action [{}]"sv, action_name);
-        spdlog::debug("  [line {}]."sv, yaml_value_action.Mark().line + 1);
+        spdlog::trace("  [line {}]."sv, yaml_value_action.Mark().line + 1);
         break;
     }
 
@@ -286,7 +286,7 @@ MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics,
       auto metric_id{yy_util::trim(yaml_metric["metric"sv].as<std::string_view>())};
       spdlog::info(" Configuring Prometheus Metric [{}]."sv,
                    metric_id);
-      spdlog::debug("  [line {}]."sv,
+      spdlog::trace("  [line {}]."sv,
                     yaml_metric.Mark().line + 1);
       auto type{yy_prometheus::decode_metric_type_name(yaml_get_optional_value<std::string_view>(yaml_metric["type"sv]))};
       auto unit{yy_prometheus::decode_metric_unit_name(yaml_get_optional_value<std::string_view>(yaml_metric["unit"sv]))};
@@ -295,7 +295,7 @@ MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics,
       {
         std::string_view handler_id{yy_util::trim(yaml_get_value<std::string_view>(yaml_handler["handler_id"sv]))};
         spdlog::info("   handler [{}]:"sv, handler_id);
-        spdlog::debug("    [line {}]."sv, yaml_handler.Mark().line + 1);
+        spdlog::trace("    [line {}]."sv, yaml_handler.Mark().line + 1);
 
         auto timestamp{decode_metric_timestamp(yaml_get_value<std::string_view>(yaml_handler["timestamp"sv], ""sv),
                                                p_default_timestamp)};
@@ -310,7 +310,7 @@ MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics,
              && !property_name.value().empty())
           {
             spdlog::info("     - value [{}]."sv, property_name.value());
-            spdlog::debug("        [line {}]."sv, yaml_property.Mark().line + 1);
+            spdlog::trace("        [line {}]."sv, yaml_property.Mark().line + 1);
 
             LabelActions label_actions{configure_metric_label_actions(yaml_handler["label_actions"sv])};
             ValueActions value_actions{configure_metric_value_actions(yaml_handler["value_actions"sv])};
@@ -339,7 +339,7 @@ MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics,
         else
         {
           spdlog::warn("   'property' setting!"sv);
-          spdlog::debug("    [line {}]."sv, yaml_metric.Mark().line + 1);
+          spdlog::trace("    [line {}]."sv, yaml_metric.Mark().line + 1);
         }
       }
     }
