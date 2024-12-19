@@ -24,6 +24,8 @@
 
 */
 
+#include <chrono>
+
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/daily_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -48,6 +50,7 @@ void set_g_logger(logger_ptr log)
   auto old_logger = g_logger;
 
   g_logger = log;
+  spdlog::flush_every(std::chrono::seconds(5));
   spdlog::set_default_logger(g_logger);
 
   if(old_logger)
