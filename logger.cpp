@@ -24,8 +24,6 @@
 
 */
 
-#include <string_view>
-
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/daily_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -37,15 +35,20 @@ namespace {
 
 constexpr std::string_view g_std_err{"stderr"};
 constexpr std::string_view g_log_name{"mqtt_bridge_log"};
-constexpr std::string_view g_default_file_path{"./mqtt_bridge.log"};
 
-static const std::string g_std_err_str{g_std_err};
 static std::mutex g_logger_mtx{};
-static logger_ptr g_logger = spdlog::stderr_color_mt(g_std_err_str);
+static std::string g_std_err_str{g_std_err};
+static std::string g_logger_name{g_std_err};
+static logger_ptr g_logger = spdlog::stderr_color_mt(g_logger_name);
 
 void set_g_logger(logger_ptr log)
 {
   std::unique_lock lck{g_logger_mtx};
+
+  if(g_logger)
+  {
+    spdlog::drop(g_logger->name());
+  }
 
   g_logger = log;
   spdlog::set_default_logger(g_logger);
@@ -55,13 +58,12 @@ void set_g_logger(logger_ptr log)
 
 void set_logger(std::string_view file_path)
 {
-  stop_log();
-
   set_g_logger(spdlog::daily_logger_mt(g_log_name.data(), file_path.data(), 0, 0));
 }
 
 void set_logger()
 {
+  stop_log();
   set_logger(g_default_file_path);
 }
 
@@ -82,9 +84,12 @@ logger_ptr get_log()
 
 void stop_log()
 {
-  stop_log(g_log_name);
-
   std::unique_lock lck{g_logger_mtx};
+  if(g_logger)
+  {
+    spdlog::drop(g_logger->name());
+  }
+
   g_logger = spdlog::stderr_color_mt(g_std_err_str);
   spdlog::set_default_logger(g_logger);
 }

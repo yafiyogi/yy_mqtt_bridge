@@ -77,6 +77,7 @@ int main(int argc, char* argv[])
   yy_locale::set_locale();
 
   std::string config_file{"mqtt_bridge.yaml"};
+  std::string log_file{yafiyogi::mqtt_bridge::g_default_file_path};
   bool no_run = false;
 
   bpo::options_description desc("Usage");
@@ -84,6 +85,7 @@ int main(int argc, char* argv[])
   desc.add_options()
     ("help,h", "print usage")
     ("conf,f", bpo::value(&config_file), "config file")
+    ("log,l", bpo::value(&config_file), "log file")
     ("no-run,n", bpo::bool_switch(&no_run), "confgure only, don't run");
 
   bpo::variables_map vm;
@@ -99,6 +101,7 @@ int main(int argc, char* argv[])
     return 0;
   }
 
+  yafiyogi::mqtt_bridge::set_logger(log_file);
   const YAML::Node yaml_config = YAML::LoadFile(config_file);
 
   const auto yaml_prometheus = yaml_config["prometheus"sv];

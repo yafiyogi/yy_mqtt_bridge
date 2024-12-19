@@ -27,6 +27,7 @@
 #pragma once
 
 #include <memory>
+#include <string_view>
 
 namespace spdlog {
 
@@ -35,6 +36,8 @@ class logger;
 } // spdlog
 
 namespace yafiyogi::mqtt_bridge {
+
+constexpr std::string_view g_default_file_path{"./mqtt_bridge.log"};
 
 using logger_ptr = std::shared_ptr<spdlog::logger>;
 
