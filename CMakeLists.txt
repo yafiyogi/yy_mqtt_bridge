@@ -60,6 +60,7 @@ pkg_check_modules(ZLib IMPORTED_TARGET zlib REQUIRED)
 
 add_executable(yy_mqtt_bridge
   configure_label_actions.cpp
+  configure_logging.cpp
   configure_mqtt.cpp
   configure_mqtt_handlers.cpp
   configure_mqtt_topics.cpp

@@ -27,13 +27,51 @@
 #include "spdlog/spdlog.h"
 #include "yaml-cpp/yaml.h"
 
-#include "confgiure_logging.h"
+#include "yy_cpp/yy_string_case.h"
+#include "yy_cpp/yy_string_util.h"
+#include "yy_cpp/yy_make_lookup.h"
+
+#include "configure_logging.h"
+#include "logger.h"
+#include "yaml_util.h"
 
 namespace yafiyogi::mqtt_bridge {
+namespace {
 
-Logg configure_logging(const YAML::Node & yaml_logging)
+using namespace std::string_view_literals;
+using namespace fmt::literals;
+
+constexpr auto log_levels =
+  yy_data::make_lookup<std::string_view, spdlog::level::level_enum>({{"trace", spdlog::level::level_enum::trace},
+                                                                     {"debug", spdlog::level::level_enum::debug},
+                                                                     {"info", spdlog::level::level_enum::info},
+                                                                     {"warn", spdlog::level::level_enum::warn},
+                                                                     {"warning", spdlog::level::level_enum::warn},
+                                                                     {"error", spdlog::level::level_enum::err},
+                                                                     {"err", spdlog::level::level_enum::err},
+                                                                     {"critical", spdlog::level::level_enum::critical},
+                                                                     {"off", spdlog::level::level_enum::off}});
+
+}
+
+void configure_logging(const YAML::Node & yaml_logging)
 {
+  if(yaml_logging)
+  {
+    if(auto log = yaml_get_optional_value<std::string_view>(yaml_logging["filename"sv]);
+       log.has_value())
+    {
+      set_logger(log.value());
+    }
 
+    if(auto level = yaml_get_optional_value<std::string_view>(yaml_logging["level"sv]);
+       level.has_value())
+    {
+      auto lvl = log_levels.lookup(yy_util::to_lower(yy_util::trim(level.value())), spdlog::level::level_enum::info);
+
+      spdlog::set_level(lvl);
+    }
+  }
 }
 
 } // namespace yafiyogi::mqtt_bridge

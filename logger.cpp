@@ -45,13 +45,15 @@ void set_g_logger(logger_ptr log)
 {
   std::unique_lock lck{g_logger_mtx};
 
-  if(g_logger)
-  {
-    spdlog::drop(g_logger->name());
-  }
+  auto old_logger = g_logger;
 
   g_logger = log;
   spdlog::set_default_logger(g_logger);
+
+  if(old_logger)
+  {
+    spdlog::drop(old_logger->name());
+  }
 }
 
 } // anonymous namespace
@@ -85,13 +87,16 @@ logger_ptr get_log()
 void stop_log()
 {
   std::unique_lock lck{g_logger_mtx};
-  if(g_logger)
-  {
-    spdlog::drop(g_logger->name());
-  }
+
+  auto old_logger = g_logger;
 
   g_logger = spdlog::stderr_color_mt(g_std_err_str);
   spdlog::set_default_logger(g_logger);
+
+  if(old_logger)
+  {
+    spdlog::drop(old_logger->name());
+  }
 }
 
 void stop_log(std::string_view logger_name)

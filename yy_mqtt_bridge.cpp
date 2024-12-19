@@ -43,6 +43,7 @@
 #include "yy_web/yy_web_server.h"
 
 #include "configure_mqtt.h"
+#include "configure_logging.h"
 #include "configure_prometheus.h"
 #include "logger.h"
 #include "mqtt_client.h"
@@ -77,7 +78,6 @@ int main(int argc, char* argv[])
   yy_locale::set_locale();
 
   std::string config_file{"mqtt_bridge.yaml"};
-  std::string log_file{yafiyogi::mqtt_bridge::g_default_file_path};
   bool no_run = false;
 
   bpo::options_description desc("Usage");
@@ -101,8 +101,18 @@ int main(int argc, char* argv[])
     return 0;
   }
 
-  yafiyogi::mqtt_bridge::set_logger(log_file);
   const YAML::Node yaml_config = YAML::LoadFile(config_file);
+
+  if(auto yaml_mqtt_bridge = yaml_config["mqtt_bridge"sv];
+     yaml_mqtt_bridge)
+  {
+    yafiyogi::mqtt_bridge::configure_logging(yaml_mqtt_bridge["logging"sv]);
+  }
+
+  if(vm.count("log"))
+  {
+    yafiyogi::mqtt_bridge::set_logger(yafiyogi::mqtt_bridge::g_default_file_path);
+  }
 
   const auto yaml_prometheus = yaml_config["prometheus"sv];
   if(!yaml_prometheus)

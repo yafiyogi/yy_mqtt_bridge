@@ -27,20 +27,15 @@
 #pragma once
 
 #include <memory>
-#include <string_view>
 
-#include "logger_fwd.h"
+namespace spdlog {
+
+class logger;
+
+} // spdlog
 
 namespace yafiyogi::mqtt_bridge {
 
-constexpr std::string_view g_default_file_path{"./mqtt_bridge.log"};
-
-void set_logger(std::string_view file_path);
-void set_logger();
-void set_console_logger();
-logger_ptr get_log();
-void stop_log();
-void stop_log(std::string_view logger_name);
-void stop_all_logs();
+using logger_ptr = std::shared_ptr<spdlog::logger>;
 
 } // namespace yafiyogi::mqtt_bridge
