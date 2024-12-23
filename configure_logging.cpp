@@ -54,24 +54,27 @@ constexpr auto log_levels =
 
 }
 
-void configure_logging(const YAML::Node & yaml_logging)
+logger_config configure_logging(const YAML::Node & yaml_logging,
+                                const std::string & log_filename)
 {
+  logger_config config{log_filename, spdlog::level::info};
+
   if(yaml_logging)
   {
     if(auto log = yaml_get_optional_value<std::string_view>(yaml_logging["filename"sv]);
        log.has_value())
     {
-      set_logger(log.value());
+      config.filename = log.value();
     }
 
     if(auto level = yaml_get_optional_value<std::string_view>(yaml_logging["level"sv]);
        level.has_value())
     {
-      auto lvl = log_levels.lookup(yy_util::to_lower(yy_util::trim(level.value())), spdlog::level::level_enum::info);
-
-      spdlog::set_level(lvl);
+      config.level = log_levels.lookup(yy_util::to_lower(yy_util::trim(level.value())), spdlog::level::info);
     }
   }
+
+  return config;
 }
 
 } // namespace yafiyogi::mqtt_bridge

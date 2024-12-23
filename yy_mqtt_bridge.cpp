@@ -34,6 +34,7 @@
 #include "fmt/ostream.h"
 #include "mosquittopp.h"
 #include "spdlog/spdlog.h"
+#include "spdlog/sinks/daily_file_sink.h"
 #include "yaml-cpp/yaml.h"
 
 #include "yy_cpp/yy_locale.h"
@@ -73,8 +74,9 @@ int main(int argc, char* argv[])
   std::signal(SIGINT, signal_handler);
   std::signal(SIGTERM, signal_handler);
 
+  yafiyogi::mqtt_bridge::logger_config log_config{std::string{yafiyogi::mqtt_bridge::g_default_file_path}, spdlog::level::debug};
+  spdlog::set_level(log_config.level);
   mqtt_bridge::set_console_logger();
-  spdlog::set_level(spdlog::level::debug);
   yy_locale::set_locale();
 
   std::string config_file{"mqtt_bridge.yaml"};
@@ -85,7 +87,7 @@ int main(int argc, char* argv[])
   desc.add_options()
     ("help,h", "print usage")
     ("conf,f", bpo::value(&config_file), "config file")
-    ("log,l", bpo::value(&config_file), "log file")
+    ("log,l", bpo::value(&log_config.filename), "log file")
     ("no-run,n", bpo::bool_switch(&no_run), "confgure only, don't run");
 
   bpo::variables_map vm;
@@ -94,7 +96,7 @@ int main(int argc, char* argv[])
 
   if(vm.count("help"))
   {
-    spdlog::info("{}"sv, fmt::streamed(desc));
+    //spdlog::info("{}"sv, fmt::streamed(desc));
 
     mqtt_bridge::stop_all_logs();
 
@@ -103,16 +105,17 @@ int main(int argc, char* argv[])
 
   const YAML::Node yaml_config = YAML::LoadFile(config_file);
 
-  if(auto yaml_mqtt_bridge = yaml_config["mqtt_bridge"sv];
-     yaml_mqtt_bridge)
+  if(0 == vm.count("log"))
   {
-    yafiyogi::mqtt_bridge::configure_logging(yaml_mqtt_bridge["logging"sv]);
+    if(auto yaml_mqtt_bridge = yaml_config["mqtt_bridge"sv];
+       yaml_mqtt_bridge)
+    {
+      log_config = yafiyogi::mqtt_bridge::configure_logging(yaml_mqtt_bridge["logging"sv], log_config.filename);
+    }
   }
 
-  if(vm.count("log"))
-  {
-    yafiyogi::mqtt_bridge::set_logger(yafiyogi::mqtt_bridge::g_default_file_path);
-  }
+  yafiyogi::mqtt_bridge::set_logger(log_config.filename);
+  spdlog::set_level(log_config.level);
 
   const auto yaml_prometheus = yaml_config["prometheus"sv];
   if(!yaml_prometheus)
@@ -137,11 +140,26 @@ int main(int argc, char* argv[])
 
   if(!no_run)
   {
+    logger_ptr access_log;
+
+    if(auto yaml_access_log = yaml_prometheus["access_log"sv];
+       yaml_access_log)
+    {
+      yafiyogi::mqtt_bridge::logger_config access_log_config{"mqtt_bridge.access.log", spdlog::level::info};
+
+      access_log_config = yafiyogi::mqtt_bridge::configure_logging(yaml_access_log,
+                                                                   access_log_config.filename);
+
+      access_log = spdlog::daily_logger_mt("access_log", log_config.filename, 0, 0);
+      access_log->set_level(log_config.level);
+    }
+
     auto metric_cache = std::make_shared<yy_prometheus::MetricDataCache>();
 
     auto http_server{std::make_unique<yy_web::WebServer>(prometheus_config.options)};
     http_server->AddHandler(prometheus_config.uri,
-                            std::make_unique<mqtt_bridge::prometheus::PrometheusWebHandler>(metric_cache));
+                            std::make_unique<mqtt_bridge::prometheus::PrometheusWebHandler>(metric_cache,
+                                                                                            std::move(access_log)));
 
     mosqpp::lib_init();
 

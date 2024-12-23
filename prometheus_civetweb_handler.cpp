@@ -41,44 +41,18 @@ using namespace std::string_view_literals;
 
 static constexpr const std::string_view g_http_response{"HTTP/1.1 200 OK\r\nContent-Type: text/plain; version=0.0.4\r\nConnection: close\r\n\r\n"};
 
-PrometheusWebHandler::PrometheusWebHandler(yy_prometheus::MetricDataCachePtr p_metric_cache) noexcept:
-  CivetHandler(),
+PrometheusWebHandler::PrometheusWebHandler(yy_prometheus::MetricDataCachePtr p_metric_cache,
+                                           logger_ptr access_log) noexcept:
+  yy_web::WebHandler(std::move(access_log)),
   m_metric_cache(std::move(p_metric_cache)),
   m_buffer(8192)
 {
 }
 
-bool PrometheusWebHandler::handleGet(CivetServer * /* server */,
-                                     struct mg_connection * conn)
+bool PrometheusWebHandler::DoGet(struct mg_connection * conn,
+                                 const struct mg_request_info * /* ri */)
 {
-  if(spdlog::level::debug == spdlog::get_level())
-  {
-    const struct mg_request_info *ri = mg_get_request_info(conn);
-
-    spdlog::debug("PrometheusWebHandler::handleGet()"sv);
-    spdlog::debug("\trequest_method = {}"sv, ri->request_method);
-    spdlog::debug("\trequest_uri = {}"sv, ri->request_uri);
-    spdlog::debug("\tlocal_uri = {}"sv, ri->local_uri);
-    spdlog::debug("\thttp_version = {}"sv, ri->http_version);
-    //spdlog::debug("\tquery_string = {}"sv, ri->query_string);
-    //spdlog::debug("\tremote_user = {}"sv, ri->remote_user);
-    spdlog::debug("\tremote_addr = {}"sv, ri->remote_addr);
-    spdlog::debug("\tremote_port = {}"sv, ri->remote_port);
-    spdlog::debug("\tis_ssl = {}"sv, ri->is_ssl);
-    spdlog::debug("\tnum_headers = {}"sv, ri->num_headers);
-    if (ri->num_headers > 0) {
-      int i;
-      for (i = 0; i < ri->num_headers; i++) {
-        spdlog::debug("\t\t{} = {}"sv,
-                      ri->http_headers[i].name,
-                      ri->http_headers[i].value);
-      }
-    }
-    spdlog::debug("");
-  }
-
   m_buffer.assign(yy_quad::make_const_span(g_http_response));
-
 
   std::optional<std::string_view> last_id{};
   std::string_view last_help{};
@@ -132,6 +106,5 @@ bool PrometheusWebHandler::handleGet(CivetServer * /* server */,
 
   return true;
 }
-
 
 } // namespace yafiyogi::mqtt_bridge::prometheus

@@ -26,10 +26,23 @@
 
 #pragma once
 
+#include <string>
+#include <tuple>
+#include <type_traits>
+
+#include "spdlog/spdlog.h"
+
 #include "yaml_fwd.h"
 
 namespace yafiyogi::mqtt_bridge {
 
-void configure_logging(const YAML::Node & yaml_logging);
+struct logger_config
+{
+    std::string filename;
+    spdlog::level::level_enum level = spdlog::level::info;
+};
+
+logger_config configure_logging(const YAML::Node & yaml_logging,
+                                const std::string & log_filename);
 
 } // namespace yafiyogi::mqtt_bridge

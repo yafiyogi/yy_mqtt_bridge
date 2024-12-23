@@ -24,11 +24,12 @@
 
 */
 
+#pragma once
+
 #include <memory>
 
-#include "CivetServer.h"
-
 #include "yy_cpp/yy_vector.h"
+#include "yy_web/yy_web_handler.h"
 
 namespace yafiyogi::yy_prometheus {
 
@@ -40,10 +41,11 @@ using MetricDataCachePtr = std::shared_ptr<MetricDataCache>;
 namespace yafiyogi::mqtt_bridge::prometheus {
 
 class PrometheusWebHandler:
-      public CivetHandler
+      public yy_web::WebHandler
 {
   public:
-    explicit PrometheusWebHandler(yy_prometheus::MetricDataCachePtr p_metric_cache) noexcept;
+    explicit PrometheusWebHandler(yy_prometheus::MetricDataCachePtr p_metric_cache,
+                                  logger_ptr access_log) noexcept;
 
     PrometheusWebHandler() noexcept = default;
     PrometheusWebHandler(const PrometheusWebHandler &) noexcept = default;
@@ -52,7 +54,8 @@ class PrometheusWebHandler:
     PrometheusWebHandler & operator=(const PrometheusWebHandler &) noexcept = default;
     PrometheusWebHandler & operator=(PrometheusWebHandler &&) noexcept = default;
 
-    bool handleGet(CivetServer *server, struct mg_connection *conn) override;
+    bool DoGet(struct mg_connection * conn,
+               const struct mg_request_info * ri) override final;
 
   private:
     using metric_buffer = yy_quad::simple_vector<char>;
