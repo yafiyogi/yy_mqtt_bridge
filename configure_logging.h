@@ -43,6 +43,6 @@ struct logger_config
 };
 
 logger_config configure_logging(const YAML::Node & yaml_logging,
-                                const std::string & log_filename);
+                                logger_config log_config);
 
 } // namespace yafiyogi::mqtt_bridge

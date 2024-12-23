@@ -110,7 +110,8 @@ int main(int argc, char* argv[])
     if(auto yaml_mqtt_bridge = yaml_config["mqtt_bridge"sv];
        yaml_mqtt_bridge)
     {
-      log_config = yafiyogi::mqtt_bridge::configure_logging(yaml_mqtt_bridge["logging"sv], log_config.filename);
+      log_config = yafiyogi::mqtt_bridge::configure_logging(yaml_mqtt_bridge["logging"sv],
+                                                            log_config);
     }
   }
 
@@ -141,17 +142,24 @@ int main(int argc, char* argv[])
   if(!no_run)
   {
     logger_ptr access_log;
+    yafiyogi::mqtt_bridge::logger_config access_log_config{"mqtt_bridge.access.log",
+                                                           log_config.level};
+
 
     if(auto yaml_access_log = yaml_prometheus["access_log"sv];
        yaml_access_log)
     {
-      yafiyogi::mqtt_bridge::logger_config access_log_config{"mqtt_bridge.access.log", spdlog::level::info};
-
       access_log_config = yafiyogi::mqtt_bridge::configure_logging(yaml_access_log,
-                                                                   access_log_config.filename);
+                                                                   access_log_config);
 
-      access_log = spdlog::daily_logger_mt("access_log", log_config.filename, 0, 0);
-      access_log->set_level(log_config.level);
+    }
+
+    spdlog::info("access_log: [{}]", log_config.filename);
+    if(access_log_config.filename != log_config.filename)
+    {
+
+      access_log = spdlog::daily_logger_mt("access_log", access_log_config.filename, 0, 0);
+      access_log->set_level(access_log_config.level);
     }
 
     auto metric_cache = std::make_shared<yy_prometheus::MetricDataCache>();
