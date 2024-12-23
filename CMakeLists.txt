@@ -26,7 +26,8 @@
 
 # PKG_CONFIG_PATH=${HOME}/code/tp/lib/pkgconfig:${HOME}/code/tp/share/pkgconfig:${PKG_CONFIG_PATH} cmake --fresh -DCMAKE_INSTALL_PREFIX=${HOME}/code/cpp/build -DYY_THIRD_PARTY_LIBRARY=${HOME}/code/tp -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE -DCMAKE_BUILD_TYPE=Release .
 # cmake --fresh -DCMAKE_INSTALL_PREFIX=${HOME}/code/cpp/build -DYY_THIRD_PARTY_LIBRARY=${HOME}/code/tp -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE -DCMAKE_BUILD_TYPE=Release .
-# LSAN_OPTIONS="detect_leaks=1" ASAN_OPTIONS="detect_leaks=1" nohup build-dir/yy_mqtt_bridge -f ./mqtt_bridge.yaml > yy_mqtt_bridge.log 2>&1 &
+# LSAN_OPTIONS="detect_leaks=1" ASAN_OPTIONS="detect_leaks=1" nohup ./yy_mqtt_bridge -f ../mqtt_bridge.yaml > "mqtt_bridge_$(date +'%Y-%m-%d').log" 2>&1 &
+
 cmake_minimum_required(VERSION 3.24)
 
 project(yy_mqtt_bridge LANGUAGES CXX)
@@ -35,9 +36,9 @@ set(YY_ROOT "${PROJECT_SOURCE_DIR}/..")
 set(YY_CMAKE "${YY_ROOT}/yy_cmake")
 
 include(${YY_CMAKE}/cmake_common.txt)
+include(${YY_CMAKE}/cmake_clang_tidy.txt)
 
 include(${YY_CMAKE}/cmake_boost-1.84.0.txt)
-include(${YY_CMAKE}/cmake_clang_tidy.txt)
 
 find_package(Boost 1.84.0 REQUIRED COMPONENTS json locale program_options)
 find_package(civetweb REQUIRED)
@@ -56,7 +57,6 @@ find_package(yy_web REQUIRED)
 pkg_check_modules(Mosquitto_c IMPORTED_TARGET libmosquitto_static REQUIRED)
 pkg_check_modules(Mosquitto_cpp IMPORTED_TARGET libmosquittopp_static REQUIRED)
 pkg_check_modules(ZLib IMPORTED_TARGET zlib REQUIRED)
-
 
 add_executable(yy_mqtt_bridge
   configure_label_actions.cpp
@@ -88,14 +88,15 @@ target_compile_options(yy_mqtt_bridge
   "-DSPDLOG_FMT_EXTERNAL")
 
 target_include_directories(yy_mqtt_bridge
-  PRIVATE
+  SYSTEM PRIVATE
     "${CMAKE_INSTALL_PREFIX}/include"
-    "${YY_THIRD_PARTY_LIBRARY}")
+    "${YY_THIRD_PARTY_LIBRARY}/include")
 
-  target_link_directories(yy_mqtt_bridge
-    PUBLIC
-      "${YY_THIRD_PARTY_LIBRARY}/libressl/lib"
-      "${YY_THIRD_PARTY_LIBRARY}/lib" )
+target_link_directories(yy_mqtt_bridge
+  PUBLIC
+    "${CMAKE_INSTALL_PREFIX}/lib"
+    "${YY_THIRD_PARTY_LIBRARY}/libressl/lib"
+    "${YY_THIRD_PARTY_LIBRARY}/lib" )
 
 if("${yy_system_name}" STREQUAL "darwin")
  target_link_directories(yy_mqtt_bridge
@@ -104,11 +105,11 @@ if("${yy_system_name}" STREQUAL "darwin")
 endif()
 
 target_link_libraries(yy_mqtt_bridge
-    yy_web::yy_web
-    yy_prometheus::yy_prometheus
-    yy_json::yy_json
-    yy_mqtt::yy_mqtt
-    yy_cpp::yy_cpp
+    yy_web
+    yy_prometheus
+    yy_json
+    yy_mqtt
+    yy_cpp
     Boost::json
     Boost::locale
     Boost::program_options
