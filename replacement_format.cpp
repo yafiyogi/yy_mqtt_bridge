@@ -24,7 +24,7 @@
 
 */
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "fmt/compile.h"
 
 #include "replacement_format.h"

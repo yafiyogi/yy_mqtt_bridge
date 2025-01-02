@@ -27,7 +27,7 @@
 #include <memory>
 #include <string_view>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "fmt/compile.h"
 #include "spdlog/spdlog.h"
 #include "yaml-cpp/yaml.h"
