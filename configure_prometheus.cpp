@@ -57,7 +57,7 @@ config configure_prometheus(const YAML::Node & yaml_prometheus)
   options.Add(yy_web::WebServer::enable_directory_listing, yy_web::WebServer::civetweb_options_no);
   options.Add(yy_web::WebServer::enable_http2, yy_web::WebServer::civetweb_options_yes);
   options.Add(yy_web::WebServer::enable_keep_alive, yy_web::WebServer::civetweb_options_yes);
-  options.Add(yy_web::WebServer::keep_alive_timeout_ms, "500"sv);
+  options.Add(yy_web::WebServer::keep_alive_timeout_ms, "5000"sv);
 
   auto port{yaml_get_value(yaml_prometheus["exporter_port"sv],
                            yy_prometheus::prometheus_default_port)};
