@@ -58,10 +58,11 @@ class PrometheusWebHandler:
                const struct mg_request_info * ri) override final;
 
   private:
-    using metric_buffer = yy_quad::simple_vector<char>;
+    using buffer = yy_quad::simple_vector<char, yy_data::ClearAction::Keep>;
 
     yy_prometheus::MetricDataCachePtr m_metric_cache{};
-    metric_buffer m_buffer{};
+    buffer m_body{};
+    buffer m_header{};
 };
 
 using PrometheusWebHandlerPtr = std::unique_ptr<PrometheusWebHandler>;

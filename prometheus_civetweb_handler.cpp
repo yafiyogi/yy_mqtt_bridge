@@ -24,8 +24,10 @@
 
 */
 
+#include <iterator>
 #include <string_view>
 
+#include "fmt/compile.h"
 #include "spdlog/spdlog.h"
 
 #include "yy_prometheus/yy_prometheus_configure.h"
@@ -38,22 +40,23 @@
 namespace yafiyogi::mqtt_bridge::prometheus {
 
 using namespace std::string_view_literals;
+using namespace fmt::literals;
 
-static constexpr const std::string_view g_http_response{"HTTP/1.1 200 OK\r\nContent-Type: text/plain; version=0.0.4\r\nConnection: close\r\n\r\n"};
+//static constexpr auto g_http_response_format{"HTTP/1.1 200 OK\r\nContent-Type: text/plain; version=0.0.4\r\nContent-Length: {}\r\nConnection: close\r\n\r\n"sv};
+static constexpr auto g_http_response_format{"HTTP/{} 200 OK\r\nContent-Type: text/plain; version=0.0.4\r\nContent-Length: {}\r\n\"sv};
 
 PrometheusWebHandler::PrometheusWebHandler(yy_prometheus::MetricDataCachePtr p_metric_cache,
                                            logger_ptr access_log) noexcept:
   yy_web::WebHandler(std::move(access_log)),
   m_metric_cache(std::move(p_metric_cache)),
-  m_buffer(8192)
+  m_body(8192),
+  m_header(g_http_response_format.size() + 4)
 {
 }
 
 bool PrometheusWebHandler::DoGet(struct mg_connection * conn,
-                                 const struct mg_request_info * /* ri */)
+                                 const struct mg_request_info * ri)
 {
-  m_buffer.assign(yy_quad::make_const_span(g_http_response));
-
   std::optional<std::string_view> last_id{};
   std::string_view last_help{};
   yy_prometheus::MetricType last_type{yy_prometheus::MetricType::None};
@@ -91,18 +94,26 @@ bool PrometheusWebHandler::DoGet(struct mg_connection * conn,
 
     if(new_headers)
     {
-      yy_prometheus::FormatHeaders(m_buffer, metric, new_unit);
+      yy_prometheus::FormatHeaders(m_body, metric, new_unit);
     }
 
-    metric.Format(m_buffer);
+    metric.Format(m_body);
   };
 
+  m_body.clear();
   if(m_metric_cache)
   {
     m_metric_cache->Visit(do_serialize_metrics);
   }
 
-  mg_write(conn, m_buffer.data(), m_buffer.size());
+  m_header.clear();
+  fmt::format_to(std::back_inserter(m_header),
+                 g_http_response_format,
+                 ri->http_version,
+                 m_body.size());
+
+  mg_write(conn, m_header.data(), m_header.size());
+  mg_write(conn, m_body.data(), m_body.size());
 
   return true;
 }
