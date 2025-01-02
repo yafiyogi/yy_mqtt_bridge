@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
 
   if(vm.count("help"))
   {
-    //spdlog::info("{}"sv, fmt::streamed(desc));
+    spdlog::info("{}"sv, fmt::streamed(desc));
 
     mqtt_bridge::stop_all_logs();
 
