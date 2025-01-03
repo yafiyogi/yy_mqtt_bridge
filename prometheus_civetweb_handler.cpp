@@ -42,8 +42,7 @@ namespace yafiyogi::mqtt_bridge::prometheus {
 using namespace std::string_view_literals;
 using namespace fmt::literals;
 
-static constexpr auto g_http_response_format{"HTTP/{} 200 OK\r\nContent-Type: text/plain; version=0.0.4\r\nContent-Length: {}\r\n"sv};
-
+static constexpr auto g_http_response_format{"HTTP/1.1 200 OK\r\nConnection: Keep-Alive\r\nContent-Length: {}\r\nContent-Type: text/plain; version=0.0.4\r\n\r\n"sv};
 
 PrometheusWebHandler::PrometheusWebHandler(yy_prometheus::MetricDataCachePtr p_metric_cache,
                                            logger_ptr access_log) noexcept:
@@ -55,7 +54,7 @@ PrometheusWebHandler::PrometheusWebHandler(yy_prometheus::MetricDataCachePtr p_m
 }
 
 bool PrometheusWebHandler::DoGet(struct mg_connection * conn,
-                                 const struct mg_request_info * ri)
+                                 const struct mg_request_info * /* ri */)
 {
   std::optional<std::string_view> last_id{};
   std::string_view last_help{};
@@ -109,7 +108,6 @@ bool PrometheusWebHandler::DoGet(struct mg_connection * conn,
   m_header.clear();
   fmt::format_to(std::back_inserter(m_header),
                  g_http_response_format,
-                 ri->http_version,
                  m_body.size());
 
   mg_write(conn, m_header.data(), m_header.size());
