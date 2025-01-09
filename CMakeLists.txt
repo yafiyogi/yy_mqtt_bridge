@@ -58,7 +58,7 @@ pkg_check_modules(Mosquitto_c IMPORTED_TARGET libmosquitto_static REQUIRED)
 pkg_check_modules(Mosquitto_cpp IMPORTED_TARGET libmosquittopp_static REQUIRED)
 pkg_check_modules(ZLib IMPORTED_TARGET zlib REQUIRED)
 
-add_executable(yy_mqtt_bridge
+add_executable(mqtt_bridge
   configure_label_actions.cpp
   configure_logging.cpp
   configure_mqtt.cpp
@@ -82,29 +82,29 @@ add_executable(yy_mqtt_bridge
   value_action_switch.cpp
   yy_mqtt_bridge.cpp )
 
-target_compile_options(yy_mqtt_bridge
+target_compile_options(mqtt_bridge
   PRIVATE
   "-DSPDLOG_COMPILED_LIB"
   "-DSPDLOG_FMT_EXTERNAL")
 
-target_include_directories(yy_mqtt_bridge
+target_include_directories(mqtt_bridge
   SYSTEM PRIVATE
     "${CMAKE_INSTALL_PREFIX}/include"
     "${YY_THIRD_PARTY_LIBRARY}/include")
 
-target_link_directories(yy_mqtt_bridge
+target_link_directories(mqtt_bridge
   PUBLIC
     "${CMAKE_INSTALL_PREFIX}/lib"
     "${YY_THIRD_PARTY_LIBRARY}/libressl/lib"
     "${YY_THIRD_PARTY_LIBRARY}/lib" )
 
 if("${yy_system_name}" STREQUAL "darwin")
- target_link_directories(yy_mqtt_bridge
+ target_link_directories(mqtt_bridge
    PUBLIC
       "/opt/local/lib")
 endif()
 
-target_link_libraries(yy_mqtt_bridge
+target_link_libraries(mqtt_bridge
     yy_web
     yy_prometheus
     yy_json
@@ -127,7 +127,7 @@ target_link_libraries(yy_mqtt_bridge
 
 #install(TARGETS yy_mqtt_bridge)
 
-add_yy_tidy_all(yy_mqtt_bridge)
-#add_cmake_coverage(yy_mqtt_bridge)
-#add_cmake_asan(yy_mqtt_bridge)
-#add_cmake_lsan(yy_mqtt_bridge)
+add_yy_tidy_all(mqtt_bridge)
+#add_cmake_coverage(mqtt_bridge)
+#add_cmake_asan(mqtt_bridge)
+#add_cmake_lsan(mqtt_bridge)
