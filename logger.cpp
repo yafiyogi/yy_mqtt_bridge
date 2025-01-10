@@ -41,7 +41,7 @@ using namespace fmt::literals;
 constexpr std::string_view access_log_format{"Web Access from: [{}:{}] to [{}:{}]"sv};
 
 constexpr std::string_view g_std_err{"stderr"sv};
-constexpr std::string_view g_log_name{"mqtt_bridge_log"sv};
+constexpr std::string_view g_log_name{"activity"sv};
 
 static std::mutex g_logger_mtx{};
 static std::string g_std_err_str{g_std_err};

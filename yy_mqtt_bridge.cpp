@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
     if(access_log_config.filename != log_config.filename)
     {
 
-      access_log = spdlog::daily_logger_mt("access_log", access_log_config.filename, 0, 0);
+      access_log = spdlog::daily_logger_mt("access", access_log_config.filename, 0, 0);
       access_log->set_level(access_log_config.level);
     }
 
