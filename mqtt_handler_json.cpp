@@ -46,7 +46,6 @@ namespace json_handler_detail {
 
 static const yy_prometheus::Labels g_empty_labels{};
 
-
 JsonVisitor::JsonVisitor(size_type p_metric_count) noexcept
 {
   m_metric_data.reserve(p_metric_count);
