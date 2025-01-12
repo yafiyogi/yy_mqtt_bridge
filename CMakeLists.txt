@@ -28,7 +28,7 @@
 # cmake --fresh -DCMAKE_INSTALL_PREFIX=${HOME}/code/cpp/build -DYY_THIRD_PARTY_LIBRARY=${HOME}/code/tp -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE -DCMAKE_BUILD_TYPE=Release .
 # LSAN_OPTIONS="detect_leaks=1" ASAN_OPTIONS="detect_leaks=1" nohup ./yy_mqtt_bridge -f ../mqtt_bridge.yaml >> "mqtt_bridge_$(date +'%Y-%m-%d').log" 2>&1 &
 
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.31)
 
 project(yy_mqtt_bridge LANGUAGES CXX)
 
@@ -40,13 +40,12 @@ include(${YY_CMAKE}/cmake_clang_tidy.txt)
 
 include(${YY_CMAKE}/cmake_boost-1.84.0.txt)
 
-find_package(Boost 1.84.0 REQUIRED COMPONENTS json locale program_options)
+find_package(Boost CONFIG 1.84.0 REQUIRED COMPONENTS json locale program_options)
 find_package(civetweb REQUIRED)
 find_package(fmt REQUIRED)
 find_package(re2 REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(yaml-cpp REQUIRED)
-find_package(ICU REQUIRED)
 find_package(LibreSSL REQUIRED)
 find_package(yy_cpp REQUIRED)
 find_package(yy_json REQUIRED)
@@ -54,6 +53,7 @@ find_package(yy_mqtt REQUIRED)
 find_package(yy_prometheus REQUIRED)
 find_package(yy_web REQUIRED)
 
+pkg_check_modules(icu IMPORTED_TARGET icu-i18n icu-io icu-uc REQUIRED)
 pkg_check_modules(Mosquitto_c IMPORTED_TARGET libmosquitto_static REQUIRED)
 pkg_check_modules(Mosquitto_cpp IMPORTED_TARGET libmosquittopp_static REQUIRED)
 pkg_check_modules(ZLib IMPORTED_TARGET zlib REQUIRED)
