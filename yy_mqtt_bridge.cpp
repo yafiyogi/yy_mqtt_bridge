@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
   if(!no_run)
   {
     logger_ptr access_log;
-    yafiyogi::mqtt_bridge::logger_config access_log_config{"mqtt_bridge.access.log",
+    yafiyogi::mqtt_bridge::logger_config access_log_config{"mqtt_bridge_access.log",
                                                            log_config.level};
 
 
