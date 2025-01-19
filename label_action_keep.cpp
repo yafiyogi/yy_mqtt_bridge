@@ -38,6 +38,7 @@ KeepLabelAction::KeepLabelAction(std::string && p_label) noexcept:
 }
 
 void KeepLabelAction::Apply(const yy_prometheus::Labels & labels,
+                            const yy_mqtt::TopicLevelsView & /* p_levels */,
                             yy_prometheus::Labels & metric_labels) noexcept
 {
   auto do_keep_label = [this, &metric_labels](const std::string * label_value, auto) {

@@ -34,7 +34,7 @@ namespace yafiyogi::mqtt_bridge {
 using namespace fmt::literals;
 
 static constexpr auto level_format{"{}{}"_cf};
-void FormatLevel::operator()(const yy_mqtt::TopicLevels & p_path,
+void FormatLevel::operator()(const yy_mqtt::TopicLevelsView & p_path,
                              std::string & p_label_value) const noexcept
 {
   if(m_idx < p_path.size())
@@ -46,7 +46,7 @@ void FormatLevel::operator()(const yy_mqtt::TopicLevels & p_path,
   }
 }
 
-void FormatPrefix::operator()(const yy_mqtt::TopicLevels & /* p_path */,
+void FormatPrefix::operator()(const yy_mqtt::TopicLevelsView & /* p_path */,
                              std::string & p_label_value) const noexcept
 {
   p_label_value.reserve(p_label_value.size() + m_prefix.size());

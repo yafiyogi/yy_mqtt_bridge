@@ -48,6 +48,7 @@ MqttValueHandler::MqttValueHandler(std::string_view p_handler_id,
 
 yy_prometheus::MetricDataVector & MqttValueHandler::Event(std::string_view p_value,
                                                           const yy_prometheus::Labels & p_labels,
+                                                          const yy_mqtt::TopicLevelsView & p_levels,
                                                           const int64_t p_timestamp) noexcept
 {
   spdlog::debug("  handler [{}]"sv, Id());
@@ -56,7 +57,7 @@ yy_prometheus::MetricDataVector & MqttValueHandler::Event(std::string_view p_val
 
   for(auto & metric : m_metrics)
   {
-    metric->Event(p_value, p_labels, m_metric_data, p_timestamp, ValueType::Unknown);
+    metric->Event(p_value, p_labels, p_levels, m_metric_data, p_timestamp, ValueType::Unknown);
   }
 
   return m_metric_data;

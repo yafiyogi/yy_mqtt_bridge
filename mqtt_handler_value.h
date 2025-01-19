@@ -51,6 +51,7 @@ class MqttValueHandler:
 
     yy_prometheus::MetricDataVector & Event(std::string_view p_value,
                                             const yy_prometheus::Labels & p_labels,
+                                            const yy_mqtt::TopicLevelsView & p_levels,
                                             const int64_t p_timestamp) noexcept override;
   private:
     prometheus::Metrics m_metrics{};

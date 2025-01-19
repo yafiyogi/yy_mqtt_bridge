@@ -88,6 +88,7 @@ class mqtt_client final:
     int m_port = yy_mqtt::mqtt_default_port;
     std::atomic<bool> m_is_connected = false;
     yy_prometheus::Labels m_labels{};
+    yy_mqtt::TopicLevelsView m_path{};
     yy_prometheus::MetricDataCachePtr m_metric_cache{};
     static constexpr int default_keepalive_seconds = 60;
 };

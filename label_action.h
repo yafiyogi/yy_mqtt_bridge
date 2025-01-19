@@ -28,6 +28,8 @@
 
 #include "yy_prometheus/yy_prometheus_labels_fwd.h"
 
+#include "yy_mqtt/yy_mqtt_types.h"
+
 #include "label_action_fwd.h"
 
 namespace yafiyogi::mqtt_bridge {
@@ -44,6 +46,7 @@ class LabelAction
     constexpr LabelAction & operator=(LabelAction &&) noexcept = default;
 
     virtual void Apply(const yy_prometheus::Labels & /* labels */,
+                       const yy_mqtt::TopicLevelsView & /* p_levels */,
                        yy_prometheus::Labels & /* metric_labels */) noexcept = 0;
     virtual std::string_view Name() const noexcept = 0;
 };

@@ -69,6 +69,7 @@ const std::string & Metric::Property() const noexcept
 
 void Metric::Event(std::string_view p_value,
                    const yy_prometheus::Labels & p_labels,
+                   const yy_mqtt::TopicLevelsView & p_levels,
                    MetricDataVector & p_metric_data,
                    const int64_t p_timestamp,
                    ValueType p_value_type)
@@ -84,7 +85,7 @@ void Metric::Event(std::string_view p_value,
 
   for(const auto & action : m_label_actions)
   {
-    action->Apply(p_labels, m_metric_data.Labels());
+    action->Apply(p_labels, p_levels, m_metric_data.Labels());
   }
 
   for(const auto & action : m_value_actions)

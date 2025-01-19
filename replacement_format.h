@@ -58,7 +58,7 @@ class FormatPrefix
     FormatPrefix & operator=(const FormatPrefix &) noexcept = default;
     FormatPrefix & operator=(FormatPrefix &&) noexcept = default;
 
-    void operator()(const yy_mqtt::TopicLevels & /* p_path */,
+    void operator()(const yy_mqtt::TopicLevelsView & /* p_path */,
                     std::string & label_value) const noexcept;
 
   private:
@@ -83,7 +83,7 @@ class FormatLevel
     FormatLevel & operator=(const FormatLevel &) noexcept = default;
     FormatLevel & operator=(FormatLevel &&) noexcept = default;
 
-    void operator()(const yy_mqtt::TopicLevels & p_path,
+    void operator()(const yy_mqtt::TopicLevelsView & p_path,
                     std::string & label_value) const noexcept;
 
   private:

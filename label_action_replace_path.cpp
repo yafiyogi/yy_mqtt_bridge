@@ -48,22 +48,25 @@ ReplacePathLabelAction::ReplacePathLabelAction(std::string && p_label_name,
 }
 
 void ReplacePathLabelAction::Apply(const yy_prometheus::Labels & /* labels */,
+                                   const yy_mqtt::TopicLevelsView & p_levels,
                                    yy_prometheus::Labels & metric_labels) noexcept
 {
   if(auto payloads = m_topics.find(metric_labels.get_label(yy_prometheus::g_label_topic));
      !payloads.empty())
   {
-    const auto & levels = metric_labels.get_path();
-
     for(const auto * replacements : payloads)
     {
       for(const auto & format : *replacements)
       {
         m_label_value.clear();
 
+        auto format_fn = [&p_levels, this](const auto & formatter) {
+          formatter(p_levels, m_label_value);
+        };
+
         for(const auto & fmt_elem : format)
         {
-          std::visit([&levels, this](const auto & formatter) { formatter(levels, m_label_value); },
+          std::visit(format_fn,
                      fmt_elem);
         }
 

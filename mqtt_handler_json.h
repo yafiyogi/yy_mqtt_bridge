@@ -59,6 +59,7 @@ class JsonVisitor
     constexpr JsonVisitor & operator=(JsonVisitor &&) noexcept = default;
 
     void labels(const yy_prometheus::Labels * p_labels) noexcept;
+    void levels(const yy_mqtt::TopicLevelsView * p_levels) noexcept;
     void timestamp(const int64_t p_timestamp) noexcept;
     void apply_str(Metrics & metrics,
                    std::string_view str)
@@ -94,8 +95,6 @@ class JsonVisitor
     }
 
     void reset() noexcept;
-    void set_labels(const yy_prometheus::Labels & p_labels);
-    void set_timestamp(int64_t p_timestamp);
     yy_prometheus::MetricDataVector & metric_data() noexcept;
 
   private:
@@ -103,10 +102,14 @@ class JsonVisitor
                std::string_view p_data,
                ValueType p_value_type);
 
-    constexpr static const std::string_view g_true_str{"true"};
-    constexpr static const std::string_view g_false_str{"false"};
+    static constexpr const std::string_view g_true_str{"true"};
+    static constexpr const std::string_view g_false_str{"false"};
+    static const yy_prometheus::Labels g_empty_labels;
+    static const yy_mqtt::TopicLevelsView g_empty_levels;
+
+    const yy_prometheus::Labels * m_labels = &g_empty_labels;
+    const yy_mqtt::TopicLevelsView * m_levels = &g_empty_levels;
     int64_t m_timestamp = 0;
-    const yy_prometheus::Labels * m_labels = nullptr;
     yy_prometheus::MetricDataVector m_metric_data{};
 };
 
@@ -137,6 +140,7 @@ class MqttJsonHandler final:
 
     yy_prometheus::MetricDataVector & Event(std::string_view p_value,
                                             const yy_prometheus::Labels & p_labels,
+                                            const yy_mqtt::TopicLevelsView & p_levels,
                                             const int64_t p_timestamp) noexcept override;
 
   private:

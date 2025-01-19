@@ -44,7 +44,8 @@ using namespace std::string_view_literals;
 
 namespace json_handler_detail {
 
-static const yy_prometheus::Labels g_empty_labels{};
+const yy_prometheus::Labels JsonVisitor::g_empty_labels{};
+const yy_mqtt::TopicLevelsView JsonVisitor::g_empty_levels;
 
 JsonVisitor::JsonVisitor(size_type p_metric_count) noexcept
 {
@@ -60,6 +61,15 @@ void JsonVisitor::labels(const yy_prometheus::Labels * p_labels) noexcept
   m_labels = p_labels;
 }
 
+void JsonVisitor::levels(const yy_mqtt::TopicLevelsView * p_levels) noexcept
+{
+  if(nullptr == p_levels)
+  {
+    p_levels = &g_empty_levels;
+  }
+  m_levels = p_levels;
+}
+
 void JsonVisitor::timestamp(const int64_t p_timestamp) noexcept
 {
   m_timestamp = p_timestamp;
@@ -71,24 +81,16 @@ void JsonVisitor::apply(Metrics & p_metrics,
 {
   for(auto & metric : p_metrics)
   {
-    metric->Event(p_value, *m_labels, m_metric_data, m_timestamp, p_value_type);
+    metric->Event(p_value, *m_labels, *m_levels, m_metric_data, m_timestamp, p_value_type);
   }
 }
 
 void JsonVisitor::reset() noexcept
 {
   m_labels = &g_empty_labels;
+  m_levels = &g_empty_levels;
   m_metric_data.clear(yy_data::ClearAction::Keep);
-}
-
-void JsonVisitor::set_labels(const yy_prometheus::Labels & p_labels)
-{
-  m_labels = &p_labels;
-}
-
-void JsonVisitor::set_timestamp(int64_t p_timestamp)
-{
-  m_timestamp = p_timestamp;
+  m_timestamp = 0;
 }
 
 yy_prometheus::MetricDataVector & JsonVisitor::metric_data() noexcept
@@ -109,6 +111,7 @@ MqttJsonHandler::MqttJsonHandler(std::string_view p_handler_id,
 
 yy_prometheus::MetricDataVector & MqttJsonHandler::Event(std::string_view p_value,
                                                          const yy_prometheus::Labels & p_labels,
+                                                         const yy_mqtt::TopicLevelsView & p_levels,
                                                          const int64_t p_timestamp) noexcept
 {
   spdlog::debug("  handler [{}]"sv, Id());
@@ -119,8 +122,9 @@ yy_prometheus::MetricDataVector & MqttJsonHandler::Event(std::string_view p_valu
   auto & visitor = handler.visitor();
 
   visitor.reset();
-  visitor.set_labels(p_labels);
-  visitor.set_timestamp(p_timestamp);
+  visitor.labels(&p_labels);
+  visitor.levels(&p_levels);
+  visitor.timestamp(p_timestamp);
 
   m_parser.write_some(false, p_value.data(), p_value.size(), boost::json::error_code{});
 

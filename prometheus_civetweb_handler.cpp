@@ -42,7 +42,7 @@ namespace yafiyogi::mqtt_bridge::prometheus {
 using namespace std::string_view_literals;
 using namespace fmt::literals;
 
-static constexpr auto g_http_response_format{"HTTP/1.1 200 OK\r\nConnection: Keep-Alive\r\nContent-Length: {}\r\nContent-Type: text/plain; version=0.0.4\r\n\r\n"sv};
+static constexpr auto g_http_response_format{"HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Length: {}\r\nContent-Type: text/plain; version=0.0.4\r\n\r\n"sv};
 
 PrometheusWebHandler::PrometheusWebHandler(yy_prometheus::MetricDataCachePtr p_metric_cache,
                                            logger_ptr access_log) noexcept:
