@@ -57,7 +57,7 @@ config configure_prometheus(const YAML::Node & yaml_prometheus)
   options.Add(yy_web::WebServer::enable_directory_listing, yy_web::WebServer::civetweb_options_no);
   options.Add(yy_web::WebServer::enable_http2, yy_web::WebServer::civetweb_options_yes);
   options.Add(yy_web::WebServer::enable_keep_alive, yy_web::WebServer::civetweb_options_yes);
-  options.Add(yy_web::WebServer::keep_alive_timeout_ms, "5000"sv);
+  options.Add(yy_web::WebServer::keep_alive_timeout_ms, "30000"sv);
 
   auto port{yaml_get_value(yaml_prometheus["exporter_port"sv],
                            yy_prometheus::prometheus_default_port)};
@@ -72,7 +72,7 @@ config configure_prometheus(const YAML::Node & yaml_prometheus)
   yy_prometheus::set_metric_style(metric_style);
 
   auto default_timestamp{decode_metric_timestamp(yaml_get_value(yaml_prometheus["timestamps"sv], ""sv))};
-  auto metrics = configure_prometheus_metrics(yaml_prometheus["metrics"sv], default_timestamp);
+  auto metrics{configure_prometheus_metrics(yaml_prometheus["metrics"sv], default_timestamp)};
 
   auto uri{yaml_get_value(yaml_prometheus["exporter_uri"sv],
                            yy_prometheus::prometheus_default_uri_path)};
