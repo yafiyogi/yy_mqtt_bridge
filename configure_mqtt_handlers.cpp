@@ -198,62 +198,63 @@ MqttHandlerPtr configure_value_handler(std::string_view p_id,
 MqttHandlerStore configure_mqtt_handlers(const YAML::Node & yaml_handlers,
                                          prometheus::config & prometheus_config)
 {
+  MqttHandlerStore handler_store{};
+
   if(!yaml_handlers.IsSequence())
   {
     spdlog::error("Configuration error: expecting a sequence of handlers!"sv);
-
-    return MqttHandlerStore{};
   }
-
-  MqttHandlerStore handler_store{};
-  handler_store.reserve(yaml_handlers.size());
-
-  for(const auto & yaml_handler: yaml_handlers)
+  else
   {
-    std::string_view l_id{yy_util::trim(yaml_handler["id"sv].as<std::string_view>())};
-    const MqttHandler::type type = decode_type(yaml_handler["type"sv]);
+    handler_store.reserve(yaml_handlers.size());
 
-    spdlog::info(" Configuring MQTT Handler id [{}]:"sv, l_id);
-    spdlog::trace("  [line {}]."sv, yaml_handler.Mark().line + 1);
-    MqttHandlerPtr handler;
-
-    spdlog::info("   - type [{}]"sv, yaml_handler["type"sv].as<std::string_view>());
-    switch(type)
+    for(const auto & yaml_handler: yaml_handlers)
     {
-      case MqttHandler::type::Json:
-        handler = configure_json_handler(l_id, yaml_handler, prometheus_config.metrics);
-        break;
+      std::string_view l_id{yy_util::trim(yaml_handler["id"sv].as<std::string_view>())};
+      const MqttHandler::type type = decode_type(yaml_handler["type"sv]);
 
-      case MqttHandler::type::Text:
-        handler = configure_text_handler(l_id, yaml_handler, prometheus_config.metrics);
-        break;
+      spdlog::info(" Configuring MQTT Handler id [{}]:"sv, l_id);
+      spdlog::trace("  [line {}]."sv, yaml_handler.Mark().line + 1);
+      MqttHandlerPtr handler;
 
-      case MqttHandler::type::Value:
-        handler = configure_value_handler(l_id, yaml_handler, prometheus_config.metrics);
-        break;
-    }
-
-    if(handler)
-    {
-      if(auto id = handler->Id();
-         !id.empty())
+      spdlog::info("   - type [{}]"sv, yaml_handler["type"sv].as<std::string_view>());
+      switch(type)
       {
-        if(auto [handler_pos, emplaced] = handler_store.emplace(std::move(id), std::move(handler));
-           !emplaced)
+        case MqttHandler::type::Json:
+          handler = configure_json_handler(l_id, yaml_handler, prometheus_config.metrics);
+          break;
+
+        case MqttHandler::type::Text:
+          handler = configure_text_handler(l_id, yaml_handler, prometheus_config.metrics);
+          break;
+
+        case MqttHandler::type::Value:
+          handler = configure_value_handler(l_id, yaml_handler, prometheus_config.metrics);
+          break;
+      }
+
+      if(handler)
+      {
+        if(auto id = handler->Id();
+           !id.empty())
         {
-          if(auto [key, added] = handler_store[handler_pos];
-             !added)
+          if(auto [handler_pos, emplaced] = handler_store.emplace(std::move(id), std::move(handler));
+             !emplaced)
           {
-            spdlog::trace("Handler id [{}] already created. Ignoring [line {}]"sv,
-                          key,
-                          yaml_handler.Mark().line + 1);
+            if(auto [key, added] = handler_store[handler_pos];
+               !added)
+            {
+              spdlog::trace("Handler id [{}] already created. Ignoring [line {}]"sv,
+                            key,
+                            yaml_handler.Mark().line + 1);
+            }
           }
         }
       }
-    }
-    else
-    {
-      spdlog::warn("MQTT Handler id [{}] not created!"sv, l_id);
+      else
+      {
+        spdlog::warn("MQTT Handler id [{}] not created!"sv, l_id);
+      }
     }
   }
 
