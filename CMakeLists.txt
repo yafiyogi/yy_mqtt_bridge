@@ -105,11 +105,11 @@ if("${yy_system_name}" STREQUAL "darwin")
 endif()
 
 target_link_libraries(mqtt_bridge
-    yy_web
-    yy_prometheus
-    yy_json
-    yy_mqtt
-    yy_cpp
+    yy_web::yy_web
+    yy_prometheus::yy_prometheus
+    yy_json::yy_json
+    yy_mqtt::yy_mqtt
+    yy_cpp::yy_cpp
     Boost::json
     Boost::locale
     Boost::program_options
