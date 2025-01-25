@@ -36,7 +36,7 @@
 
 namespace yafiyogi::mqtt_bridge {
 
-class DropLabelAction:
+class DropLabelAction final:
       public LabelAction
 {
   public:

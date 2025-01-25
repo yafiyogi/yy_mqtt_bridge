@@ -32,7 +32,7 @@
 
 namespace yafiyogi::mqtt_bridge {
 
-class SwitchValueAction:
+class SwitchValueAction final:
       public ValueAction
 {
   public:

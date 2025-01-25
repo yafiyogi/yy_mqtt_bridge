@@ -36,7 +36,7 @@
 
 namespace yafiyogi::mqtt_bridge {
 
-class MqttValueHandler:
+class MqttValueHandler final:
       public MqttHandler
 {
   public:

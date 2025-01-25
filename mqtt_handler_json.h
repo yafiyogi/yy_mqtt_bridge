@@ -43,7 +43,7 @@
 namespace yafiyogi::mqtt_bridge {
 namespace json_handler_detail {
 
-class JsonVisitor
+class JsonVisitor final
 {
   public:
     using size_type = yy_prometheus::MetricDataVector::size_type;

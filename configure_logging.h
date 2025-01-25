@@ -36,7 +36,7 @@
 
 namespace yafiyogi::mqtt_bridge {
 
-struct logger_config
+struct logger_config final
 {
     std::string filename;
     spdlog::level::level_enum level = spdlog::level::info;

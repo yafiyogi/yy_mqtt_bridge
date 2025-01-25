@@ -43,7 +43,7 @@ using size_type = uint32_t;
 
 } // namespace replacement_format_detail
 
-class FormatPrefix
+class FormatPrefix final
 {
   public:
     FormatPrefix(std::string_view p_prefix) noexcept:
@@ -65,7 +65,7 @@ class FormatPrefix
     std::string m_prefix{};
 };
 
-class FormatLevel
+class FormatLevel final
 {
   public:
     using size_type = replacement_format_detail::size_type;

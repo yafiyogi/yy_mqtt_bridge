@@ -36,7 +36,7 @@
 
 namespace yafiyogi::mqtt_bridge {
 
-class KeepLabelAction:
+class KeepLabelAction final:
       public LabelAction
 {
   public:
