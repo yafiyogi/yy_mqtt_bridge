@@ -1,0 +1,34 @@
+#!/bin/sh
+
+echo "\nyy_test"
+cd ../yy_test/build
+make all install || exit 1
+
+echo "\nyy_tp_util"
+cd ../../yy_tp_util/build
+make all install || exit 1
+
+echo "\nyy_cpp"
+cd ../../yy_cpp/build
+make all asan install || exit 1
+
+echo "\nyy_json"
+cd ../../yy_json/build
+make all asan install || exit 1
+
+echo "\nyy_mqtt"
+cd ../../yy_mqtt/build
+make all asan install || exit 1
+
+echo "\nyy_prometheus"
+cd ../../yy_prometheus/build
+make all install || exit 1
+
+echo "\nyy_web"
+cd ../../yy_web/build
+make all install || exit 1
+
+echo "\nyy_mqtt_bridge"
+cd ../../yy_mqtt_bridge/build-dir
+make all || exit 1
+cd ../

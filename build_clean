@@ -1,0 +1,34 @@
+#!/bin/sh
+
+echo "yy_test: cleaning"
+cd ../yy_test/build
+make clean || exit 1
+
+echo "\nyy_tp_util: cleaning"
+cd ../../yy_tp_util/build
+make clean || exit 1
+
+echo "yy_cpp: cleaning"
+cd ../../yy_cpp/build
+make clean || exit 1
+
+echo "yy_json: cleaning"
+cd ../../yy_json/build
+make clean || exit 1
+
+echo "yy_mqtt: cleaning"
+cd ../../yy_mqtt/build
+make clean || exit 1
+
+echo "yy_prometheus: cleaning"
+cd ../../yy_prometheus/build
+make clean || exit 1
+
+echo "yy_web: cleaning"
+cd ../../yy_web/build
+make clean || exit 1
+
+echo "yy_mqtt_bridge: cleaning"
+cd ../../yy_mqtt_bridge/build-dir
+make clean || exit 1
+cd ../
