@@ -4,7 +4,7 @@ echo "yy_test: cleaning"
 cd ../yy_test/build
 make clean || exit 1
 
-echo "\nyy_tp_util: cleaning"
+echo "yy_tp_util: cleaning"
 cd ../../yy_tp_util/build
 make clean || exit 1
 
