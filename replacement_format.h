@@ -68,8 +68,6 @@ class FormatPrefix final
 class FormatLevel final
 {
   public:
-    using size_type = replacement_format_detail::size_type;
-
     FormatLevel(std::string_view p_prefix, size_type p_idx) noexcept:
       m_prefix(p_prefix),
       m_idx(p_idx)

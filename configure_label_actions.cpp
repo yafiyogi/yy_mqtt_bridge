@@ -81,7 +81,7 @@ void configure_label_action_replace_format(std::string_view replacement_format,
       format_prefix.append(prefix);
       if(!idx.empty())
       {
-        using fast_atoi = yy_util::fast_atoi<FormatLevel::size_type>;
+        using fast_atoi = yy_util::fast_atoi<size_type>;
 
         if(auto [format_idx, state] = fast_atoi::convert(idx);
            (yy_util::FastFloat::Ok == state) && (format_idx > 0))

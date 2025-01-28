@@ -46,7 +46,6 @@ namespace json_handler_detail {
 class JsonVisitor final
 {
   public:
-    using size_type = yy_prometheus::MetricDataVector::size_type;
     using Metrics = prometheus::Metrics;
 
     JsonVisitor(size_type p_metric_count) noexcept;
