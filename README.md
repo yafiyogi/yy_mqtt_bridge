@@ -9,18 +9,26 @@
 ## 3rd Party Dependencies
 - Boost
   - Json
-  - locale
+  - locale requires:
+    - libiconv
+    - libicudata
+    - libicui18n
+    - libicuuc
   - program_options
-- civetweb-cpp
 - civetweb
+  - civetweb-cpp
+  - civetweb
 - fmt
-- re2
+- re2 requires:
+  - abseil-cpp
 - spdlog
 - yaml-cpp
-- Mosquitto_cpp
-- Mosquitto_c
-- LibreSSL Crypto
-- LibreSSL SSL
+- Mosquitto
+  - Mosquitto_cpp
+  - Mosquitto_c
+- LibreSSL (openssl might also work. I haven't tried.)
+  - libcrypto
+  - libssl
 - Zlib
 
 ## Build Everything
