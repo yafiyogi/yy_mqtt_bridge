@@ -45,7 +45,7 @@ using namespace fmt::literals;
 static constexpr auto g_http_response_format{"HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Length: {}\r\nContent-Type: text/plain; version=0.0.4\r\n\r\n"sv};
 
 PrometheusWebHandler::PrometheusWebHandler(yy_prometheus::MetricDataCachePtr p_metric_cache,
-                                           logger_ptr access_log) noexcept:
+                                           logger_ptr && access_log) noexcept:
   yy_web::WebHandler(std::move(access_log)),
   m_metric_cache(std::move(p_metric_cache)),
   m_body(8192),

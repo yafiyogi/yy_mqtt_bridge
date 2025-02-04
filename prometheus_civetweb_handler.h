@@ -45,7 +45,7 @@ class PrometheusWebHandler:
 {
   public:
     explicit PrometheusWebHandler(yy_prometheus::MetricDataCachePtr p_metric_cache,
-                                  logger_ptr access_log) noexcept;
+                                  logger_ptr && access_log) noexcept;
 
     PrometheusWebHandler() noexcept = default;
     PrometheusWebHandler(const PrometheusWebHandler &) noexcept = default;
