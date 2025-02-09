@@ -76,10 +76,25 @@ class FormatLevel final
 
     FormatLevel() noexcept = default;
     FormatLevel(const FormatLevel &) noexcept = default;
-    FormatLevel(FormatLevel &&) noexcept = default;
+    FormatLevel(FormatLevel && p_other) noexcept:
+      m_prefix(std::move(p_other.m_prefix)),
+      m_idx(p_other.m_idx)
+    {
+      p_other.m_idx = 0;
+    }
 
     FormatLevel & operator=(const FormatLevel &) noexcept = default;
-    FormatLevel & operator=(FormatLevel &&) noexcept = default;
+    FormatLevel & operator=(FormatLevel && p_other) noexcept
+    {
+      if(this != &p_other)
+      {
+        m_prefix = std::move(p_other.m_prefix);
+        m_idx = p_other.m_idx;
+        p_other.m_idx = 0;
+      }
+
+      return *this;
+    }
 
     void operator()(const yy_mqtt::TopicLevelsView & p_path,
                     std::string & label_value) const noexcept;

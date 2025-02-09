@@ -52,10 +52,33 @@ class JsonVisitor final
 
     constexpr JsonVisitor() noexcept = default;
     constexpr JsonVisitor(const JsonVisitor &) noexcept = default;
-    constexpr JsonVisitor(JsonVisitor &&) noexcept = default;
+    constexpr JsonVisitor(JsonVisitor && p_other) noexcept:
+      m_labels(p_other.m_labels),
+      m_levels(p_other.m_levels),
+      m_timestamp(p_other.m_timestamp),
+      m_metric_data(std::move(p_other.m_metric_data))
+    {
+      p_other.m_labels = &g_empty_labels;
+      p_other.m_levels = &g_empty_levels;
+      p_other.m_timestamp = 0;
+    }
 
     constexpr JsonVisitor & operator=(const JsonVisitor &) noexcept = default;
-    constexpr JsonVisitor & operator=(JsonVisitor &&) noexcept = default;
+    constexpr JsonVisitor & operator=(JsonVisitor && p_other) noexcept
+    {
+      if(this != &p_other)
+      {
+        m_labels = p_other.m_labels;
+        p_other.m_labels = &g_empty_labels;
+        m_levels = p_other.m_levels;
+        p_other.m_levels = &g_empty_levels;
+        m_timestamp = p_other.m_timestamp;
+        p_other.m_timestamp = 0;
+        m_metric_data = std::move(p_other.m_metric_data);
+      }
+
+      return *this;
+    }
 
     void labels(const yy_prometheus::Labels * p_labels) noexcept;
     void levels(const yy_mqtt::TopicLevelsView * p_levels) noexcept;

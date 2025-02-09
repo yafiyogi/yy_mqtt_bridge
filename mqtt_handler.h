@@ -49,11 +49,27 @@ class MqttHandler
                          const type p_type) noexcept;
     constexpr MqttHandler() noexcept = default;
     MqttHandler(const MqttHandler &) = delete;
-    constexpr MqttHandler(MqttHandler &&) noexcept = default;
+    constexpr MqttHandler(MqttHandler && p_other) noexcept:
+      m_handler_id(std::move(p_other.m_handler_id)),
+      m_type(p_other.m_type)
+    {
+      p_other.m_type = type::Text;
+    }
+
     constexpr virtual ~MqttHandler() noexcept = default;
 
     MqttHandler & operator=(const MqttHandler &) = delete;
-    constexpr MqttHandler & operator=(MqttHandler &&) noexcept = default;
+    constexpr MqttHandler & operator=(MqttHandler && p_other) noexcept
+    {
+      if(this != &p_other)
+      {
+        m_handler_id = std::move(p_other.m_handler_id);
+        m_type = p_other.m_type;
+        p_other.m_type = type::Text;
+      }
+
+    return *this;
+    }
 
     [[nodiscard]]
     constexpr const std::string & Id() const noexcept
@@ -72,8 +88,8 @@ class MqttHandler
                                                     const yy_mqtt::TopicLevelsView & /* p_levels */,
                                                     const int64_t /* p_timestamp */) noexcept = 0;
   private:
-    const std::string m_handler_id{};
-    const type m_type = type::Text;
+    std::string m_handler_id{};
+    type m_type = type::Text;
 };
 
 } // namespace yafiyogi::mqtt_bridge
