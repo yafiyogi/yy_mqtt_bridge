@@ -51,16 +51,23 @@ mqtt_config configure_mqtt(const YAML::Node & yaml_mqtt,
     spdlog::error("Not found mqtt host\n"sv);
     return mqtt_config{};
   }
-  auto host = yaml_host.as<std::string>();
+
+  auto host = yaml_host.as<std::string_view>();
 
   int port = yaml_get_value(yaml_mqtt["port"sv], yy_mqtt::mqtt_default_port);
 
   spdlog::info(" MQTT host=[{}] port=[{}]"sv, host, port);
 
-  auto handlers = configure_mqtt_handlers(yaml_mqtt["handlers"sv], p_prometheus_config);
+  auto handlers{configure_mqtt_handlers(yaml_mqtt["handlers"sv], p_prometheus_config)};
+
   auto [subscriptions, topics] = configure_mqtt_topics(yaml_mqtt["topics"sv], handlers);
 
-  return mqtt_config{""s, std::move(host), port, std::move(handlers), std::move(subscriptions), std::move(topics)};
+  return mqtt_config{""s,
+                     std::string{host},
+                     port,
+                     std::move(handlers),
+                     std::move(subscriptions),
+                     std::move(topics)};
 }
 
 } // namespace yafiyogi::mqtt_bridge

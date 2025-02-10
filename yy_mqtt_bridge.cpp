@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
     }
   }
 
-  yafiyogi::mqtt_bridge::set_logger(log_config.filename);
+  auto log{yafiyogi::mqtt_bridge::set_logger(log_config.filename)};
   spdlog::set_level(log_config.level);
 
   const auto yaml_prometheus = yaml_config["prometheus"sv];
@@ -141,33 +141,35 @@ int main(int argc, char* argv[])
 
   if(!no_run)
   {
-    logger_ptr access_log;
-    yafiyogi::mqtt_bridge::logger_config access_log_config{"mqtt_bridge_access.log",
-                                                           log_config.level};
+    auto create_access_log = [&log, &yaml_prometheus, &log_config]() {
+      logger_ptr access_log{log};
+      yafiyogi::mqtt_bridge::logger_config access_log_config{"mqtt_bridge_access.log",
+                                                             log_config.level};
 
+      if(auto yaml_access_log = yaml_prometheus["access_log"sv];
+         yaml_access_log)
+      {
+        access_log_config = yafiyogi::mqtt_bridge::configure_logging(yaml_access_log,
+                                                                     access_log_config);
 
-    if(auto yaml_access_log = yaml_prometheus["access_log"sv];
-       yaml_access_log)
-    {
-      access_log_config = yafiyogi::mqtt_bridge::configure_logging(yaml_access_log,
-                                                                   access_log_config);
+      }
+      spdlog::info("access_log: [{}]", access_log_config.filename);
 
-    }
+      if(access_log_config.filename != log_config.filename)
+      {
+        access_log = spdlog::daily_logger_mt("access", access_log_config.filename, 0, 0);
+        access_log->set_level(access_log_config.level);
+      }
 
-    spdlog::info("access_log: [{}]", log_config.filename);
-    if(access_log_config.filename != log_config.filename)
-    {
-
-      access_log = spdlog::daily_logger_mt("access", access_log_config.filename, 0, 0);
-      access_log->set_level(access_log_config.level);
-    }
+      return access_log;
+    };
 
     auto metric_cache = std::make_shared<yy_prometheus::MetricDataCache>();
 
     auto http_server{std::make_unique<yy_web::WebServer>(prometheus_config.options)};
     http_server->AddHandler(prometheus_config.uri,
                             std::make_unique<mqtt_bridge::prometheus::PrometheusWebHandler>(metric_cache,
-                                                                                            std::move(access_log)));
+                                                                                            create_access_log()));
 
     mosqpp::lib_init();
 

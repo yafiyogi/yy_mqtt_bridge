@@ -50,35 +50,44 @@ using namespace std::string_view_literals;
 
 config configure_prometheus(const YAML::Node & yaml_prometheus)
 {
-  yy_web::WebServer::Options options;
+  auto uri{yaml_get_value(yaml_prometheus["exporter_uri"sv],
+                           yy_prometheus::prometheus_default_uri_path)};
+  spdlog::info(" Prometheus URI  [{}]"sv, uri);
 
-  options.Add(yy_web::WebServer::decode_query_string, yy_web::WebServer::civetweb_options_yes);
-  options.Add(yy_web::WebServer::decode_url, yy_web::WebServer::civetweb_options_yes);
-  options.Add(yy_web::WebServer::enable_directory_listing, yy_web::WebServer::civetweb_options_no);
-  options.Add(yy_web::WebServer::enable_http2, yy_web::WebServer::civetweb_options_yes);
-  options.Add(yy_web::WebServer::enable_keep_alive, yy_web::WebServer::civetweb_options_yes);
-  options.Add(yy_web::WebServer::keep_alive_timeout_ms, "30000"sv);
+  auto create_options = [&yaml_prometheus]() {
+    yy_web::WebServer::Options options;
 
-  auto port{yaml_get_value(yaml_prometheus["exporter_port"sv],
-                           yy_prometheus::prometheus_default_port)};
-  options.Add(yy_web::WebServer::listening_ports, port);
-  spdlog::info(" Prometheus Port [{}]"sv, port);
+    options.Add(yy_web::WebServer::decode_query_string, yy_web::WebServer::civetweb_options_yes);
+    options.Add(yy_web::WebServer::decode_url, yy_web::WebServer::civetweb_options_yes);
+    options.Add(yy_web::WebServer::enable_directory_listing, yy_web::WebServer::civetweb_options_no);
+    options.Add(yy_web::WebServer::enable_http2, yy_web::WebServer::civetweb_options_yes);
+    options.Add(yy_web::WebServer::enable_keep_alive, yy_web::WebServer::civetweb_options_yes);
+    options.Add(yy_web::WebServer::keep_alive_timeout_ms, "30000"sv);
 
-  options.Add(yy_web::WebServer::tcp_nodelay, "1"sv);
+    auto port{yaml_get_value(yaml_prometheus["exporter_port"sv],
+                             yy_prometheus::prometheus_default_port)};
+    options.Add(yy_web::WebServer::listening_ports, port);
+    spdlog::info(" Prometheus Port [{}]"sv, port);
+
+    options.Add(yy_web::WebServer::tcp_nodelay, "1"sv);
+
+    return options;
+  };
 
   std::string metric_style{yy_util::to_lower(yy_util::trim(yaml_get_value(yaml_prometheus["metric_style"sv],
                                                                           yy_prometheus::style_prometheus)))};
 
   yy_prometheus::set_metric_style(metric_style);
 
-  auto default_timestamp{decode_metric_timestamp(yaml_get_value(yaml_prometheus["timestamps"sv], ""sv))};
-  auto metrics{configure_prometheus_metrics(yaml_prometheus["metrics"sv], default_timestamp)};
+  auto create_metrics = [&yaml_prometheus]() {
+    auto default_timestamp{decode_metric_timestamp(yaml_get_value(yaml_prometheus["timestamps"sv], ""sv))};
 
-  auto uri{yaml_get_value(yaml_prometheus["exporter_uri"sv],
-                           yy_prometheus::prometheus_default_uri_path)};
-  spdlog::info(" Prometheus URI  [{}]"sv, uri);
+    return configure_prometheus_metrics(yaml_prometheus["metrics"sv], default_timestamp);
+  };
 
-  return config{std::string{uri}, std::move(options), std::move(metrics)};
+  return config{std::string{uri},
+                create_options(),
+                create_metrics()};
 }
 
 } // namespace yafiyogi::mqtt_bridge::prometheus

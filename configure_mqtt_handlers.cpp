@@ -141,11 +141,13 @@ MqttHandlerPtr configure_json_handler(std::string_view p_id,
 
     if(metrics_count > 0)
     {
-      MqttJsonHandler::handler_config_type config{json_pointer_builder.create(g_json_options.max_depth)};
+      auto create_json_pointer_config = [&json_pointer_builder]() {
+        return json_pointer_builder.create(g_json_options.max_depth);
+      };
 
       mqtt_json_handler = std::make_unique<MqttJsonHandler>(p_id,
                                                             g_json_options,
-                                                            std::move(config),
+                                                            create_json_pointer_config(),
                                                             metrics_count);
     }
   }

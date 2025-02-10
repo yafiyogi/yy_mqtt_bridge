@@ -132,9 +132,11 @@ LabelActions configure_metric_label_actions(const YAML::Node & yaml_label_action
 
         if(!target.empty())
         {
-          auto topics = configure_label_action_replace_path(yaml_label_action["replace"sv]);
+          auto create_topics = [&yaml_label_action]() {
+            return configure_label_action_replace_path(yaml_label_action["replace"sv]);
+          };
 
-          action = yy_util::static_unique_cast<LabelAction>(std::make_unique<ReplacePathLabelAction>(std::string{target}, std::move(topics)));
+          action = yy_util::static_unique_cast<LabelAction>(std::make_unique<ReplacePathLabelAction>(std::string{target}, create_topics()));
         }
       }
       break;
@@ -216,12 +218,12 @@ ValueActions configure_metric_value_actions(const YAML::Node & yaml_value_action
                 if(auto & yaml_output = yaml_case["output"sv];
                    yaml_output)
                 {
-                  auto input{yaml_get_value<std::string>(yaml_input)};
-                  auto output{yaml_get_value<std::string>(yaml_output)};
+                  auto input{yaml_get_value<std::string_view>(yaml_input)};
+                  auto output{yaml_get_value<std::string_view>(yaml_output)};
 
                   spdlog::info("         - input: [{}] output: [{}]", input, output);
-                  switch_values.emplace(std::move(input),
-                                        std::move(output));
+                  switch_values.emplace(std::string{input},
+                                        std::string{output});
                 }
               }
             }
@@ -312,16 +314,21 @@ MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics,
             spdlog::info("     - value [{}]."sv, property_name.value());
             spdlog::trace("        [line {}]."sv, yaml_property.Mark().line + 1);
 
-            LabelActions label_actions{configure_metric_label_actions(yaml_handler["label_actions"sv])};
-            ValueActions value_actions{configure_metric_value_actions(yaml_handler["value_actions"sv])};
+            auto create_label_actions = [&yaml_handler]() {
+              return configure_metric_label_actions(yaml_handler["label_actions"sv]);
+            };
+
+            auto create_value_actions = [&yaml_handler]() {
+              return configure_metric_value_actions(yaml_handler["value_actions"sv]);
+            };
 
             auto metric{std::make_shared<Metric>(metric_id,
                                                  type,
                                                  unit,
                                                  timestamp,
                                                  std::string{property_name.value()},
-                                                 std::move(label_actions),
-                                                 std::move(value_actions))};
+                                                 create_label_actions(),
+                                                 create_value_actions())};
 
             spdlog::info("     - add metric [{}] to handler [{}] property [{}]."sv,
                          metric->Id(),
