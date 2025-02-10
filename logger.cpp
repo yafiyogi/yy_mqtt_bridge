@@ -48,13 +48,14 @@ static std::string g_std_err_str{g_std_err};
 static std::string g_logger_name{g_std_err};
 static logger_ptr g_logger = spdlog::stderr_color_mt(g_logger_name);
 
-void set_g_logger(logger_ptr log)
+logger_ptr set_g_logger(logger_ptr log)
 {
   std::unique_lock lck{g_logger_mtx};
 
-  auto old_logger = g_logger;
+  auto old_logger{g_logger};
 
   g_logger = log;
+
   spdlog::flush_every(std::chrono::seconds(5));
   spdlog::set_default_logger(g_logger);
 
@@ -62,19 +63,21 @@ void set_g_logger(logger_ptr log)
   {
     spdlog::drop(old_logger->name());
   }
+
+  return log;
 }
 
 } // anonymous namespace
 
-void set_logger(std::string_view file_path)
+logger_ptr set_logger(std::string_view file_path)
 {
-  set_g_logger(spdlog::daily_logger_mt(g_log_name.data(), file_path.data(), 0, 0));
+  return set_g_logger(spdlog::daily_logger_mt(g_log_name.data(), file_path.data(), 0, 0));
 }
 
-void set_logger()
+logger_ptr set_logger()
 {
   stop_log();
-  set_logger(g_default_file_path);
+  return set_logger(g_default_file_path);
 }
 
 void set_console_logger()

@@ -35,8 +35,8 @@ namespace yafiyogi::mqtt_bridge {
 
 constexpr std::string_view g_default_file_path{"./mqtt_bridge.log"};
 
-void set_logger(std::string_view file_path);
-void set_logger();
+logger_ptr set_logger(std::string_view file_path);
+logger_ptr set_logger();
 void set_console_logger();
 logger_ptr get_log();
 void stop_log();
