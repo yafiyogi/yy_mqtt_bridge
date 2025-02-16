@@ -107,7 +107,7 @@ mqtt_topics configure_mqtt_topics(const YAML::Node & yaml_topics,
           if(auto [pos, found] = yy_data::find_iter_pos(subscriptions, filter);
              !found)
           {
-            subscriptions.emplace(subscriptions.begin() + static_cast<ssize_type>(pos), std::string{filter});
+            subscriptions.emplace(subscriptions.begin() + pos, std::string{filter});
           }
         }
       }
