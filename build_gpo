@@ -20,6 +20,10 @@ echo "\nyy_json"
 cd ../yy_json
 git pull origin
 
+echo "\nyy_maths"
+cd ../yy_maths
+git pull origin
+
 echo "\nyy_mqtt"
 cd ../yy_mqtt
 git pull origin
