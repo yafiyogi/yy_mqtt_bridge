@@ -84,16 +84,19 @@ add_executable(mqtt_bridge
 
 target_compile_options(mqtt_bridge
   PRIVATE
-  "-DSPDLOG_COMPILED_LIB"
-  "-DSPDLOG_FMT_EXTERNAL")
+    "-DSPDLOG_COMPILED_LIB"
+    "-DSPDLOG_FMT_EXTERNAL")
+
+target_include_directories(mqtt_bridge
+  PRIVATE
+    "${CMAKE_INSTALL_PREFIX}/include" )
 
 target_include_directories(mqtt_bridge
   SYSTEM PRIVATE
-    "${CMAKE_INSTALL_PREFIX}/include"
-    "${YY_THIRD_PARTY_LIBRARY}/include")
+    "${YY_THIRD_PARTY_LIBRARY}/include" )
 
 target_link_directories(mqtt_bridge
-  PUBLIC
+  PRIVATE
     "${CMAKE_INSTALL_PREFIX}/lib"
     "${YY_THIRD_PARTY_LIBRARY}/libressl/lib"
     "${YY_THIRD_PARTY_LIBRARY}/lib" )
