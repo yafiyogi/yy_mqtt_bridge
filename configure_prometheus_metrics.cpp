@@ -28,7 +28,6 @@
 #include <string_view>
 
 #include "spdlog/spdlog.h"
-#include "yaml-cpp/yaml.h"
 
 #include "yy_cpp/yy_flat_set.h"
 #include "yy_cpp/yy_make_lookup.h"
@@ -37,18 +36,17 @@
 #include "yy_cpp/yy_type_traits.h"
 #include "yy_cpp/yy_utility.h"
 #include "yy_cpp/yy_vector_util.h"
+#include "yy_cpp/yy_yaml_util.h"
 
 #include "yy_prometheus/yy_prometheus_configure.h"
 
 #include "configure_label_actions.h"
 #include "configure_prometheus_metrics.h"
-//#include "configure_value_actions.h"
 #include "label_action.h"
 #include "label_action_replace_path.h"
 #include "mqtt_handler.h"
 #include "prometheus_config.h"
 #include "prometheus_metric.h"
-#include "yaml_util.h"
 
 #include "label_action_copy.h"
 #include "label_action_drop.h"
@@ -86,7 +84,7 @@ LabelActions configure_metric_label_actions(const YAML::Node & yaml_label_action
 
   for(const auto & yaml_label_action : yaml_label_actions)
   {
-    auto action_name{yy_util::to_lower(yy_util::trim(yaml_get_value<std::string_view>(yaml_label_action["action"sv])))};
+    auto action_name{yy_util::to_lower(yy_util::trim(yy_util::yaml_get_value<std::string_view>(yaml_label_action["action"sv])))};
     LabelActionPtr action;
 
     spdlog::info("       - action [{}]."sv, action_name);
@@ -95,8 +93,8 @@ LabelActions configure_metric_label_actions(const YAML::Node & yaml_label_action
     {
       case LabelActionType::Copy:
       {
-        std::string_view source{yy_util::trim(yaml_get_value<std::string_view>(yaml_label_action["source"sv]))};
-        std::string_view target{yy_util::trim(yaml_get_value<std::string_view>(yaml_label_action["target"sv]))};
+        std::string_view source{yy_util::trim(yy_util::yaml_get_value<std::string_view>(yaml_label_action["source"sv]))};
+        std::string_view target{yy_util::trim(yy_util::yaml_get_value<std::string_view>(yaml_label_action["target"sv]))};
         if(!source.empty()
            || !target.empty())
         {
@@ -108,7 +106,7 @@ LabelActions configure_metric_label_actions(const YAML::Node & yaml_label_action
 
       case LabelActionType::Drop:
       {
-        std::string_view target{yy_util::trim(yaml_get_value<std::string_view>(yaml_label_action["target"sv]))};
+        std::string_view target{yy_util::trim(yy_util::yaml_get_value<std::string_view>(yaml_label_action["target"sv]))};
         if(!target.empty())
         {
           action = yy_util::static_unique_cast<LabelAction>(std::make_unique<DropLabelAction>(std::string{target}));
@@ -118,7 +116,7 @@ LabelActions configure_metric_label_actions(const YAML::Node & yaml_label_action
 
       case LabelActionType::Keep:
       {
-        std::string_view target{yy_util::trim(yaml_get_value<std::string_view>(yaml_label_action["target"sv]))};
+        std::string_view target{yy_util::trim(yy_util::yaml_get_value<std::string_view>(yaml_label_action["target"sv]))};
         if(!target.empty())
         {
           action = yy_util::static_unique_cast<LabelAction>(std::make_unique<KeepLabelAction>(std::string{target}));
@@ -128,7 +126,7 @@ LabelActions configure_metric_label_actions(const YAML::Node & yaml_label_action
 
       case LabelActionType::ReplacePath:
       {
-        std::string_view target{yy_util::trim(yaml_get_value<std::string_view>(yaml_label_action["target"sv]))};
+        std::string_view target{yy_util::trim(yy_util::yaml_get_value<std::string_view>(yaml_label_action["target"sv]))};
 
         if(!target.empty())
         {
@@ -168,7 +166,7 @@ ValueActions configure_metric_value_actions(const YAML::Node & yaml_value_action
 
   for(const auto & yaml_value_action : yaml_value_actions)
   {
-    auto action_name{yy_util::to_lower(yy_util::trim(yaml_get_value<std::string_view>(yaml_value_action["action"sv])))};
+    auto action_name{yy_util::to_lower(yy_util::trim(yy_util::yaml_get_value<std::string_view>(yaml_value_action["action"sv])))};
     ValueActionPtr action;
 
     spdlog::info("       - action [{}]."sv, action_name);
@@ -197,14 +195,14 @@ ValueActions configure_metric_value_actions(const YAML::Node & yaml_value_action
 
           for(auto & yaml_case : yaml_values)
           {
-            if(!yaml_is_scalar(yaml_case))
+            if(!yy_util::yaml_is_scalar(yaml_case))
             {
               if(!default_value.has_value())
               {
                 if(auto & yaml_default = yaml_case["default"sv];
                    yaml_default)
                 {
-                  default_value = yaml_get_optional_value<std::string>(yaml_default);
+                  default_value = yy_util::yaml_get_optional_value<std::string>(yaml_default);
                   if(default_value.has_value())
                   {
                     spdlog::info("         - default: [{}]", default_value.value());
@@ -218,8 +216,8 @@ ValueActions configure_metric_value_actions(const YAML::Node & yaml_value_action
                 if(auto & yaml_output = yaml_case["output"sv];
                    yaml_output)
                 {
-                  auto input{yaml_get_value<std::string_view>(yaml_input)};
-                  auto output{yaml_get_value<std::string_view>(yaml_output)};
+                  auto input{yy_util::yaml_get_value<std::string_view>(yaml_input)};
+                  auto output{yy_util::yaml_get_value<std::string_view>(yaml_output)};
 
                   spdlog::info("         - input: [{}] output: [{}]", input, output);
                   switch_values.emplace(std::string{input},
@@ -240,7 +238,7 @@ ValueActions configure_metric_value_actions(const YAML::Node & yaml_value_action
       break;
 
       default:
-          spdlog::debug("configure_metric_value_actions(): 4c");
+        spdlog::debug("configure_metric_value_actions(): 4c");
         spdlog::warn("Unrecognized action [{}]"sv, action_name);
         spdlog::trace("  [line {}]."sv, yaml_value_action.Mark().line + 1);
         break;
@@ -290,23 +288,23 @@ MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics,
                    metric_id);
       spdlog::trace("  [line {}]."sv,
                     yaml_metric.Mark().line + 1);
-      auto type{yy_prometheus::decode_metric_type_name(yaml_get_optional_value<std::string_view>(yaml_metric["type"sv]))};
-      auto unit{yy_prometheus::decode_metric_unit_name(yaml_get_optional_value<std::string_view>(yaml_metric["unit"sv]))};
+      auto type{yy_prometheus::decode_metric_type_name(yy_util::yaml_get_optional_value<std::string_view>(yaml_metric["type"sv]))};
+      auto unit{yy_prometheus::decode_metric_unit_name(yy_util::yaml_get_optional_value<std::string_view>(yaml_metric["unit"sv]))};
 
       for(const auto & yaml_handler : yaml_handlers)
       {
-        std::string_view handler_id{yy_util::trim(yaml_get_value<std::string_view>(yaml_handler["handler_id"sv]))};
+        std::string_view handler_id{yy_util::trim(yy_util::yaml_get_value<std::string_view>(yaml_handler["handler_id"sv]))};
         spdlog::info("   handler [{}]:"sv, handler_id);
         spdlog::trace("    [line {}]."sv, yaml_handler.Mark().line + 1);
 
-        auto timestamp{decode_metric_timestamp(yaml_get_value<std::string_view>(yaml_handler["timestamp"sv], ""sv),
+        auto timestamp{decode_metric_timestamp(yy_util::yaml_get_value<std::string_view>(yaml_handler["timestamp"sv], ""sv),
                                                p_default_timestamp)};
         const auto & yaml_property = yaml_handler["property"sv];
 
         if(auto [ignore, emplaced] = handlers.emplace(handler_id);
            emplaced)
         {
-          auto property_name{yaml_get_optional_value<std::string_view>(yaml_property)};
+          auto property_name{yy_util::yaml_get_optional_value<std::string_view>(yaml_property)};
 
           if(property_name.has_value()
              && !property_name.value().empty())

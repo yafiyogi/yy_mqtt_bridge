@@ -35,9 +35,9 @@
 #include "mosquittopp.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/daily_file_sink.h"
-#include "yaml-cpp/yaml.h"
 
 #include "yy_cpp/yy_locale.h"
+#include "yy_cpp/yy_yaml_util.h"
 
 #include "yy_prometheus/yy_prometheus_cache.h"
 

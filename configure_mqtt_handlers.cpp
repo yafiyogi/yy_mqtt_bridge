@@ -30,18 +30,17 @@
 #include "fmt/format.h"
 #include "fmt/compile.h"
 #include "spdlog/spdlog.h"
-#include "yaml-cpp/yaml.h"
 
 #include "yy_cpp/yy_flat_set.h"
 #include "yy_cpp/yy_make_lookup.h"
 #include "yy_cpp/yy_string_case.h"
 #include "yy_cpp/yy_string_util.h"
+#include "yy_cpp/yy_yaml_util.h"
 
 #include "mqtt_handler.h"
 #include "mqtt_handler_json.h"
 #include "mqtt_handler_value.h"
 #include "prometheus_config.h"
-#include "yaml_util.h"
 
 #include "configure_mqtt_handlers.h"
 
@@ -63,7 +62,7 @@ constexpr auto handler_types =
 MqttHandler::type decode_type(const YAML::Node & yaml_type)
 {
 
-  std::string type_name = yy_util::to_lower(yy_util::trim(yaml_get_value<std::string_view>(yaml_type)));
+  std::string type_name = yy_util::to_lower(yy_util::trim(yy_util::yaml_get_value<std::string_view>(yaml_type)));
 
   return handler_types.lookup(type_name);
 }

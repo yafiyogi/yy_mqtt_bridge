@@ -28,11 +28,11 @@
 #include <string_view>
 
 #include "spdlog/spdlog.h"
-#include "yaml-cpp/yaml.h"
 
 #include "yy_cpp/yy_string_util.h"
 #include "yy_cpp/yy_string_case.h"
 #include "yy_cpp/yy_utility.h"
+#include "yy_cpp/yy_yaml_util.h"
 
 #include "yy_prometheus/yy_prometheus_style.h"
 #include "yy_prometheus/yy_prometheus_defaults.h"
@@ -42,7 +42,6 @@
 #include "configure_prometheus.h"
 #include "configure_prometheus_metrics.h"
 #include "prometheus_config.h"
-#include "yaml_util.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
 
@@ -50,8 +49,8 @@ using namespace std::string_view_literals;
 
 config configure_prometheus(const YAML::Node & yaml_prometheus)
 {
-  auto uri{yaml_get_value(yaml_prometheus["exporter_uri"sv],
-                           yy_prometheus::prometheus_default_uri_path)};
+  auto uri{yy_util::yaml_get_value(yaml_prometheus["exporter_uri"sv],
+                                   yy_prometheus::prometheus_default_uri_path)};
   spdlog::info(" Prometheus URI  [{}]"sv, uri);
 
   auto create_options = [&yaml_prometheus]() {
@@ -64,8 +63,8 @@ config configure_prometheus(const YAML::Node & yaml_prometheus)
     options.Add(yy_web::WebServer::enable_keep_alive, yy_web::WebServer::civetweb_options_yes);
     options.Add(yy_web::WebServer::keep_alive_timeout_ms, "30000"sv);
 
-    auto port{yaml_get_value(yaml_prometheus["exporter_port"sv],
-                             yy_prometheus::prometheus_default_port)};
+    auto port{yy_util::yaml_get_value(yaml_prometheus["exporter_port"sv],
+                                      yy_prometheus::prometheus_default_port)};
     options.Add(yy_web::WebServer::listening_ports, port);
     spdlog::info(" Prometheus Port [{}]"sv, port);
 
@@ -74,13 +73,13 @@ config configure_prometheus(const YAML::Node & yaml_prometheus)
     return options;
   };
 
-  std::string metric_style{yy_util::to_lower(yy_util::trim(yaml_get_value(yaml_prometheus["metric_style"sv],
-                                                                          yy_prometheus::style_prometheus)))};
+  std::string metric_style{yy_util::to_lower(yy_util::trim(yy_util::yaml_get_value(yaml_prometheus["metric_style"sv],
+                                                                                   yy_prometheus::style_prometheus)))};
 
   yy_prometheus::set_metric_style(metric_style);
 
   auto create_metrics = [&yaml_prometheus]() {
-    auto default_timestamp{decode_metric_timestamp(yaml_get_value(yaml_prometheus["timestamps"sv], ""sv))};
+    auto default_timestamp{decode_metric_timestamp(yy_util::yaml_get_value(yaml_prometheus["timestamps"sv], ""sv))};
 
     return configure_prometheus_metrics(yaml_prometheus["metrics"sv], default_timestamp);
   };

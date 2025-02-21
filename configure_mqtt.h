@@ -28,7 +28,7 @@
 
 #include "yy_mqtt/yy_mqtt_constants.h"
 
-#include "yaml_fwd.h"
+#include "yy_tp_util/yaml_fwd.h"
 
 #include "mqtt_topics.h"
 #include "prometheus_config_fwd.h"
