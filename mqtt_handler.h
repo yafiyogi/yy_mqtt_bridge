@@ -68,7 +68,7 @@ class MqttHandler
         p_other.m_type = type::Text;
       }
 
-    return *this;
+      return *this;
     }
 
     [[nodiscard]]

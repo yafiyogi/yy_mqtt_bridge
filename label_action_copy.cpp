@@ -42,7 +42,7 @@ void CopyLabelAction::Apply(const yy_prometheus::Labels & labels,
                             const yy_mqtt::TopicLevelsView & /* p_levels */,
                             yy_prometheus::Labels & metric_labels) noexcept
 {
-  auto do_copy_label = [this, &metric_labels](const std::string * label_value, auto) {
+  auto do_copy_label = [this, &metric_labels](auto label_value, auto) {
     metric_labels.set_label(m_label_target, *label_value);
   };
 

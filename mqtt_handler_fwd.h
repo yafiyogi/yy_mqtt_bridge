@@ -29,6 +29,7 @@
 #include <memory>
 #include <string>
 
+#include "yy_cpp/yy_observer_ptr.hpp"
 #include "yy_cpp/yy_vector.h"
 #include "yy_cpp/yy_flat_map.h"
 
@@ -37,6 +38,6 @@ namespace yafiyogi::mqtt_bridge {
 class MqttHandler;
 using MqttHandlerPtr = std::unique_ptr<MqttHandler>;
 using MqttHandlerStore = yy_data::flat_map<std::string, MqttHandlerPtr>;
-using MqttHandlerList = yy_quad::simple_vector<MqttHandler *>;
+using MqttHandlerList = yy_quad::simple_vector<yy_data::observer_ptr<MqttHandler>>;
 
 } //namespace yafiyogi::mqtt_bridge

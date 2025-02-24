@@ -47,7 +47,7 @@ void FormatLevel::operator()(const yy_mqtt::TopicLevelsView & p_path,
 }
 
 void FormatPrefix::operator()(const yy_mqtt::TopicLevelsView & /* p_path */,
-                             std::string & p_label_value) const noexcept
+                              std::string & p_label_value) const noexcept
 {
   p_label_value.reserve(p_label_value.size() + m_prefix.size());
   p_label_value.append(m_prefix);

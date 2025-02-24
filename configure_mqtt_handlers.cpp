@@ -81,7 +81,7 @@ MqttHandlerPtr configure_json_handler(std::string_view p_id,
     std::string_view property{};
 
     auto do_add_property = [&property, &json_pointer, &json_pointer_builder, &metrics_count]
-                           (prometheus::Metrics * visitor_prometheus_metrics, auto /* pos */) {
+                           (auto visitor_prometheus_metrics, auto /* pos */) {
       if(nullptr != visitor_prometheus_metrics)
       {
         auto [builder_metrics, added] = json_pointer_builder.add_pointer(json_pointer,
@@ -167,7 +167,7 @@ MqttHandlerPtr configure_value_handler(std::string_view p_id,
 {
   prometheus::Metrics handler_metrics{} ;
   auto do_add_property = [&handler_metrics]
-                         (prometheus::Metrics * visitor_prometheus_metrics, auto /* pos */) {
+                         (auto visitor_prometheus_metrics, auto /* pos */) {
     if(nullptr != visitor_prometheus_metrics)
     {
       handler_metrics.reserve(visitor_prometheus_metrics->size());

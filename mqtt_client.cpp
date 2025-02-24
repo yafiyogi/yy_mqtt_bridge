@@ -123,7 +123,7 @@ void mqtt_client::on_message(const struct mosquitto_message * message)
       const std::string_view data{static_cast<std::string_view::value_type *>(message->payload),
                                   static_cast<std::string_view::size_type>(message->payloadlen)};
 
-      for(const auto & handlers : payloads)
+      for(auto & handlers : payloads)
       {
         for(auto & handler : *handlers)
         {

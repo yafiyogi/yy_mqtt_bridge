@@ -35,7 +35,7 @@ namespace yafiyogi::mqtt_bridge {
 void SwitchValueAction::Apply(yy_prometheus::MetricData & p_metric_data,
                               ValueType /* p_value_type */) noexcept
 {
-  auto do_switch = [&p_metric_data](const std::string * value, auto) {
+  auto do_switch = [&p_metric_data](auto value, auto) {
     p_metric_data.Value(*value);
   };
 
