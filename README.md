@@ -43,7 +43,7 @@ These commands are run in the source directory.
 ## Build mqtt_bridge only
 These commands are run in the build-dir directory
 ### Initial Build
-<code>cmake --fresh -DCMAKE_INSTALL_PREFIX=${HOME}/<your path here> -DYY_THIRD_PARTY_LIBRARY=${HOME}/<third party includes path> -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE -DCMAKE_BUILD_TYPE=Release ..</code>
+<code>cmake --fresh -DCMAKE_INSTALL_PREFIX=${HOME}/\<your path here\> -DYY_THIRD_PARTY_LIBRARY=${HOME}/\<third party includes path\> -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE -DCMAKE_BUILD_TYPE=Release ..</code>
 ### Rebuild
 <code>make all</code>
 ### Clean
