@@ -141,7 +141,6 @@ class MqttJsonHandler final:
       public MqttHandler
 {
   public:
-    using size_type = std::size_t;
     using builder_type = yy_json::json_pointer_builder<prometheus::Metrics, json_handler_detail::JsonVisitor>;
     using handler_type = builder_type::handler_type;
     using handler_config_type = handler_type::pointers_config_type;
