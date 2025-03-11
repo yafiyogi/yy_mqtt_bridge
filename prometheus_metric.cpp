@@ -80,12 +80,13 @@ void Metric::Event(std::string_view p_value,
                 p_value);
 
   m_metric_data.Value(p_value);
-  m_metric_data.Labels(p_labels);
   m_metric_data.Timestamp(p_timestamp);
 
-  for(const auto & action : m_label_actions)
+
+  for(auto & l_labels = m_metric_data.Labels();
+      const auto & action : m_label_actions)
   {
-    action->Apply(p_labels, p_levels, m_metric_data.Labels());
+    action->Apply(p_labels, p_levels, l_labels);
   }
 
   for(const auto & action : m_value_actions)
