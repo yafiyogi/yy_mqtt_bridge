@@ -47,11 +47,11 @@ ReplacePathLabelAction::ReplacePathLabelAction(std::string && p_label_name,
 {
 }
 
-void ReplacePathLabelAction::Apply(const yy_prometheus::Labels & /* labels */,
+void ReplacePathLabelAction::Apply(const yy_prometheus::Labels & p_labels,
                                    const yy_mqtt::TopicLevelsView & p_levels,
-                                   yy_prometheus::Labels & metric_labels) noexcept
+                                   yy_prometheus::Labels & p_metric_labels) noexcept
 {
-  if(auto payloads = m_topics.find(metric_labels.get_label(yy_prometheus::g_label_topic));
+  if(auto payloads = m_topics.find(p_labels.get_label(yy_prometheus::g_label_topic));
      !payloads.empty())
   {
     for(const auto & replacements : payloads)
@@ -70,7 +70,7 @@ void ReplacePathLabelAction::Apply(const yy_prometheus::Labels & /* labels */,
                      fmt_elem);
         }
 
-        metric_labels.set_label(m_label_name, m_label_value);
+        p_metric_labels.set_label(m_label_name, m_label_value);
       }
     }
   }

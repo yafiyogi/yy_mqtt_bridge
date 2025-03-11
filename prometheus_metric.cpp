@@ -82,9 +82,10 @@ void Metric::Event(std::string_view p_value,
   m_metric_data.Value(p_value);
   m_metric_data.Timestamp(p_timestamp);
 
+  auto & l_labels = m_metric_data.Labels();
+  l_labels.clear();
 
-  for(auto & l_labels = m_metric_data.Labels();
-      const auto & action : m_label_actions)
+  for(const auto & action : m_label_actions)
   {
     action->Apply(p_labels, p_levels, l_labels);
   }
