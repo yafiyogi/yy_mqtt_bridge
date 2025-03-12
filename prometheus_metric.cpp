@@ -83,7 +83,7 @@ void Metric::Event(std::string_view p_value,
   m_metric_data.Timestamp(p_timestamp);
 
   auto & l_labels = m_metric_data.Labels();
-  l_labels.clear();
+  l_labels.clear(yy_data::ClearAction::Keep);
 
   for(const auto & action : m_label_actions)
   {
