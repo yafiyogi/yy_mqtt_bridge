@@ -1,0 +1,411 @@
+mqtt_bridge:
+  logging:
+    filename: ./mqtt_bridge.log
+    level: debug
+
+mqtt:
+  host: '<your mqtt server host>'
+  port: <your mqtt server port>
+
+  # The 'handlers' section describes how a MQTT message is
+  # handled.
+  # The two types are
+  # - 'json'  : a JSON value.
+  # - 'value; : one value.
+  # No conversion from text is done.
+  handlers:
+    - id: 'air-quality'
+      type: 'json'
+      properties:
+        [pm25, voc_index]
+
+    - id: 'atmos-sensor'
+      type: 'json'
+      properties:
+        # Expect json looking like:
+        # {
+        #   "battery" : 50,
+        #   "pressure" : 1000.1,
+        #   "temperature" : 15.5,
+        #   "humidity" : 60
+        # }
+
+        # There are two ways to configure properties.
+        # 1) A seqence of property names: [temperature, humidity, pressure, battery]
+        #    These names are the expected JSON property and the property ids used by the metrics.
+        # 2) A map of json pointers and property id used by the metrics:
+        #    {
+        #      '/readings/temperature':'temperature',
+        #      '/readings/humidity':'humidity',
+        #      '/readings/pressure':'pressure'
+        #    }
+
+        # See https://json.nlohmann.me/features/json_pointer/ for json pointer examples.
+
+        # N.B. if a property is not in the json, no metric is created.
+        [temperature, humidity, pressure, battery]
+
+    - id: 'availability'
+      type: 'json'
+      properties:
+        # Expect json looking like:
+        # {
+        #   "state" : "online",
+        # }
+        # A metric named 'availability' is created.
+        { 'state', availability}
+
+    - id: 'plug'
+      type: 'json'
+      properties:
+        [current, energy, power, state, voltage]
+
+    - id: 'switch'
+      type: 'json'
+      properties:
+        [battery]
+
+    - id: 'temp-sensor-only'
+      type: 'value'
+      # A non-json data metric is expected.
+
+    - id: 'trv'
+      type: 'json'
+      properties:
+        {'battery': battery,
+         'local_temperature': temperature,
+         'local_temperature_calibration': temperature_calibration,
+         'current_heating_setpoint': heating_setpoint,
+         'position': position,
+         'valve_state': valve_state}
+
+    # The 'topics' section is where the MQTT subscriptions are defined.
+    # 'subscriptions' allows multiple topics with wildcards ('+' & '#' ).
+    # 'handlers' allows multiple handlers (see above) to process the subscriptions.
+    topics:
+    - id: AirQuality
+      subscriptions:
+        - 'home/+/AirQM'
+      handlers:
+        [air-quality]
+
+    - id: Atmospheric
+      subscriptions:
+        - 'home/+/Temp'
+      handlers:
+        [atmos-sensor]
+
+    - id: Availability
+      subscriptions:
+        - 'home/+/+/availability'
+        - 'home/+/+/+/availability'
+      type: 'json'
+      handlers:
+        [availability]
+
+    - id: Plug
+      subscriptions:
+        - 'home/+/Plug/+'
+      handlers:
+        [plug]
+
+    - id: Switch
+      subscriptions:
+        - 'home/+/Switch/+'
+      handlers:
+        [switch]
+
+    - id: TempOnly
+      subscriptions:
+        - 'home/+/Temp/temperature'
+      handlers:
+        [temp-sensor-only]
+
+    - id: TRV
+      subscriptions:
+        - 'home/+/TRV'
+      handlers:
+        [trv]
+
+prometheus:
+  exporter_port: 9100
+  exporter_uri: '/metrics$'
+  style: prometheus
+  timestamps: off
+
+  # Metrics are what are published for Prometheus.
+  # - 'metric' is the published metric name.
+  # - 'handlers' These are the handlers from the above handlers section.
+  #   - 'handler_id': identifies the handler in the above handlers section.
+  #   - 'property': identifies which value is published.
+  #   - 'value_actions': value manipulations performed before publishing.
+  #     Without any actions, the value from handler are published.
+  #     - 'switch'
+  #       - 'default': if no match is found this value is used.
+  #       - 'mappings': is a map of expected values and published values
+  metrics:
+    - metric: 'Availability'
+      type: 'gauge'
+      handlers:
+        - handler_id: 'availability'
+          property: 'availability'
+          value_actions:
+            - action: 'switch'
+              default: 0
+              mappings: { 'online': 1}
+
+          label_actions:
+            - action: 'replace-path'
+              target: 'location'
+              replace:
+                - { 'pattern': 'home/+/+/availability', 'format':'\2:\3'}
+                - { 'pattern': 'home/+/+/+/availability', 'format':'\2:\3:\4'}
+
+            - action: 'keep'
+              target: 'topic'
+
+    - metric: 'Battery'
+      type: 'gauge'
+      handlers:
+        - handler_id: 'atmos-sensor'
+          property: 'battery'
+          label_actions:
+            - action: 'replace-path'
+              target: 'location'
+              replace:
+                - '\2:\3'
+
+            - action: 'keep'
+              target: 'topic'
+
+        - handler_id: 'trv'
+          property: 'battery'
+          label_actions:
+            - action: 'replace-path'
+              target: 'location'
+              replace:
+                - '\2:\3'
+
+            - action: 'keep'
+              target: 'topic'
+
+        - handler_id: 'switch'
+          property: 'battery'
+          label_actions:
+            - action: 'replace-path'
+              target: 'location'
+              replace:
+                - '\2:\3:\4'
+
+            - action: 'keep'
+              target: 'topic'
+
+    - metric: 'Humidity'
+      type: 'gauge'
+      handlers:
+        - handler_id: 'atmos-sensor'
+          property: 'humidity'
+          label_actions:
+            - action: 'replace-path'
+              target: 'location'
+              replace:
+                - '\2'
+
+            - action: 'keep'
+              target: 'topic'
+
+    - metric: 'Pressure'
+      type: 'gauge'
+      handlers:
+        - handler_id: 'atmos-sensor'
+          property: 'pressure'
+          label_actions:
+            - action: 'replace-path'
+              target: 'location'
+              replace:
+                - '\2'
+
+            - action: 'keep'
+              target: 'topic'
+
+    - metric: Particulates
+      type: 'gauge'
+      handlers:
+        - handler_id: 'air-quality'
+          property: 'pm25'
+          label_actions:
+            - action: 'replace-path'
+              target: 'location'
+              replace:
+                - '\2'
+
+            - action: 'keep'
+              target: 'topic'
+
+    - metric: Plug
+      type: 'gauge'
+      handlers:
+        - handler_id: 'plug'
+          property: 'state'
+          value_actions:
+            - action: 'switch'
+              values:
+              default: 0
+              mappings: { 'ON': 1}
+
+          label_actions:
+            - action: 'replace-path'
+              target: 'location'
+              replace:
+                - '\2:\4'
+
+            - action: 'keep'
+              target: 'topic'
+
+    - metric: PlugCurrent
+      type: 'gauge'
+      handlers:
+        - handler_id: 'plug'
+          property: 'current'
+          label_actions:
+            - action: 'replace-path'
+              target: 'location'
+              replace:
+                - '\2:\4'
+
+            - action: 'keep'
+              target: 'topic'
+
+    - metric: PlugPower
+      type: 'gauge'
+      handlers:
+        - handler_id: 'plug'
+          property: 'power'
+          label_actions:
+            - action: 'replace-path'
+              target: 'location'
+              replace:
+                - '\2:\4'
+
+            - action: 'keep'
+              target: 'topic'
+
+    - metric: PlugVoltage
+      type: 'gauge'
+      handlers:
+        - handler_id: 'plug'
+          property: 'voltage'
+          label_actions:
+            - action: 'replace-path'
+              target: 'location'
+              replace:
+                - '\2:\4'
+
+            - action: 'keep'
+              target: 'topic'
+
+    - metric: 'Temperature'
+      type: 'gauge'
+      handlers:
+        - handler_id: 'atmos-sensor'
+          property: 'temperature'
+          label_actions:
+            - action: 'replace-path'
+              target: 'location'
+              replace:
+                - '\2'
+
+            - action: 'keep'
+              target: 'topic'
+
+    - metric: 'TRV_calibration'
+      type: 'gauge'
+      handlers:
+        - handler_id: 'trv'
+          property: 'temperature_calibration'
+          label_actions:
+            - action: 'replace-path'
+              target: 'location'
+              replace:
+                - '\2'
+
+            - action: 'keep'
+              target: 'topic'
+
+    - metric: 'TRV_position'
+      type: 'gauge'
+      handlers:
+        - handler_id: 'trv'
+          property: 'position'
+          label_actions:
+            - action: 'replace-path'
+              target: 'location'
+              replace:
+                - '\2'
+
+            - action: 'keep'
+              target: 'topic'
+
+    - metric: 'TRV_setpoint'
+      type: 'gauge'
+      handlers:
+        - handler_id: 'trv'
+          property: 'heating_setpoint'
+          label_actions:
+            - action: 'replace-path'
+              target: 'location'
+              replace:
+                - '\2'
+
+            - action: 'keep'
+              target: 'topic'
+
+    - metric: 'TRV_temperature'
+      type: 'gauge'
+      handlers:
+        - handler_id:  'trv'
+          property: 'temperature'
+          label_actions:
+            - action: 'replace-path'
+              target: 'location'
+              replace:
+                - '\2'
+
+            - action: 'keep'
+              target: 'topic'
+
+    - metric: 'TRV_valve'
+      type: 'gauge'
+      handlers:
+        - handler_id:  'trv'
+          property: 'valve_state'
+          label_actions:
+            - action: 'replace-path'
+              target: 'location'
+              replace:
+                - '\2'
+
+            - action: 'keep'
+              target: 'topic'
+
+          value_actions:
+            - action: 'switch'
+              default: 0
+              mappings: { 'OPEN': 1}
+
+            - action: 'keep'
+              target: 'topic'
+
+    - metric: VOCIndex
+      type: 'gauge'
+      handlers:
+        - handler_id: 'air-quality'
+          property: 'voc_index'
+          label_actions:
+            - action: 'replace-path'
+              target: 'location'
+              replace:
+                - '\2'
+
+            - action: 'keep'
+              target: 'topic'
