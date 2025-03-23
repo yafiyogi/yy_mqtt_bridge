@@ -7,6 +7,7 @@
 - yy_web
 
 ## 3rd Party Dependencies
+See [yafiyogi/Third-Party-Library-Build-Instructions.txt](https://gist.github.com/yafiyogi/8cc25cca91b6b38f50906ca8d5667bf2) for build instructions.
 - Boost
   - Json
   - locale requires:
