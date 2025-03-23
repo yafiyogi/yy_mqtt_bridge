@@ -83,7 +83,6 @@ class mqtt_client final:
   private:
     Topics m_topics{};
     Subscriptions m_subscriptions{};
-    std::string m_id{};
     std::string m_host{};
     int m_port = yy_mqtt::mqtt_default_port;
     std::atomic<bool> m_is_connected = false;

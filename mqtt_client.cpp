@@ -50,7 +50,6 @@ mqtt_client::mqtt_client(mqtt_config & p_config,
   mosqpp::mosquittopp(),
   m_topics(std::move(p_config.topics)),
   m_subscriptions(std::move(p_config.subscriptions)),
-  m_id(std::move(p_config.id)),
   m_host(std::move(p_config.host)),
   m_port(p_config.port),
   m_metric_cache(std::move(p_metric_cache))

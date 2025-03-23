@@ -62,8 +62,7 @@ mqtt_config configure_mqtt(const YAML::Node & yaml_mqtt,
 
   auto [subscriptions, topics] = configure_mqtt_topics(yaml_mqtt["topics"sv], handlers);
 
-  return mqtt_config{""s,
-                     std::string{host},
+  return mqtt_config{std::string{host},
                      port,
                      std::move(handlers),
                      std::move(subscriptions),
