@@ -18,10 +18,6 @@ echo "yy_json: cleaning"
 cd ../../yy_json/build
 ${YY_MAKE} clean || exit 1
 
-echo "yy_maths: cleaning"
-cd ../../yy_maths/build
-${YY_MAKE} clean || exit 1
-
 echo "yy_mqtt: cleaning"
 cd ../../yy_mqtt/build
 ${YY_MAKE} clean || exit 1
