@@ -133,7 +133,7 @@ prometheus:
   style: prometheus
   timestamps: off
 
-  # Metrics are what are published for Prometheus.
+  # Metrics are what is published for Prometheus.
   # - 'metric' is the published metric name.
   # - 'handlers' These are the handlers from the above handlers section.
   #   - 'handler_id': identifies the handler in the above handlers section.
