@@ -1,5 +1,6 @@
 #!/bin/sh
-YY_MAKE="nice $(which make) -j 4"
+
+. ./build_config
 
 build_type="$1"
 
