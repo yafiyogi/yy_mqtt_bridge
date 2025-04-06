@@ -22,6 +22,10 @@ echo "yy_mqtt: cleaning"
 cd ../../yy_mqtt/build
 ${YY_MAKE} clean || exit 1
 
+echo "\nyy_values"
+cd ../../yy_values/build
+${YY_MAKE} clean || exit 1
+
 echo "yy_prometheus: cleaning"
 cd ../../yy_prometheus/build
 ${YY_MAKE} clean || exit 1

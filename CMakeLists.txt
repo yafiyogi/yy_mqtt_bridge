@@ -52,6 +52,7 @@ find_package(yy_cpp REQUIRED)
 find_package(yy_json REQUIRED)
 find_package(yy_mqtt REQUIRED)
 find_package(yy_prometheus REQUIRED)
+find_package(yy_values REQUIRED)
 find_package(yy_web REQUIRED)
 
 pkg_check_modules(icu IMPORTED_TARGET icu-i18n icu-io icu-uc REQUIRED)
@@ -60,17 +61,12 @@ pkg_check_modules(Mosquitto_cpp IMPORTED_TARGET libmosquittopp_static REQUIRED)
 pkg_check_modules(ZLib IMPORTED_TARGET zlib REQUIRED)
 
 add_executable(mqtt_bridge
-  configure_label_actions.cpp
   configure_logging.cpp
   configure_mqtt.cpp
   configure_mqtt_handlers.cpp
   configure_mqtt_topics.cpp
   configure_prometheus.cpp
   configure_prometheus_metrics.cpp
-  label_action_copy.cpp
-  label_action_drop.cpp
-  label_action_keep.cpp
-  label_action_replace_path.cpp
   logger.cpp
   mqtt_client.cpp
   mqtt_handler.cpp
@@ -79,8 +75,6 @@ add_executable(mqtt_bridge
   prometheus_civetweb_handler.cpp
   prometheus_metric.cpp
   replacement_format.cpp
-  value_action_keep.cpp
-  value_action_switch.cpp
   yy_mqtt_bridge.cpp )
 
 target_compile_options(mqtt_bridge
@@ -110,6 +104,7 @@ endif()
 
 target_link_libraries(mqtt_bridge
     yy_web::yy_web
+    yy_values::yy_values
     yy_prometheus::yy_prometheus
     yy_json::yy_json
     yy_mqtt::yy_mqtt

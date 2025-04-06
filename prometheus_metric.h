@@ -37,9 +37,9 @@
 
 #include "yy_prometheus/yy_prometheus_metric_data.h"
 
-#include "label_action.h"
-#include "value_action.h"
-#include "value_type.h"
+#include "yy_values/yy_label_action.hpp"
+#include "yy_values/yy_value_action.hpp"
+#include "yy_values/yy_value_type.hpp"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
 
@@ -57,8 +57,8 @@ class Metric final
                     const MetricUnit p_unit,
                     const MetricTimestamp p_timestamp,
                     std::string && p_property,
-                    LabelActions && p_label_actions,
-                    ValueActions && p_value_actions);
+                    yy_values::LabelActions && p_label_actions,
+                    yy_values::ValueActions && p_value_actions);
 
     constexpr Metric() noexcept = default;
     constexpr Metric(const Metric &) noexcept = default;
@@ -77,17 +77,17 @@ class Metric final
     const std::string & Property() const noexcept;
 
     void Event(std::string_view p_value,
-               const yy_prometheus::Labels & p_labels,
+               const yy_values::Labels & p_labels,
                const yy_mqtt::TopicLevelsView & p_levels,
                MetricDataVector & p_metric_data,
-               const int64_t p_timestamp,
-               ValueType p_value_type);
+               const timestamp_type p_timestamp,
+               yy_values::ValueType p_value_type);
 
   private:
     std::string m_property{};
     MetricData m_metric_data{};
-    LabelActions m_label_actions{};
-    ValueActions m_value_actions{};
+    yy_values::LabelActions m_label_actions{};
+    yy_values::ValueActions m_value_actions{};
 };
 
 using MetricPtr = std::shared_ptr<Metric>;

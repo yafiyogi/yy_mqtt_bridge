@@ -30,10 +30,10 @@
 
 #include <string_view>
 
+#include "yy_cpp/yy_types.hpp"
 #include "yy_mqtt/yy_mqtt_types.h"
 
-#include "yy_prometheus/yy_prometheus_labels.h"
-#include "yy_prometheus/yy_prometheus_metric_data.h"
+#include "yy_values/yy_values_metric_data.hpp"
 
 #include "mqtt_handler_fwd.h"
 #include "prometheus_metric.h"
@@ -84,9 +84,9 @@ class MqttHandler
     }
 
     virtual yy_prometheus::MetricDataVector & Event(std::string_view p_data,
-                                                    const yy_prometheus::Labels & /* p_labels */,
+                                                    const yy_values::Labels & /* p_labels */,
                                                     const yy_mqtt::TopicLevelsView & /* p_levels */,
-                                                    const int64_t /* p_timestamp */) noexcept = 0;
+                                                    const timestamp_type /* p_timestamp */) noexcept = 0;
   private:
     std::string m_handler_id{};
     type m_type = type::Text;

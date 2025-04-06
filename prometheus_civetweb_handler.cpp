@@ -30,9 +30,10 @@
 #include "fmt/compile.h"
 #include "spdlog/spdlog.h"
 
+#include "yy_values/yy_values_labels.hpp"
+
 #include "yy_prometheus/yy_prometheus_configure.h"
 #include "yy_prometheus/yy_prometheus_metric_format.h"
-#include "yy_prometheus/yy_prometheus_labels.h"
 #include "yy_prometheus/yy_prometheus_cache.h"
 
 #include "prometheus_civetweb_handler.h"
@@ -62,41 +63,41 @@ bool PrometheusWebHandler::DoGet(struct mg_connection * conn,
   yy_prometheus::MetricUnit last_unit{yy_prometheus::MetricUnit::None};
 
   auto do_serialize_metrics = [this, &last_id, &last_help, &last_type, &last_unit]
-                              (const auto & metric) {
+                              (const auto & metric_data) {
     bool new_headers = false;
 
-    if(!last_id.has_value() || (last_id.value() != metric.Id()))
+    if(!last_id.has_value() || (last_id.value() != metric_data.Id().Name()))
     {
       new_headers = true;
-      last_id = metric.Id();
+      last_id = metric_data.Id().Name();
     }
 
-    if(last_type != metric.Type())
+    if(last_type != metric_data.MetricType())
     {
       new_headers = true;
-      last_type = metric.Type();
+      last_type = metric_data.MetricType();
     }
 
-    bool new_unit = last_unit != metric.Unit();
+    bool new_unit = last_unit != metric_data.Unit();
     if(new_unit)
     {
       new_headers = true;
-      last_unit = metric.Unit();
+      last_unit = metric_data.Unit();
     }
 
-    if(last_help != metric.Help())
+    if(last_help != metric_data.Help())
     {
       new_headers = true;
       new_unit = true;
-      last_help = metric.Help();
+      last_help = metric_data.Help();
     }
 
     if(new_headers)
     {
-      yy_prometheus::FormatHeaders(m_body, metric, new_unit);
+      yy_prometheus::FormatHeaders(m_body, metric_data, new_unit);
     }
 
-    metric.Format(m_body);
+    metric_data.Format(m_body);
   };
 
   m_body.clear();

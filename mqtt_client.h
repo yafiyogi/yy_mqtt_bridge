@@ -37,7 +37,7 @@
 
 #include "yy_mqtt/yy_mqtt_constants.h"
 
-#include "yy_prometheus/yy_prometheus_labels.h"
+#include "yy_values/yy_values_labels.hpp"
 
 #include "mqtt_topics.h"
 
@@ -86,7 +86,7 @@ class mqtt_client final:
     std::string m_host{};
     int m_port = yy_mqtt::mqtt_default_port;
     std::atomic<bool> m_is_connected = false;
-    yy_prometheus::Labels m_labels{};
+    yy_values::Labels m_labels{};
     yy_mqtt::TopicLevelsView m_path{};
     yy_prometheus::MetricDataCachePtr m_metric_cache{};
     static constexpr int default_keepalive_seconds = 60;

@@ -38,23 +38,23 @@
 #include "yy_cpp/yy_vector_util.h"
 #include "yy_cpp/yy_yaml_util.h"
 
+#include "yy_values/yy_configure_label_actions.hpp"
+#include "yy_values/yy_label_action.hpp"
+#include "yy_values/yy_label_action_replace_path.hpp"
+#include "yy_values/yy_label_action_copy.hpp"
+#include "yy_values/yy_label_action_drop.hpp"
+#include "yy_values/yy_label_action_keep.hpp"
+#include "yy_values/yy_label_action_replace_path.hpp"
+
+#include "yy_values/yy_value_action_keep.hpp"
+#include "yy_values/yy_value_action_switch.hpp"
+
 #include "yy_prometheus/yy_prometheus_configure.h"
 
-#include "configure_label_actions.h"
 #include "configure_prometheus_metrics.h"
-#include "label_action.h"
-#include "label_action_replace_path.h"
 #include "mqtt_handler.h"
 #include "prometheus_config.h"
 #include "prometheus_metric.h"
-
-#include "label_action_copy.h"
-#include "label_action_drop.h"
-#include "label_action_keep.h"
-#include "label_action_replace_path.h"
-
-#include "value_action_keep.h"
-#include "value_action_switch.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
 
@@ -66,26 +66,26 @@ enum class LabelActionType {Copy, Drop, Keep, ReplacePath};
 
 constexpr const auto g_label_action_types =
   yy_data::make_lookup<std::string_view, LabelActionType>(LabelActionType::Keep,
-                                                          {{CopyLabelAction::action_name, LabelActionType::Copy},
-                                                           {DropLabelAction::action_name, LabelActionType::Drop},
-                                                           {KeepLabelAction::action_name, LabelActionType::Keep},
-                                                           {ReplacePathLabelAction::action_name, LabelActionType::ReplacePath}});
+                                                          {{yy_values::CopyLabelAction::action_name, LabelActionType::Copy},
+                                                           {yy_values::DropLabelAction::action_name, LabelActionType::Drop},
+                                                           {yy_values::KeepLabelAction::action_name, LabelActionType::Keep},
+                                                           {yy_values::ReplacePathLabelAction::action_name, LabelActionType::ReplacePath}});
 
 enum class ValueActionType {Keep, Switch};
 
 constexpr const auto g_value_action_types =
-  yy_data::make_lookup<std::string_view, ValueActionType>({{KeepValueAction::action_name, ValueActionType::Keep},
-                                                           {SwitchValueAction::action_name, ValueActionType::Switch}});
+  yy_data::make_lookup<std::string_view, ValueActionType>({{yy_values::KeepValueAction::action_name, ValueActionType::Keep},
+                                                           {yy_values::SwitchValueAction::action_name, ValueActionType::Switch}});
 
-LabelActions configure_metric_label_actions(const YAML::Node & yaml_label_actions)
+yy_values::LabelActions configure_metric_label_actions(const YAML::Node & yaml_label_actions)
 {
-  LabelActions label_actions;
+  yy_values::LabelActions label_actions;
   label_actions.reserve(yaml_label_actions.size());
 
   for(const auto & yaml_label_action : yaml_label_actions)
   {
     auto action_name{yy_util::to_lower(yy_util::trim(yy_util::yaml_get_value<std::string_view>(yaml_label_action["action"sv])))};
-    LabelActionPtr action;
+    yy_values::LabelActionPtr action;
 
     spdlog::info("       - label action [{}]."sv, action_name);
     spdlog::trace("          [line {}]."sv, yaml_label_action.Mark().line + 1);
@@ -98,8 +98,8 @@ LabelActions configure_metric_label_actions(const YAML::Node & yaml_label_action
         if(!source.empty()
            || !target.empty())
         {
-          action = yy_util::static_unique_cast<LabelAction>(std::make_unique<CopyLabelAction>(std::string{source},
-                                                                                              std::string{target}));
+          action = yy_util::static_unique_cast<yy_values::LabelAction>(std::make_unique<yy_values::CopyLabelAction>(std::string{source},
+                                                                                                                    std::string{target}));
         }
       }
       break;
@@ -109,7 +109,7 @@ LabelActions configure_metric_label_actions(const YAML::Node & yaml_label_action
         std::string_view target{yy_util::trim(yy_util::yaml_get_value<std::string_view>(yaml_label_action["target"sv]))};
         if(!target.empty())
         {
-          action = yy_util::static_unique_cast<LabelAction>(std::make_unique<DropLabelAction>(std::string{target}));
+          action = yy_util::static_unique_cast<yy_values::LabelAction>(std::make_unique<yy_values::DropLabelAction>(std::string{target}));
         }
       }
       break;
@@ -119,7 +119,7 @@ LabelActions configure_metric_label_actions(const YAML::Node & yaml_label_action
         std::string_view target{yy_util::trim(yy_util::yaml_get_value<std::string_view>(yaml_label_action["target"sv]))};
         if(!target.empty())
         {
-          action = yy_util::static_unique_cast<LabelAction>(std::make_unique<KeepLabelAction>(std::string{target}));
+          action = yy_util::static_unique_cast<yy_values::LabelAction>(std::make_unique<yy_values::KeepLabelAction>(std::string{target}));
         }
       }
       break;
@@ -131,10 +131,10 @@ LabelActions configure_metric_label_actions(const YAML::Node & yaml_label_action
         if(!target.empty())
         {
           auto create_topics = [&yaml_label_action]() {
-            return configure_label_action_replace_path(yaml_label_action["replace"sv]);
+            return yy_values::configure_label_action_replace_path(yaml_label_action["replace"sv]);
           };
 
-          action = yy_util::static_unique_cast<LabelAction>(std::make_unique<ReplacePathLabelAction>(std::string{target}, create_topics()));
+          action = yy_util::static_unique_cast<yy_values::LabelAction>(std::make_unique<yy_values::ReplacePathLabelAction>(std::string{target}, create_topics()));
         }
       }
       break;
@@ -154,9 +154,9 @@ LabelActions configure_metric_label_actions(const YAML::Node & yaml_label_action
   return label_actions;
 }
 
-ValueActions configure_metric_value_actions(const YAML::Node & yaml_value_actions)
+yy_values::ValueActions configure_metric_value_actions(const YAML::Node & yaml_value_actions)
 {
-  ValueActions value_actions;
+  yy_values::ValueActions value_actions;
   if(!yaml_value_actions)
   {
     return value_actions;
@@ -167,7 +167,7 @@ ValueActions configure_metric_value_actions(const YAML::Node & yaml_value_action
   for(const auto & yaml_value_action : yaml_value_actions)
   {
     auto action_name{yy_util::to_lower(yy_util::trim(yy_util::yaml_get_value<std::string_view>(yaml_value_action["action"sv])))};
-    ValueActionPtr action;
+    yy_values::ValueActionPtr action;
 
     spdlog::info("       - value action [{}]."sv, action_name);
     spdlog::trace("          [line {}]."sv, yaml_value_action.Mark().line + 1);
@@ -192,7 +192,7 @@ ValueActions configure_metric_value_actions(const YAML::Node & yaml_value_action
           }
         }
 
-        SwitchValueAction::Switch switch_values;
+        yy_values::SwitchValueAction::Switch switch_values;
         auto & yaml_mappings = yaml_value_action["mappings"sv];
 
         if(auto num_cases = yaml_mappings.size();
@@ -222,8 +222,8 @@ ValueActions configure_metric_value_actions(const YAML::Node & yaml_value_action
         if(default_value.has_value()
            && !switch_values.empty())
         {
-          action = yy_util::static_unique_cast<ValueAction>(std::make_unique<SwitchValueAction>(std::move(default_value.value()),
-                                                                                                std::move(switch_values)));
+          action = yy_util::static_unique_cast<yy_values::ValueAction>(std::make_unique<yy_values::SwitchValueAction>(std::move(default_value.value()),
+                                                                                                                      std::move(switch_values)));
         }
         else
         {

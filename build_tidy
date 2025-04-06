@@ -32,6 +32,10 @@ echo "\nyy_mqtt"
 cd ../../yy_mqtt/build
 ${YY_MAKE} tidy-all
 
+echo "\nyy_values"
+cd ../../yy_values/build
+${YY_MAKE} tidy-all || exit 1
+
 echo "\nyy_prometheus"
 cd ../../yy_prometheus/build
 ${YY_MAKE} tidy-all

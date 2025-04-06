@@ -32,6 +32,7 @@
 #include "spdlog/spdlog.h"
 
 #include "yy_mqtt/yy_mqtt_util.h"
+#include "yy_values/yy_values_metric_labels.hpp"
 
 #include "yy_prometheus/yy_prometheus_style.h"
 #include "yy_prometheus/yy_prometheus_cache.h"
@@ -110,11 +111,9 @@ void mqtt_client::on_message(const struct mosquitto_message * message)
     if(auto payloads = m_topics.find(topic);
        !payloads.empty())
     {
-      auto & metric_style = yy_prometheus::get_metric_style();
+      timestamp_type ts{std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now()).time_since_epoch()};
 
-      int64_t ts = metric_style.timestamp(std::chrono::system_clock::now());
-
-      m_labels.set_label(yy_prometheus::g_label_topic, topic);
+      m_labels.set_label(yy_values::g_label_topic, topic);
 
       spdlog::debug("Processing [{}] payloads=[{}]"sv, topic, payloads.size());
       yy_mqtt::topic_tokenize_view(m_path, topic);

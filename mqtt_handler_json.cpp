@@ -33,7 +33,6 @@
 
 #include "yy_cpp/yy_assert.h"
 
-#include "yy_prometheus/yy_prometheus_labels.h"
 #include "yy_prometheus/yy_prometheus_metric_data.h"
 
 #include "mqtt_handler_json.h"
@@ -44,7 +43,7 @@ using namespace std::string_view_literals;
 
 namespace json_handler_detail {
 
-const yy_prometheus::Labels JsonVisitor::g_empty_labels{};
+const yy_values::Labels JsonVisitor::g_empty_labels{};
 const yy_mqtt::TopicLevelsView JsonVisitor::g_empty_levels;
 
 JsonVisitor::JsonVisitor(size_type p_metric_count) noexcept
@@ -52,7 +51,7 @@ JsonVisitor::JsonVisitor(size_type p_metric_count) noexcept
   m_metric_data.reserve(p_metric_count);
 }
 
-void JsonVisitor::labels(const yy_prometheus::Labels * p_labels) noexcept
+void JsonVisitor::labels(const yy_values::Labels * p_labels) noexcept
 {
   if(nullptr == p_labels)
   {
@@ -70,14 +69,14 @@ void JsonVisitor::levels(const yy_mqtt::TopicLevelsView * p_levels) noexcept
   m_levels = p_levels;
 }
 
-void JsonVisitor::timestamp(const int64_t p_timestamp) noexcept
+void JsonVisitor::timestamp(const timestamp_type p_timestamp) noexcept
 {
   m_timestamp = p_timestamp;
 }
 
 void JsonVisitor::apply(Metrics & p_metrics,
                         std::string_view p_value,
-                        ValueType p_value_type)
+                        yy_values::ValueType p_value_type)
 {
   for(auto & metric : p_metrics)
   {
@@ -90,7 +89,7 @@ void JsonVisitor::reset() noexcept
   m_labels = &g_empty_labels;
   m_levels = &g_empty_levels;
   m_metric_data.clear(yy_data::ClearAction::Keep);
-  m_timestamp = 0;
+  m_timestamp = timestamp_type{};
 }
 
 yy_prometheus::MetricDataVector & JsonVisitor::metric_data() noexcept
@@ -110,9 +109,9 @@ MqttJsonHandler::MqttJsonHandler(std::string_view p_handler_id,
 }
 
 yy_prometheus::MetricDataVector & MqttJsonHandler::Event(std::string_view p_value,
-                                                         const yy_prometheus::Labels & p_labels,
+                                                         const yy_values::Labels & p_labels,
                                                          const yy_mqtt::TopicLevelsView & p_levels,
-                                                         const int64_t p_timestamp) noexcept
+                                                         const timestamp_type p_timestamp) noexcept
 {
   spdlog::debug("  handler [{}]"sv, Id());
 

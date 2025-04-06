@@ -29,9 +29,10 @@
 
 #include "spdlog/spdlog.h"
 
-#include "yy_prometheus/yy_prometheus_labels.h"
+#include "yy_values/yy_label_action.hpp"
+#include "yy_values/yy_values_labels.hpp"
+
 #include "prometheus_metric.h"
-#include "label_action.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
 
@@ -42,10 +43,10 @@ Metric::Metric(std::string_view p_id,
                const MetricUnit p_unit,
                const MetricTimestamp p_timestamp,
                std::string && p_property,
-               LabelActions && p_label_actions,
-               ValueActions && p_value_actions):
+               yy_values::LabelActions && p_label_actions,
+               yy_values::ValueActions && p_value_actions):
   m_property(std::move(p_property)),
-  m_metric_data(p_id, yy_prometheus::Labels{}, ""sv, p_type, p_unit, p_timestamp),
+  m_metric_data(yy_values::MetricId{p_id}, yy_values::Labels{}, ""sv, p_type, p_unit, p_timestamp),
   m_label_actions(std::move(p_label_actions)),
   m_value_actions(std::move(p_value_actions))
 {
@@ -53,13 +54,13 @@ Metric::Metric(std::string_view p_id,
 
 const std::string & Metric::Id() const noexcept
 {
-  return m_metric_data.Id();
+  return m_metric_data.Id().Name();
 }
 
 
 Metric::MetricType Metric::Type() const noexcept
 {
-  return m_metric_data.Type();
+  return m_metric_data.MetricType();
 }
 
 const std::string & Metric::Property() const noexcept
@@ -68,11 +69,11 @@ const std::string & Metric::Property() const noexcept
 }
 
 void Metric::Event(std::string_view p_value,
-                   const yy_prometheus::Labels & p_labels,
+                   const yy_values::Labels & p_labels,
                    const yy_mqtt::TopicLevelsView & p_levels,
                    MetricDataVector & p_metric_data,
-                   const int64_t p_timestamp,
-                   ValueType p_value_type)
+                   const timestamp_type p_timestamp,
+                   yy_values::ValueType p_value_type)
 {
   spdlog::debug("    [{}] property=[{}] [{}]"sv,
                 Id(),

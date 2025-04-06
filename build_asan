@@ -22,6 +22,10 @@ echo "\nyy_mqtt"
 cd ../../yy_mqtt/build
 ${YY_MAKE} all asan install || exit 1
 
+echo "\nyy_values"
+cd ../../yy_values/build
+${YY_MAKE} all install || exit 1
+
 echo "\nyy_prometheus"
 cd ../../yy_prometheus/build
 ${YY_MAKE} all install || exit 1
