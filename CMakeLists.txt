@@ -104,10 +104,10 @@ endif()
 
 target_link_libraries(mqtt_bridge
     yy_web::yy_web
-    yy_values::yy_values
     yy_prometheus::yy_prometheus
-    yy_json::yy_json
+    yy_values::yy_values
     yy_mqtt::yy_mqtt
+    yy_json::yy_json
     yy_cpp::yy_cpp
     Boost::json
     Boost::locale
@@ -127,6 +127,7 @@ target_link_libraries(mqtt_bridge
 #install(TARGETS yy_mqtt_bridge)
 
 add_yy_tidy_all(mqtt_bridge)
+add_cmake_valgrind(mqtt_bridge)
 #add_cmake_coverage(mqtt_bridge)
 #add_cmake_asan(mqtt_bridge)
 #add_cmake_lsan(mqtt_bridge)
