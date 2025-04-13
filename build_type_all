@@ -1,16 +1,18 @@
 #!/bin/sh
 
-. ./build_config
-
 build_type="$1"
 
 if [ -z "${build_type}" ]
 then
     echo "No build type!"
+    exit 1
 fi
 
 YY_INSTALL_DIR="${HOME}/code/cpp/build"
 YY_TP_DIR="${HOME}/code/tp"
+
+. ./build_config
+. ./build_cmake_config ${build_type}
 
 echo "\nyy_test"
 cd ../yy_test/build
@@ -18,7 +20,7 @@ if [ -f Makefile ]; then
     ${YY_MAKE} clean
 fi
 rm -rf ./*
-cmake --fresh -DCMAKE_INSTALL_PREFIX=${YY_INSTALL_DIR} -DYY_THIRD_PARTY_LIBRARY=${YY_TP_DIR} -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE -DCMAKE_BUILD_TYPE=${build_type} ..
+${YY_CMAKE} ${YY_CMAKE_OPTIONS}
 ${YY_MAKE} all && ${YY_MAKE} install || exit 1
 
 echo "\nyy_tp_util"
@@ -27,7 +29,7 @@ if [ -f Makefile ]; then
     ${YY_MAKE} clean
 fi
 rm -rf ./*
-cmake --fresh -DCMAKE_INSTALL_PREFIX=${YY_INSTALL_DIR} -DYY_THIRD_PARTY_LIBRARY=${YY_TP_DIR} -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE -DCMAKE_BUILD_TYPE=${build_type} ..
+${YY_CMAKE} ${YY_CMAKE_OPTIONS}
 ${YY_MAKE} all && ${YY_MAKE} install || exit 1
 
 echo "\nyy_cpp"
@@ -36,7 +38,7 @@ if [ -f Makefile ]; then
     ${YY_MAKE} clean
 fi
 rm -rf ./*
-cmake --fresh -DCMAKE_INSTALL_PREFIX=${YY_INSTALL_DIR} -DYY_THIRD_PARTY_LIBRARY=${YY_TP_DIR} -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE -DCMAKE_BUILD_TYPE=${build_type} ..
+${YY_CMAKE} ${YY_CMAKE_OPTIONS}
 ${YY_MAKE} all test && ${YY_MAKE} install || exit 1
 
 echo "\nyy_json"
@@ -45,7 +47,7 @@ if [ -f Makefile ]; then
     ${YY_MAKE} clean
 fi
 rm -rf ./*
-cmake --fresh -DCMAKE_INSTALL_PREFIX=${YY_INSTALL_DIR} -DYY_THIRD_PARTY_LIBRARY=${YY_TP_DIR} -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE -DCMAKE_BUILD_TYPE=${build_type} ..
+${YY_CMAKE} ${YY_CMAKE_OPTIONS}
 ${YY_MAKE} all test && ${YY_MAKE} install || exit 1
 
 echo "\nyy_mqtt"
@@ -54,7 +56,7 @@ if [ -f Makefile ]; then
     ${YY_MAKE} clean
 fi
 rm -rf ./*
-cmake --fresh -DCMAKE_INSTALL_PREFIX=${YY_INSTALL_DIR} -DYY_THIRD_PARTY_LIBRARY=${YY_TP_DIR} -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE -DCMAKE_BUILD_TYPE=${build_type} ..
+${YY_CMAKE} ${YY_CMAKE_OPTIONS}
 ${YY_MAKE} all test && ${YY_MAKE} install || exit 1
 
 echo "\nyy_values"
@@ -63,7 +65,7 @@ if [ -f Makefile ]; then
     ${YY_MAKE} clean
 fi
 rm -rf ./*
-cmake --fresh -DCMAKE_INSTALL_PREFIX=${YY_INSTALL_DIR} -DYY_THIRD_PARTY_LIBRARY=${YY_TP_DIR} -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE -DCMAKE_BUILD_TYPE=${build_type} ..
+${YY_CMAKE} ${YY_CMAKE_OPTIONS}
 ${YY_MAKE} all && ${YY_MAKE} install || exit 1
 
 echo "\nyy_prometheus"
@@ -72,7 +74,7 @@ if [ -f Makefile ]; then
     ${YY_MAKE} clean
 fi
 rm -rf ./*
-cmake --fresh -DCMAKE_INSTALL_PREFIX=${YY_INSTALL_DIR} -DYY_THIRD_PARTY_LIBRARY=${YY_TP_DIR} -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE -DCMAKE_BUILD_TYPE=${build_type} ..
+${YY_CMAKE} ${YY_CMAKE_OPTIONS}
 ${YY_MAKE} all && ${YY_MAKE} install || exit 1
 
 echo "\nyy_web"
@@ -81,7 +83,7 @@ if [ -f Makefile ]; then
     ${YY_MAKE} clean
 fi
 rm -rf ./*
-cmake --fresh -DCMAKE_INSTALL_PREFIX=${YY_INSTALL_DIR} -DYY_THIRD_PARTY_LIBRARY=${YY_TP_DIR} -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE -DCMAKE_BUILD_TYPE=${build_type} ..
+${YY_CMAKE} ${YY_CMAKE_OPTIONS}
 ${YY_MAKE} all && ${YY_MAKE} install || exit 1
 
 echo "\nyy_mqtt_bridge"
@@ -90,6 +92,6 @@ if [ -f Makefile ]; then
     ${YY_MAKE} clean
 fi
 rm -rf ./*
-cmake --fresh -DCMAKE_INSTALL_PREFIX=${YY_INSTALL_DIR} -DYY_THIRD_PARTY_LIBRARY=${YY_TP_DIR} -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE -DCMAKE_BUILD_TYPE=${build_type} ..
+${YY_CMAKE} ${YY_CMAKE_OPTIONS}
 ${YY_MAKE} all
 cd ../
