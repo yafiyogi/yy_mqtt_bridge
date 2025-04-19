@@ -34,13 +34,14 @@
 #include "yy_cpp/yy_utility.h"
 #include "yy_cpp/yy_yaml_util.h"
 
-#include "yy_prometheus/yy_prometheus_style.h"
+#include "yy_prometheus/yy_prometheus_configure.h"
 #include "yy_prometheus/yy_prometheus_defaults.h"
+#include "yy_prometheus/yy_prometheus_style.h"
 
 #include "yy_web/yy_web_server.h"
 
-#include "configure_prometheus.h"
 #include "configure_prometheus_metrics.h"
+#include "configure_prometheus.h"
 #include "prometheus_config.h"
 
 namespace yafiyogi::mqtt_bridge::prometheus {
@@ -79,7 +80,7 @@ config configure_prometheus(const YAML::Node & yaml_prometheus)
   yy_prometheus::set_metric_style(metric_style);
 
   auto create_metrics = [&yaml_prometheus]() {
-    auto default_timestamp{decode_metric_timestamp(yy_util::yaml_get_value(yaml_prometheus["timestamps"sv], ""sv))};
+    auto default_timestamp{yy_prometheus::decode_metric_timestamp(yy_util::yaml_get_value(yaml_prometheus["timestamps"sv], ""sv))};
 
     return configure_prometheus_metrics(yaml_prometheus["metrics"sv], default_timestamp);
   };

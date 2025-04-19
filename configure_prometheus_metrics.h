@@ -32,8 +32,6 @@
 
 namespace yafiyogi::mqtt_bridge::prometheus {
 
-yy_prometheus::MetricTimestamp decode_metric_timestamp(std::string_view p_timestamp,
-                                                       yy_prometheus::MetricTimestamp p_default_timestamp = yy_prometheus::MetricTimestamp::On);
 MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics,
                                         yy_prometheus::MetricTimestamp default_timestamp);
 
