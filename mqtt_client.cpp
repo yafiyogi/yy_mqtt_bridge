@@ -51,9 +51,9 @@ mqtt_client::mqtt_client(mqtt_config & p_config,
   mosqpp::mosquittopp(),
   m_topics(std::move(p_config.topics)),
   m_subscriptions(std::move(p_config.subscriptions)),
+  m_metric_cache(std::move(p_metric_cache)),
   m_host(std::move(p_config.host)),
-  m_port(p_config.port),
-  m_metric_cache(std::move(p_metric_cache))
+  m_port(p_config.port)
 {
   int mqtt_version = MQTT_PROTOCOL_V5;
   mosqpp::mosquittopp::opts_set(MOSQ_OPT_PROTOCOL_VERSION, &mqtt_version);
@@ -111,27 +111,32 @@ void mqtt_client::on_message(const struct mosquitto_message * message)
     if(auto payloads = m_topics.find(topic);
        !payloads.empty())
     {
-      timestamp_type ts{std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now()).time_since_epoch()};
-
-      m_labels.set_label(yy_values::g_label_topic, topic);
-
-      spdlog::debug("Processing [{}] payloads=[{}]"sv, topic, payloads.size());
+      spdlog::debug("Processing [{}] payloads=[{}]"sv,
+                    topic,
+                    payloads.size());
       yy_mqtt::topic_tokenize_view(m_path, topic);
 
       const std::string_view data{static_cast<std::string_view::value_type *>(message->payload),
                                   static_cast<std::string_view::size_type>(message->payloadlen)};
 
+      timestamp_type ts{std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now()).time_since_epoch()};
+
+      size_type metric_count = 0;
+      m_metric_data.clear(yy_data::ClearAction::Keep);
+
+      yy_prometheus::MetricDataVectorPtr metric_data{&m_metric_data};
       for(auto & handlers : payloads)
       {
         for(auto & handler : *handlers)
         {
-          if(auto & metric_data = handler->Event(data, m_labels, m_path, ts);
-             !metric_data.empty())
-          {
-            m_metric_cache->Add(metric_data);
-          }
+          metric_count += handler->MetricCount();
+          m_metric_data.reserve(metric_count);
+
+          handler->Event(data, topic, m_path, ts, metric_data);
         }
       }
+
+      m_metric_cache->Add(m_metric_data);
     }
   }
 }
