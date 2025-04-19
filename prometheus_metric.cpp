@@ -31,6 +31,7 @@
 
 #include "yy_values/yy_label_action.hpp"
 #include "yy_values/yy_values_labels.hpp"
+#include "yy_values/yy_values_metric_labels.hpp"
 
 #include "prometheus_metric.h"
 
@@ -38,29 +39,41 @@ namespace yafiyogi::mqtt_bridge::prometheus {
 
 using namespace std::string_view_literals;
 
-Metric::Metric(std::string_view p_id,
-               const MetricType p_type,
-               const MetricUnit p_unit,
-               const MetricTimestamp p_timestamp,
+Metric::Metric(yy_values::MetricId && p_id,
                std::string && p_property,
-               yy_values::LabelActions && p_label_actions,
-               yy_values::ValueActions && p_value_actions):
+               const Metric::MetricType p_metric_type,
+               const MetricUnit p_metric_unit,
+               const MetricTimestamp p_metric_timestamp,
+               LabelActions && p_label_actions,
+               ValueActions && p_value_actions,
+               LabelActions && p_metric_property_actions) noexcept:
+  m_id(p_id),
+  m_metric_data(std::move(p_id), yy_values::Labels{}, ""sv, p_metric_type, p_metric_unit),
   m_property(std::move(p_property)),
-  m_metric_data(yy_values::MetricId{p_id}, yy_values::Labels{}, ""sv, p_type, p_unit, p_timestamp),
   m_label_actions(std::move(p_label_actions)),
-  m_value_actions(std::move(p_value_actions))
+  m_value_actions(std::move(p_value_actions)),
+  m_metric_property_actions(std::move(p_metric_property_actions)),
+  m_metric_properties(m_metric_property_actions.size()),
+  m_metric_type(p_metric_type),
+  m_metric_unit(p_metric_unit)
 {
+  switch(p_metric_timestamp)
+  {
+    case MetricTimestamp::Off:
+      m_metric_format = decode_metric_format_fn(m_metric_type);
+      break;
+
+    case MetricTimestamp::On:
+      [[fallthrough]];
+    default:
+      m_metric_format = decode_metric_timestamp_format_fn(m_metric_type);
+      break;
+  }
 }
 
-const std::string & Metric::Id() const noexcept
+const yy_values::MetricId & Metric::Id() const noexcept
 {
-  return m_metric_data.Id().Name();
-}
-
-
-Metric::MetricType Metric::Type() const noexcept
-{
-  return m_metric_data.MetricType();
+  return m_id;
 }
 
 const std::string & Metric::Property() const noexcept
@@ -69,26 +82,43 @@ const std::string & Metric::Property() const noexcept
 }
 
 void Metric::Event(std::string_view p_value,
-                   const yy_values::Labels & p_labels,
+                   const std::string_view p_topic,
                    const yy_mqtt::TopicLevelsView & p_levels,
-                   MetricDataVector & p_metric_data,
                    const timestamp_type p_timestamp,
-                   yy_values::ValueType p_value_type)
+                   yy_values::ValueType p_value_type,
+                   MetricDataVectorPtr p_metric_data)
 {
   spdlog::debug("    [{}] property=[{}] [{}]"sv,
-                Id(),
+                Id().Name(),
                 m_property,
                 p_value);
 
+  m_metric_data.Id(m_id);
+  m_metric_data.MetricType(m_metric_type);
+  m_metric_data.MetricUnit(m_metric_unit);
+  m_metric_data.MetricFormat(m_metric_format);
   m_metric_data.Value(p_value);
+  m_metric_data.Type(p_value_type);
   m_metric_data.Timestamp(p_timestamp);
 
-  auto & l_labels = m_metric_data.Labels();
-  l_labels.clear(yy_data::ClearAction::Keep);
+  m_metric_properties.clear(yy_data::ClearAction::Keep);
+  m_metric_properties.set_label(yy_values::g_label_topic, std::string{p_topic});
 
+  for(const auto & action : m_metric_property_actions)
+  {
+    action->Apply(m_metric_properties, p_levels, m_metric_properties);
+  }
+
+  m_metric_data.Location(m_metric_properties.get_label(yy_values::g_label_location));
+
+  auto & l_labels = m_metric_data.Labels();
+
+  l_labels.clear(yy_data::ClearAction::Keep);
+  l_labels.set_label(yy_values::g_label_location, m_metric_data.Id().Location());
+  l_labels.set_label(yy_values::g_label_topic, std::string{p_topic});
   for(const auto & action : m_label_actions)
   {
-    action->Apply(p_labels, p_levels, l_labels);
+    action->Apply(m_metric_properties, p_levels, l_labels);
   }
 
   for(const auto & action : m_value_actions)
@@ -96,7 +126,7 @@ void Metric::Event(std::string_view p_value,
     action->Apply(m_metric_data, p_value_type);
   }
 
-  if(spdlog::level::debug == spdlog::get_level())
+  if(spdlog::level::debug >= spdlog::get_level())
   {
     m_metric_data.Labels().visit([](const auto & label,
                                     const auto & value) {
@@ -104,7 +134,7 @@ void Metric::Event(std::string_view p_value,
     });
   }
 
-  p_metric_data.emplace_back(m_metric_data);
+  p_metric_data->swap_data_back(m_metric_data);
 }
 
 } // namespace yafiyogi::mqtt_bridge::prometheus

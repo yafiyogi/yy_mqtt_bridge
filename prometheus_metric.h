@@ -36,6 +36,7 @@
 #include "yy_mqtt/yy_mqtt_types.h"
 
 #include "yy_prometheus/yy_prometheus_metric_data.h"
+#include "yy_prometheus/yy_prometheus_metric_format.h"
 
 #include "yy_values/yy_label_action.hpp"
 #include "yy_values/yy_value_action.hpp"
@@ -46,19 +47,25 @@ namespace yafiyogi::mqtt_bridge::prometheus {
 class Metric final
 {
   public:
+    using Labels = yy_values::Labels;
+    using LabelActions = yy_values::LabelActions;
+    using ValueActions = yy_values::ValueActions;
+
     using MetricType = yy_prometheus::MetricType;
     using MetricUnit = yy_prometheus::MetricUnit;
     using MetricData = yy_prometheus::MetricData;
     using MetricTimestamp = yy_prometheus::MetricTimestamp;
     using MetricDataVector = yy_prometheus::MetricDataVector;
+    using MetricDataVectorPtr = yy_prometheus::MetricDataVectorPtr;
 
-    explicit Metric(std::string_view p_id,
-                    const Metric::MetricType p_type,
-                    const MetricUnit p_unit,
-                    const MetricTimestamp p_timestamp,
+    explicit Metric(yy_values::MetricId && p_id,
                     std::string && p_property,
-                    yy_values::LabelActions && p_label_actions,
-                    yy_values::ValueActions && p_value_actions);
+                    const Metric::MetricType p_metric_type,
+                    const MetricUnit p_metric_unit,
+                    const MetricTimestamp p_metric_timestamp,
+                    LabelActions && p_label_actions,
+                    ValueActions && p_value_actions,
+                    LabelActions && p_metric_property_actions) noexcept;
 
     constexpr Metric() noexcept = default;
     constexpr Metric(const Metric &) noexcept = default;
@@ -68,26 +75,31 @@ class Metric final
     Metric & operator=(Metric &&) noexcept = default;
 
     [[nodiscard]]
-    const std::string & Id() const noexcept;
-
-    [[nodiscard]]
-    Metric::MetricType Type() const noexcept;
+    const yy_values::MetricId & Id() const noexcept;
 
     [[nodiscard]]
     const std::string & Property() const noexcept;
 
     void Event(std::string_view p_value,
-               const yy_values::Labels & p_labels,
+               const std::string_view p_topic,
                const yy_mqtt::TopicLevelsView & p_levels,
-               MetricDataVector & p_metric_data,
                const timestamp_type p_timestamp,
-               yy_values::ValueType p_value_type);
+               yy_values::ValueType p_value_type,
+               MetricDataVectorPtr p_metric_data);
 
   private:
-    std::string m_property{};
+    yy_values::MetricId m_id{};
     MetricData m_metric_data{};
-    yy_values::LabelActions m_label_actions{};
-    yy_values::ValueActions m_value_actions{};
+    std::string m_property{};
+
+    LabelActions m_label_actions{};
+    ValueActions m_value_actions{};
+    LabelActions m_metric_property_actions{};
+    Labels m_metric_properties{};
+    yy_prometheus::MetricType m_metric_type;
+    yy_prometheus::MetricUnit m_metric_unit;
+    yy_prometheus::MetricFormatFn m_metric_format = &yy_prometheus::NoFormat;
+
 };
 
 using MetricPtr = std::shared_ptr<Metric>;
