@@ -82,65 +82,71 @@ MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics,
       auto type{yy_prometheus::decode_metric_type_name(yy_util::yaml_get_optional_value<std::string_view>(yaml_metric["type"sv]))};
       auto unit{yy_prometheus::decode_metric_unit_name(yy_util::yaml_get_optional_value<std::string_view>(yaml_metric["unit"sv]))};
 
-      for(const auto & yaml_handler : yaml_handlers)
+      if(yy_util::yaml_is_sequence(yaml_handlers))
       {
-        std::string_view handler_id{yy_util::trim(yy_util::yaml_get_value<std::string_view>(yaml_handler["handler_id"sv]))};
-        spdlog::info("   handler [{}]:"sv, handler_id);
-        spdlog::trace("    [line {}]."sv, yaml_handler.Mark().line + 1);
-
-        auto timestamp{yy_prometheus::decode_metric_timestamp(yy_util::yaml_get_value<std::string_view>(yaml_handler["timestamp"sv], ""sv),
-                                                              p_default_timestamp)};
-        const auto & yaml_property = yaml_handler["property"sv];
-
-        if(auto [ignore, emplaced] = handlers.emplace(handler_id);
-           emplaced)
+        for(const auto & yaml_handler : yaml_handlers)
         {
-          auto property_name{yy_util::yaml_get_optional_value<std::string_view>(yaml_property)};
+          std::string_view handler_id{yy_util::trim(yy_util::yaml_get_value<std::string_view>(yaml_handler["handler_id"sv]))};
+          spdlog::info("   handler [{}]:"sv, handler_id);
+          spdlog::trace("    [line {}]."sv, yaml_handler.Mark().line + 1);
 
-          if(property_name.has_value()
-             && !property_name.value().empty())
+          auto timestamp{yy_prometheus::decode_metric_timestamp(yy_util::yaml_get_value<std::string_view>(yaml_handler["timestamp"sv], ""sv),
+                                                                p_default_timestamp)};
+          const auto & yaml_property = yaml_handler["property"sv];
+
+          if(auto [ignore, emplaced] = handlers.emplace(handler_id);
+             emplaced)
           {
-            spdlog::info("     - value [{}]."sv, property_name.value());
-            spdlog::trace("        [line {}]."sv, yaml_property.Mark().line + 1);
+            auto property_name{yy_util::yaml_get_optional_value<std::string_view>(yaml_property)};
 
-            auto create_label_actions = [&yaml_handler]() {
-              return yy_values::configure_label_actions(yaml_handler["label_actions"sv]);
-            };
+            if(property_name.has_value()
+               && !property_name.value().empty())
+            {
+              spdlog::info("     - value [{}]."sv, property_name.value());
+              spdlog::trace("        [line {}]."sv, yaml_property.Mark().line + 1);
 
-            auto create_value_actions = [&yaml_handler]() {
-              return yy_values::configure_value_actions(yaml_handler["value_actions"sv]);
-            };
+              auto create_label_actions = [&yaml_handler]() {
+                spdlog::trace("        Create label actions."sv, yaml_handler.Mark().line + 1);
+                return yy_values::configure_label_actions(yaml_handler["label_actions"sv]);
+              };
 
-            auto create_property_actions = [&yaml_handler]() {
-              return yy_values::configure_value_properties(yaml_handler);
-            };
+              auto create_value_actions = [&yaml_handler]() {
+                spdlog::trace("        Create value actions."sv, yaml_handler.Mark().line + 1);
+                return yy_values::configure_value_actions(yaml_handler["value_actions"sv]);
+              };
 
-            auto metric{std::make_shared<Metric>(yy_values::MetricId{metric_id},
-                                                 std::string{property_name.value()},
-                                                 type,
-                                                 unit,
-                                                 timestamp,
-                                                 create_label_actions(),
-                                                 create_value_actions(),
-                                                 create_property_actions())};
+              auto create_property_actions = [&yaml_handler]() {
+                spdlog::trace("        Create property actions."sv, yaml_handler.Mark().line + 1);
+                return yy_values::configure_property_actions(yaml_handler);
+              };
 
-            spdlog::info("     - add metric [{}] to handler [{}] property [{}]."sv,
-                         metric->Id(),
-                         handler_id,
-                         metric->Property());
+              auto metric{std::make_shared<Metric>(yy_values::MetricId{metric_id},
+                                                   std::string{property_name.value()},
+                                                   type,
+                                                   unit,
+                                                   timestamp,
+                                                   create_label_actions(),
+                                                   create_value_actions(),
+                                                   create_property_actions())};
 
-            auto [metrics_pos, ignore_found] = metrics.emplace(std::string{handler_id},
-                                                               Metrics{});
+              spdlog::info("     - add metric [{}] to handler [{}] property [{}]."sv,
+                           metric->Id(),
+                           handler_id,
+                           metric->Property());
 
-            auto [ignore_key, handler_metrics] = metrics[metrics_pos];
+              auto [metrics_pos, ignore_found] = metrics.emplace(std::string{handler_id},
+                                                                 Metrics{});
 
-            handler_metrics.emplace_back(std::move(metric));
+              auto [ignore_key, handler_metrics] = metrics[metrics_pos];
+
+              handler_metrics.emplace_back(std::move(metric));
+            }
           }
-        }
-        else
-        {
-          spdlog::warn("   'property' setting!"sv);
-          spdlog::trace("    [line {}]."sv, yaml_metric.Mark().line + 1);
+          else
+          {
+            spdlog::warn("   'property' setting!"sv);
+            spdlog::trace("    [line {}]."sv, yaml_metric.Mark().line + 1);
+          }
         }
       }
     }
@@ -148,6 +154,5 @@ MetricsMap configure_prometheus_metrics(const YAML::Node & yaml_metrics,
 
   return metrics;
 }
-
 
 } // namespace yafiyogi::mqtt_bridge::prometheus
