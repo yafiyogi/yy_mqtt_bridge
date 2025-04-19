@@ -37,6 +37,8 @@
 #include "yy_cpp/yy_string_util.h"
 #include "yy_cpp/yy_yaml_util.h"
 
+#include "yy_values/yy_values_metric_id_fmt.hpp"
+
 #include "mqtt_handler.h"
 #include "mqtt_handler_json.h"
 #include "mqtt_handler_value.h"
@@ -195,7 +197,10 @@ MqttHandlerPtr configure_value_handler(std::string_view p_id,
   MqttHandlerPtr handler{};
   if(!handler_metrics.empty())
   {
-    handler = std::make_unique<MqttValueHandler>(p_id, std::move(handler_metrics));
+    auto metrics_count = handler_metrics.size();
+    handler = std::make_unique<MqttValueHandler>(p_id,
+                                                 std::move(handler_metrics),
+                                                 metrics_count);
   }
   return handler;
 }

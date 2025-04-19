@@ -39,28 +39,30 @@ namespace yafiyogi::mqtt_bridge {
 using namespace std::string_view_literals;
 
 MqttValueHandler::MqttValueHandler(std::string_view p_handler_id,
-                                   prometheus::Metrics && p_metrics) noexcept:
-  MqttHandler(p_handler_id, type::Value),
+                                   prometheus::Metrics && p_metrics,
+                                   size_type p_metrics_count) noexcept:
+  MqttHandler(p_handler_id, type::Value, p_metrics_count),
   m_metrics(std::move(p_metrics))
 {
-  m_metric_data.reserve(m_metrics.size());
 }
 
-yy_prometheus::MetricDataVector & MqttValueHandler::Event(std::string_view p_value,
-                                                          const yy_values::Labels & p_labels,
-                                                          const yy_mqtt::TopicLevelsView & p_levels,
-                                                          const timestamp_type p_timestamp) noexcept
+void MqttValueHandler::Event(std::string_view p_mqtt_data,
+                             const std::string_view p_topic,
+                             const yy_mqtt::TopicLevelsView & p_levels,
+                             const timestamp_type p_timestamp,
+                             yy_prometheus::MetricDataVectorPtr p_metric_data) noexcept
 {
   spdlog::debug("  handler [{}]"sv, Id());
 
-  m_metric_data.clear(yy_data::ClearAction::Keep);
-
   for(auto & metric : m_metrics)
   {
-    metric->Event(p_value, p_labels, p_levels, m_metric_data, p_timestamp, yy_values::ValueType::Unknown);
+    metric->Event(p_mqtt_data,
+                  p_topic,
+                  p_levels,
+                  p_timestamp,
+                  yy_values::ValueType::Unknown,
+                  p_metric_data);
   }
-
-  return m_metric_data;
 }
 
 } // namespace yafiyogi::mqtt_bridge

@@ -41,21 +41,22 @@ class MqttValueHandler final:
 {
   public:
     explicit MqttValueHandler(std::string_view p_handler_id,
-                              prometheus::Metrics && p_metrics) noexcept;
+                              prometheus::Metrics && p_metrics,
+                              size_type p_metrics_count) noexcept;
     constexpr MqttValueHandler() noexcept = default;
     MqttValueHandler(const MqttValueHandler &) = delete;
     constexpr MqttValueHandler(MqttValueHandler &&) noexcept = default;
 
     MqttValueHandler & operator=(const MqttValueHandler &) = delete;
-    constexpr MqttValueHandler & operator=(MqttValueHandler &&) noexcept = default;
+    MqttValueHandler & operator=(MqttValueHandler &&) noexcept = default;
 
-    yy_prometheus::MetricDataVector & Event(std::string_view p_value,
-                                            const yy_values::Labels & p_labels,
-                                            const yy_mqtt::TopicLevelsView & p_levels,
-                                            const timestamp_type p_timestamp) noexcept override;
+    void Event(std::string_view p_mqtt_data,
+               const std::string_view p_topic,
+               const yy_mqtt::TopicLevelsView & p_levels,
+               const timestamp_type p_timestamp,
+               yy_prometheus::MetricDataVectorPtr p_metric_data) noexcept override;
   private:
     prometheus::Metrics m_metrics{};
-    yy_prometheus::MetricDataVector m_metric_data{};
 };
 
 } // namespace yafiyogi::mqtt_bridge

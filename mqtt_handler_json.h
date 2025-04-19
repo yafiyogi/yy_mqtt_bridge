@@ -26,7 +26,6 @@
 
 #pragma once
 
-#include <cstddef>
 #include <cstdint>
 
 #include "boost/json/basic_parser_impl.hpp"
@@ -46,43 +45,22 @@ namespace json_handler_detail {
 class JsonVisitor final
 {
   public:
+    using MetricDataVector = yy_prometheus::MetricDataVector;
     using Metrics = prometheus::Metrics;
-
-    JsonVisitor(size_type p_metric_count) noexcept;
 
     constexpr JsonVisitor() noexcept = default;
     constexpr JsonVisitor(const JsonVisitor &) noexcept = default;
-    constexpr JsonVisitor(JsonVisitor && p_other) noexcept:
-      m_labels(p_other.m_labels),
-      m_levels(p_other.m_levels),
-      m_timestamp(p_other.m_timestamp),
-      m_metric_data(std::move(p_other.m_metric_data))
-    {
-      p_other.m_labels = &g_empty_labels;
-      p_other.m_levels = &g_empty_levels;
-      p_other.m_timestamp = timestamp_type{};
-    }
+    JsonVisitor(JsonVisitor && p_other) noexcept;
 
     constexpr JsonVisitor & operator=(const JsonVisitor &) noexcept = default;
-    constexpr JsonVisitor & operator=(JsonVisitor && p_other) noexcept
-    {
-      if(this != &p_other)
-      {
-        m_labels = p_other.m_labels;
-        p_other.m_labels = &g_empty_labels;
-        m_levels = p_other.m_levels;
-        p_other.m_levels = &g_empty_levels;
-        m_timestamp = p_other.m_timestamp;
-        p_other.m_timestamp = timestamp_type{};
-        m_metric_data = std::move(p_other.m_metric_data);
-      }
+    JsonVisitor & operator=(JsonVisitor && p_other) noexcept;
 
-      return *this;
-    }
-
-    void labels(const yy_values::Labels * p_labels) noexcept;
     void levels(const yy_mqtt::TopicLevelsView * p_levels) noexcept;
+    void metric_data(yy_prometheus::MetricDataVectorPtr p_metric_data) noexcept;
+    void topic(const std::string_view p_topic) noexcept;
     void timestamp(const timestamp_type p_timestamp) noexcept;
+    void reset() noexcept;
+
     void apply_str(Metrics & metrics,
                    std::string_view str)
     {
@@ -116,9 +94,6 @@ class JsonVisitor final
       apply(metrics, flag ? g_true_str : g_false_str, yy_values::ValueType::Bool);
     }
 
-    void reset() noexcept;
-    yy_prometheus::MetricDataVector & metric_data() noexcept;
-
   private:
     void apply(Metrics & p_metrics,
                std::string_view p_data,
@@ -126,13 +101,12 @@ class JsonVisitor final
 
     static constexpr const std::string_view g_true_str{"true"};
     static constexpr const std::string_view g_false_str{"false"};
-    static const yy_values::Labels g_empty_labels;
     static const yy_mqtt::TopicLevelsView g_empty_levels;
 
-    const yy_values::Labels * m_labels = &g_empty_labels;
-    const yy_mqtt::TopicLevelsView * m_levels = &g_empty_levels;
+    yy_data::observer_ptr<std::add_const_t<yy_mqtt::TopicLevelsView>> m_levels{&g_empty_levels};
+    yy_prometheus::MetricDataVectorPtr m_metric_data{};
     timestamp_type m_timestamp{};
-    yy_prometheus::MetricDataVector m_metric_data{};
+    std::string_view m_topic{};
 };
 
 } // namespace json_handler_detail
@@ -150,7 +124,7 @@ class MqttJsonHandler final:
     explicit MqttJsonHandler(std::string_view p_handler_id,
                              const parser_options_type & p_json_options,
                              handler_config_type && p_json_handler_config,
-                             size_type metric_count) noexcept;
+                             size_type p_metric_count) noexcept;
 
     MqttJsonHandler() = delete;
     MqttJsonHandler(const MqttJsonHandler &) = delete;
@@ -159,10 +133,11 @@ class MqttJsonHandler final:
     MqttJsonHandler & operator=(const MqttJsonHandler &) = delete;
     constexpr MqttJsonHandler & operator=(MqttJsonHandler &&) noexcept = default;
 
-    yy_prometheus::MetricDataVector & Event(std::string_view p_value,
-                                            const yy_values::Labels & p_labels,
-                                            const yy_mqtt::TopicLevelsView & p_levels,
-                                            const timestamp_type p_timestamp) noexcept override;
+    void Event(std::string_view p_mqtt_data,
+               const std::string_view p_topic,
+               const yy_mqtt::TopicLevelsView & p_levels ,
+               const timestamp_type p_timestamp,
+               yy_prometheus::MetricDataVectorPtr p_metric_data) noexcept override;
 
   private:
     parser_type m_parser;
