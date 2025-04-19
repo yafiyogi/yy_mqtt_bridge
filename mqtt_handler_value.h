@@ -45,7 +45,7 @@ class MqttValueHandler final:
                               size_type p_metrics_count) noexcept;
     constexpr MqttValueHandler() noexcept = default;
     MqttValueHandler(const MqttValueHandler &) = delete;
-    constexpr MqttValueHandler(MqttValueHandler &&) noexcept = default;
+    MqttValueHandler(MqttValueHandler &&) noexcept = default;
 
     MqttValueHandler & operator=(const MqttValueHandler &) = delete;
     MqttValueHandler & operator=(MqttValueHandler &&) noexcept = default;
