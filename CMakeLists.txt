@@ -74,7 +74,6 @@ add_executable(mqtt_bridge
   mqtt_handler_value.cpp
   prometheus_civetweb_handler.cpp
   prometheus_metric.cpp
-  replacement_format.cpp
   yy_mqtt_bridge.cpp )
 
 target_compile_options(mqtt_bridge
