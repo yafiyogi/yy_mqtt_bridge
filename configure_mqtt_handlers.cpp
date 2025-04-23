@@ -117,12 +117,12 @@ MqttHandlerPtr configure_json_handler(std::string_view p_id,
         if(is_sequence && yaml_property.IsScalar())
         {
           property = yy_util::trim(yaml_property.as<std::string_view>());
-          json_pointer = fmt::format("/{}"_cf, property);
+          json_pointer = yy_json::json_pointer_trim(fmt::format("/{}"_cf, property));
         }
         else if(!is_sequence)
         {
-          json_pointer = yy_json::json_pointer_trim(yy_util::trim(yy_util::yaml_get_value<std::string_view>(yaml_property.first)));
           property = yy_util::trim(yy_util::yaml_get_value<std::string_view>(yaml_property.second));
+          json_pointer = yy_json::json_pointer_trim(yy_util::trim(yy_util::yaml_get_value<std::string_view>(yaml_property.first)));
         }
 
         spdlog::info("     - property [{}] path=[{}]:"sv,
