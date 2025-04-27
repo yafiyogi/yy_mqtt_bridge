@@ -35,6 +35,7 @@
 #include "mosquittopp.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/daily_file_sink.h"
+#include "spdlog/sinks/null_sink.h"
 
 #include "yy_cpp/yy_locale.h"
 #include "yy_cpp/yy_yaml_util.h"
@@ -62,6 +63,8 @@ void signal_handler(int /* signal */)
   exit_program = true;
 }
 
+constexpr std::string_view g_default_access_log_file_path{"./mqtt_bridge_access.log"};
+
 }
 
 namespace bpo = boost::program_options;
@@ -74,7 +77,7 @@ int main(int argc, char* argv[])
   std::signal(SIGINT, signal_handler);
   std::signal(SIGTERM, signal_handler);
 
-  yafiyogi::mqtt_bridge::logger_config log_config{std::string{yafiyogi::mqtt_bridge::g_default_file_path}, spdlog::level::debug};
+  yafiyogi::mqtt_bridge::logger_config log_config{std::string{yafiyogi::mqtt_bridge::g_default_file_path}, spdlog::level::info};
   spdlog::set_level(log_config.level);
   mqtt_bridge::set_console_logger();
   yy_locale::set_locale();
@@ -142,23 +145,37 @@ int main(int argc, char* argv[])
   if(!no_run)
   {
     auto create_access_log = [&log, &yaml_prometheus, &log_config]() {
-      logger_ptr access_log{log};
-      yafiyogi::mqtt_bridge::logger_config access_log_config{"mqtt_bridge_access.log",
-                                                             log_config.level};
+      logger_ptr access_log{};
+
+      yafiyogi::mqtt_bridge::logger_config access_log_config{std::string{},
+                                                             spdlog::level::off};
 
       if(auto yaml_access_log = yaml_prometheus["access_log"sv];
          yaml_access_log)
       {
         access_log_config = yafiyogi::mqtt_bridge::configure_logging(yaml_access_log,
-                                                                     access_log_config);
-
+                                                                     log_config);
       }
-      spdlog::info("access_log: [{}]", access_log_config.filename);
 
-      if(access_log_config.filename != log_config.filename)
+      if((access_log_config.level != spdlog::level::off)
+         && !access_log_config.filename.empty())
       {
-        access_log = spdlog::daily_logger_mt("access", access_log_config.filename, 0, 0);
-        access_log->set_level(access_log_config.level);
+        if((access_log_config.filename == log_config.filename)
+           && (log_config.level == access_log_config.level))
+        {
+          access_log = log;
+        }
+        else
+        {
+          access_log = spdlog::daily_logger_mt("access", access_log_config.filename, 0, 0);
+          access_log->set_level(access_log_config.level);
+        }
+        spdlog::info("access_log: [{}]", access_log_config.filename);
+      }
+      else
+      {
+        spdlog::info("access_log: off!");
+        access_log = spdlog::null_logger_mt("access");
       }
 
       return access_log;
