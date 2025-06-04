@@ -44,10 +44,12 @@ include(${YY_CMAKE}/cmake_boost-1.84.0.txt)
 find_package(Boost CONFIG 1.84.0 REQUIRED COMPONENTS json locale program_options)
 find_package(civetweb REQUIRED)
 find_package(fmt REQUIRED)
+find_package(ICU 77.1 COMPONENTS data i18n io uc REQUIRED)
 find_package(re2 REQUIRED)
 find_package(spdlog REQUIRED)
-find_package(yaml-cpp REQUIRED)
 find_package(LibreSSL REQUIRED)
+find_package(yaml-cpp REQUIRED)
+find_package(ZLIB REQUIRED)
 find_package(yy_cpp REQUIRED)
 find_package(yy_json REQUIRED)
 find_package(yy_mqtt REQUIRED)
@@ -55,10 +57,8 @@ find_package(yy_prometheus REQUIRED)
 find_package(yy_values REQUIRED)
 find_package(yy_web REQUIRED)
 
-pkg_check_modules(icu IMPORTED_TARGET icu-i18n icu-io icu-uc REQUIRED)
 pkg_check_modules(Mosquitto_c IMPORTED_TARGET libmosquitto_static REQUIRED)
 pkg_check_modules(Mosquitto_cpp IMPORTED_TARGET libmosquittopp_static REQUIRED)
-pkg_check_modules(ZLib IMPORTED_TARGET zlib REQUIRED)
 
 add_executable(mqtt_bridge
   configure_logging.cpp
@@ -101,27 +101,32 @@ if("${yy_system_name}" STREQUAL "darwin")
       "/opt/local/lib")
 endif()
 
+target_link_directories(mqtt_bridge BEFORE PRIVATE ${YY_THIRD_PARTY_LIBRARY}/lib)
+
 target_link_libraries(mqtt_bridge
-    yy_web::yy_web
-    yy_prometheus::yy_prometheus
-    yy_values::yy_values
-    yy_mqtt::yy_mqtt
-    yy_json::yy_json
-    yy_cpp::yy_cpp
-    Boost::json
-    Boost::locale
-    Boost::program_options
-    civetweb::civetweb-cpp
-    civetweb::civetweb
-    fmt::fmt
-    re2::re2
-    spdlog::spdlog
-    yaml-cpp::yaml-cpp
-    PkgConfig::Mosquitto_cpp
-    PkgConfig::Mosquitto_c
-    LibreSSL::Crypto
-    LibreSSL::SSL
-    PkgConfig::ZLib )
+  yy_web::yy_web
+  yy_prometheus::yy_prometheus
+  yy_values::yy_values
+  yy_mqtt::yy_mqtt
+  yy_json::yy_json
+  yy_cpp::yy_cpp
+  Boost::json
+  Boost::locale
+  Boost::program_options
+  civetweb::civetweb-cpp
+  civetweb::civetweb
+  fmt::fmt
+  re2::re2
+  spdlog::spdlog
+  yaml-cpp::yaml-cpp
+  PkgConfig::Mosquitto_cpp
+  PkgConfig::Mosquitto_c
+  LibreSSL::Crypto
+  LibreSSL::SSL
+  ICU::i18n
+  ICU::io
+  ICU::uc
+  ICU::data)
 
 #install(TARGETS yy_mqtt_bridge)
 
