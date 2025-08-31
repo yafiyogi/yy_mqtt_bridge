@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 build_type="$1"
 
 if [ -z "${build_type}" ]
