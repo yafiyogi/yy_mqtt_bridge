@@ -1,2 +1,0 @@
-YY_MAKE="nice $(which make) -j 2"
-YY_CMAKE="nice $(which cmake)"
