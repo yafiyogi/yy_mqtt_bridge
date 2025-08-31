@@ -44,6 +44,7 @@ include(${YY_CMAKE}/cmake_boost-1.84.0.txt)
 find_package(Boost CONFIG 1.84.0 REQUIRED COMPONENTS json locale program_options)
 find_package(civetweb REQUIRED)
 find_package(fmt REQUIRED)
+find_package(Iconv REQUIRED)
 find_package(ICU 77.1 COMPONENTS data i18n io uc REQUIRED)
 find_package(re2 REQUIRED)
 find_package(spdlog REQUIRED)
@@ -126,7 +127,9 @@ target_link_libraries(mqtt_bridge
   ICU::i18n
   ICU::io
   ICU::uc
-  ICU::data)
+  ICU::data
+  Iconv::Iconv
+  ZLIB::ZLIB )
 
 #install(TARGETS yy_mqtt_bridge)
 
