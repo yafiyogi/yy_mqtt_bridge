@@ -133,7 +133,7 @@ target_link_libraries(mqtt_bridge
 
 #install(TARGETS yy_mqtt_bridge)
 
-add_yy_tidy_all(mqtt_bridge)
+add_yy_tidy_targets(mqtt_bridge)
 add_cmake_valgrind(mqtt_bridge)
 #add_cmake_coverage(mqtt_bridge)
 #add_cmake_asan(mqtt_bridge)
