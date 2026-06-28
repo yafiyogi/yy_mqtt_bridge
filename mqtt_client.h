@@ -80,6 +80,9 @@ class mqtt_client final:
                       int qos_count,
                       const int * granted_qos) override;
 
+    void run();
+    void stop();
+
   private:
     Topics m_topics{};
     Subscriptions m_subscriptions{};
@@ -91,7 +94,9 @@ class mqtt_client final:
     int m_port = yy_mqtt::mqtt_default_port;
     std::atomic<bool> m_is_connected = false;
 
-    static constexpr int default_keepalive_seconds = 60;
+    static constexpr std::chrono::seconds default_keepalive_seconds{60};
+    static constexpr std::chrono::seconds default_reconnect_delay_seconds{15};
+    static constexpr std::chrono::milliseconds default_disconnect_sleep{500};
 };
 
 } // namespace yafiyogi::mqtt_bridge

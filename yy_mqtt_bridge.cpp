@@ -38,6 +38,7 @@
 #include "spdlog/sinks/null_sink.h"
 
 #include "yy_cpp/yy_locale.h"
+#include "yy_cpp/yy_lockable_value.h"
 #include "yy_cpp/yy_yaml_util.h"
 
 #include "yy_prometheus/yy_prometheus_cache.h"
@@ -52,19 +53,44 @@
 #include "mqtt_handler.h"
 #include "prometheus_civetweb_handler.h"
 
+namespace yafiyogi {
 namespace {
 
-static std::atomic<bool> exit_program{false};
+using ClientPtr = std::shared_ptr<mqtt_bridge::mqtt_client>;
+
+struct MqttBridgeState
+{
+    ClientPtr client{};
+    bool exit_program = false;
+};
+
+using LockableMqttBridgeState = yy_util::lockable_value<MqttBridgeState, std::mutex>;
+using LockMqttBridgeState =
+  yy_util::lock_type<LockableMqttBridgeState,
+                     std::unique_lock<LockableMqttBridgeState::mutex_type>>;
+
+LockableMqttBridgeState g_mqtt_bridge_state;
+
+auto do_exit_program = [](auto & p_mqtt_bridge_state) {
+  p_mqtt_bridge_state.exit_program = true;
+
+  if(p_mqtt_bridge_state.client)
+  {
+    p_mqtt_bridge_state.client->stop();
+  }
+};
 
 void signal_handler(int /* signal */)
 {
   std::signal(SIGINT, SIG_DFL);
   std::signal(SIGTERM, SIG_DFL);
-  exit_program = true;
+
+  yafiyogi::LockMqttBridgeState::visit(yafiyogi::g_mqtt_bridge_state, yafiyogi::do_exit_program);
 }
 
 constexpr std::string_view g_default_access_log_file_path{"./mqtt_bridge_access.log"};
 
+}
 }
 
 namespace bpo = boost::program_options;
@@ -74,8 +100,8 @@ int main(int argc, char* argv[])
   using namespace yafiyogi;
   using namespace std::string_view_literals;
 
-  std::signal(SIGINT, signal_handler);
-  std::signal(SIGTERM, signal_handler);
+  std::signal(SIGINT, yafiyogi::signal_handler);
+  std::signal(SIGTERM, yafiyogi::signal_handler);
 
   yafiyogi::mqtt_bridge::logger_config log_config{std::string{yafiyogi::mqtt_bridge::g_default_file_path}, spdlog::level::info};
   spdlog::set_level(log_config.level);
@@ -190,22 +216,21 @@ int main(int argc, char* argv[])
 
     mosqpp::lib_init();
 
-    auto client = std::make_unique<mqtt_bridge::mqtt_client>(mqtt_config,
-                                                             metric_cache);
+    ClientPtr client;
+    auto do_create_client = [&client, &mqtt_config, &metric_cache](auto & p_mqtt_bridge_state) {
+      if(!p_mqtt_bridge_state.exit_program)
+      {
+        client = std::make_shared<mqtt_bridge::mqtt_client>(mqtt_config,
+                                                            metric_cache);
+        p_mqtt_bridge_state.client = client;
+      }
+    };
 
-    client->connect();
     try
     {
-      while(!exit_program)
-      {
-        if(auto rc = client->loop();
-           rc)
-        {
-          std::this_thread::sleep_for(std::chrono::seconds{15});
-          spdlog::info("reconnect [{}]"sv, rc);
-          client->reconnect();
-        }
-      }
+      LockMqttBridgeState::visit(g_mqtt_bridge_state, do_create_client);
+
+      client->run();
     }
     catch(const std::exception & ex)
     {
@@ -214,13 +239,6 @@ int main(int argc, char* argv[])
     catch(...)
     {
       spdlog::critical("Exception caught!"sv);
-    }
-
-    client->disconnect();
-
-    while(client->is_connected())
-    {
-      sleep(1);
     }
 
     mosqpp::lib_cleanup();

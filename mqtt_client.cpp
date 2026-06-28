@@ -67,7 +67,7 @@ mqtt_client::mqtt_client(mqtt_config & p_config,
 
 void mqtt_client::connect()
 {
-  mosqpp::mosquittopp::connect(m_host.c_str(), m_port, default_keepalive_seconds);
+  mosqpp::mosquittopp::connect(m_host.c_str(), m_port, default_keepalive_seconds.count());
 }
 
 void mqtt_client::on_connect(int rc)
@@ -140,5 +140,37 @@ void mqtt_client::on_message(const struct mosquitto_message * message)
     }
   }
 }
+
+void mqtt_client::run()
+{
+  reconnect_delay_set(2, default_reconnect_delay_seconds.count())
+  connect();
+
+  try
+  {
+    loop_forever();
+  }
+  catch(const std::exception & ex)
+  {
+    spdlog::critical("Exception caught [{}]"sv, ex.what());
+  }
+  catch(...)
+  {
+    spdlog::critical("Exception caught!"sv);
+  }
+
+  disconnect();
+
+  while(is_connected())
+  {
+    std::this_thread::sleep_for(default_disconnect_sleep);
+  }
+}
+
+void mqtt_client::stop()
+{
+  disconnect();
+}
+
 
 } // namespace yafiyogi::mqtt_bridge
