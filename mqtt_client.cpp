@@ -143,7 +143,7 @@ void mqtt_client::on_message(const struct mosquitto_message * message)
 
 void mqtt_client::run()
 {
-  reconnect_delay_set(2, default_reconnect_delay_seconds.count())
+  reconnect_delay_set(2, default_reconnect_delay_seconds.count(), false);
   connect();
 
   try
